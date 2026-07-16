@@ -56,6 +56,13 @@ for task_dir in "$TASKS_DIR"/*/; do
                    "$RESULTS/transcripts/$(basename "$ws").json" || true)
       [ -n "$agent_json" ] || agent_json='{"error":"adapter produced no output"}'
 
+      if grep -qiE "hit your session limit|usage limit" \
+           "$RESULTS/transcripts/$(basename "$ws").json" 2>/dev/null; then
+        echo "SESSION LIMIT hit — aborting matrix; voiding this cell." >&2
+        rm -rf "$ws"
+        exit 3
+      fi
+
       grade_json="{}"; pass=false
       if "$task_dir/grader/grade.sh" "$ws" > "$ws/grade-stdout.log" 2>&1; then
         pass=true
