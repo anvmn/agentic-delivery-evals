@@ -1,0 +1,52 @@
+<?php
+
+/**
+ * @file
+ * Install hooks for the Clinic Stats module. Do not modify this file.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function clinicstats_install() {
+  $type = node_type_set_defaults(array(
+    'type' => 'measurement',
+    'name' => st('Measurement'),
+    'base' => 'node_content',
+    'custom' => TRUE,
+  ));
+  node_type_save($type);
+
+  if (!field_info_field('field_clinic_id')) {
+    field_create_field(array(
+      'field_name' => 'field_clinic_id',
+      'type' => 'number_integer',
+      'cardinality' => 1,
+    ));
+  }
+  if (!field_info_instance('node', 'field_clinic_id', 'measurement')) {
+    field_create_instance(array(
+      'field_name' => 'field_clinic_id',
+      'entity_type' => 'node',
+      'bundle' => 'measurement',
+      'label' => 'Clinic ID',
+    ));
+  }
+
+  if (!field_info_field('field_value')) {
+    field_create_field(array(
+      'field_name' => 'field_value',
+      'type' => 'number_decimal',
+      'cardinality' => 1,
+      'settings' => array('precision' => 10, 'scale' => 2),
+    ));
+  }
+  if (!field_info_instance('node', 'field_value', 'measurement')) {
+    field_create_instance(array(
+      'field_name' => 'field_value',
+      'entity_type' => 'node',
+      'bundle' => 'measurement',
+      'label' => 'Value',
+    ));
+  }
+}

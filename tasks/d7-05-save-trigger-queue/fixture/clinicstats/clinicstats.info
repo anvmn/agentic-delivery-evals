@@ -1,0 +1,4 @@
+name = Clinic Stats
+description = Queued per-clinic measurement statistics (eval task).
+core = 7.x
+package = Eval

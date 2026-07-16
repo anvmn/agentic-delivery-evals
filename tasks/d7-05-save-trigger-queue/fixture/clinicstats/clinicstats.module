@@ -1,0 +1,9 @@
+<?php
+
+/**
+ * @file
+ * Clinic Stats module — implement per task.md.
+ *
+ * TODO: implement the save-trigger -> queue -> cron pipeline:
+ * hook_node_insert(), hook_node_update(), hook_cron().
+ */

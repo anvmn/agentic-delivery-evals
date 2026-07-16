@@ -1,0 +1,83 @@
+<?php
+
+/**
+ * @file
+ * Clinic Stats module — reference solution (grader self-tests only).
+ */
+
+/**
+ * Implements hook_node_insert().
+ */
+function clinicstats_node_insert($node) {
+  _clinicstats_schedule($node);
+}
+
+/**
+ * Implements hook_node_update().
+ */
+function clinicstats_node_update($node) {
+  _clinicstats_schedule($node);
+}
+
+/**
+ * Queues a clinic recalculation once per pending cycle.
+ */
+function _clinicstats_schedule($node) {
+  if ($node->type !== 'measurement') {
+    return;
+  }
+  $items = field_get_items('node', $node, 'field_clinic_id');
+  if (empty($items[0]['value'])) {
+    return;
+  }
+  $clinic_id = (int) $items[0]['value'];
+  $pending = variable_get('clinicstats_pending', array());
+  if (in_array($clinic_id, $pending, TRUE)) {
+    return;
+  }
+  DrupalQueue::get('clinicstats_recalc')->createItem(array('clinic_id' => $clinic_id));
+  $pending[] = $clinic_id;
+  variable_set('clinicstats_pending', $pending);
+}
+
+/**
+ * Implements hook_cron().
+ */
+function clinicstats_cron() {
+  $queue = DrupalQueue::get('clinicstats_recalc');
+  while ($item = $queue->claimItem()) {
+    $clinic_id = (int) $item->data['clinic_id'];
+    _clinicstats_recalculate($clinic_id);
+    $queue->deleteItem($item);
+    $pending = variable_get('clinicstats_pending', array());
+    $pending = array_values(array_diff($pending, array($clinic_id)));
+    variable_set('clinicstats_pending', $pending);
+  }
+}
+
+/**
+ * Recomputes totals for one clinic from published measurements.
+ */
+function _clinicstats_recalculate($clinic_id) {
+  $query = new EntityFieldQuery();
+  $result = $query
+    ->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'measurement')
+    ->propertyCondition('status', NODE_PUBLISHED)
+    ->fieldCondition('field_clinic_id', 'value', $clinic_id)
+    ->execute();
+
+  $count = 0;
+  $sum = 0.0;
+  if (!empty($result['node'])) {
+    $nodes = node_load_multiple(array_keys($result['node']));
+    foreach ($nodes as $node) {
+      $values = field_get_items('node', $node, 'field_value');
+      if (!empty($values[0]['value'])) {
+        $sum += (float) $values[0]['value'];
+      }
+      $count++;
+    }
+  }
+  variable_set('clinicstats_totals_' . $clinic_id, array('count' => $count, 'sum' => $sum));
+}
