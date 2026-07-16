@@ -26,10 +26,27 @@ function healthstats_menu() {
     'title' => 'Health statistics',
     'page callback' => 'healthstats_page',
     'access arguments' => array('view healthstats'),
-    'delivery callback' => 'drupal_json_output',
+    'delivery callback' => 'healthstats_deliver',
     'type' => MENU_CALLBACK,
   );
   return $items;
+}
+
+/**
+ * Delivery callback: JSON for payloads, normal delivery for status codes.
+ *
+ * Menu status results (MENU_ACCESS_DENIED, MENU_NOT_FOUND) arrive here as
+ * integers; handing them to drupal_json_output() would deliver e.g. "3" with
+ * HTTP 200. Route them through the standard HTML delivery so access denied
+ * is a real 403.
+ */
+function healthstats_deliver($page_callback_result) {
+  if (is_int($page_callback_result)) {
+    drupal_deliver_html_page($page_callback_result);
+    return;
+  }
+  drupal_json_output($page_callback_result);
+  drupal_page_footer();
 }
 
 /**

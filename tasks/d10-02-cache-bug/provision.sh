@@ -6,9 +6,10 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 SITE="$ROOT/.ddev-cores/d10site"
 
 mkdir -p "$SITE"; cd "$SITE"
-[ -f composer.json ] || composer create-project drupal/recommended-project:^10 . --no-interaction
 [ -f .ddev/config.yaml ] || ddev config --project-type=drupal10 --project-name=evals-d10 --docroot=web
 ddev start -y
+# Composer runs inside the container: host PHP may be too old for Drupal 10.
+[ -f composer.json ] || ddev composer create-project "drupal/recommended-project:^10" --no-interaction
 ddev composer require drush/drush --no-interaction
 ddev drush -y site:install standard --account-pass=admin --site-name="D10 Eval Site" || true
 ddev drush php:eval '

@@ -2,17 +2,26 @@
 
 /**
  * @file
- * Renders the latest_notice_block through the render pipeline (drush php:script).
- * Render cache applies, so staleness reproduces across separate drush calls.
+ * Renders latest_notice_block the way core's block rendering does
+ * (drush php:script). A wrapper with #cache keys stands in for
+ * BlockViewBuilder: the plugin build's cacheability bubbles up into the
+ * wrapper's render-cache entry, so missing tags reproduce as staleness
+ * across separate drush invocations — exactly like a real placed block.
  */
 
 use Drupal\Core\Render\RenderContext;
 
 $renderer = \Drupal::service('renderer');
 $block = \Drupal::service('plugin.manager.block')->createInstance('latest_notice_block', []);
+
 $context = new RenderContext();
 $html = $renderer->executeInRenderContext($context, function () use ($renderer, $block) {
-  $build = $block->build();
-  return $renderer->render($build);
+  $wrapped = [
+    '#cache' => [
+      'keys' => ['eval', 'latest_notice_block'],
+    ],
+    'content' => $block->build(),
+  ];
+  return $renderer->render($wrapped);
 });
 print (string) $html;
