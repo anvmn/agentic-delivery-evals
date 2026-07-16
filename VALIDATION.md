@@ -54,3 +54,15 @@ the suite applies its own "test the smoke detector" rule to itself.
 - **Outcome:** d7-01 final: fable-5 3/3 (correct custom delivery callback each
   time), opus-4-8 1/3 (2 trials hit the drupal_json_output/403 trap — the same
   one that caught the suite author).
+
+## d7-03-field-migration (added 2026-07-16 → suite 0.1.1)
+
+Three-way self-test: reference PASS · forgot-the-revisions variant FAIL on
+exactly data_normalized · raw fixture FAIL on update_ran. One grader fix
+during validation: `drupal_get_installed_schema_version()` needs
+`includes/install.inc` loaded explicitly in a php-script bootstrap.
+Run result: 11/12 across four models (haiku 2/3; its failing run errored
+during updb and left data unnormalized) — the d7-01 staircase did NOT
+reproduce, refining the finding from "legacy is hard" to the trap-density
+hypothesis. Records before d7-03 carry suite 0.1.0; the table is regenerated
+over both — treated as one suite since no earlier task changed.

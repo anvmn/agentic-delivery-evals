@@ -4,7 +4,7 @@
 #                      [--only e-01-decoder-roundtrip] [--max-cost-usd 15]
 set -euo pipefail
 
-SUITE_VERSION="0.1.0"
+SUITE_VERSION="0.1.1"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TASKS_DIR="$ROOT/tasks"
 RESULTS="$ROOT/results"
