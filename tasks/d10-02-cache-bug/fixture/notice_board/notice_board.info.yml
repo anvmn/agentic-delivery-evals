@@ -1,0 +1,5 @@
+name: Notice Board
+type: module
+description: 'Latest-notice block (eval task).'
+package: Eval
+core_version_requirement: ^10 || ^11

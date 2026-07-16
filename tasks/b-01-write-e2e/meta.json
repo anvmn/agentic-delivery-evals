@@ -1,0 +1,11 @@
+{
+  "lane": "behavioral",
+  "tier": 2,
+  "timeout_s": 1500,
+  "required_stages": [
+    "has_tests",
+    "app_untouched",
+    "healthy_passes",
+    "broken_detected"
+  ]
+}

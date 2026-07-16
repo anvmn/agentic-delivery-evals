@@ -1,0 +1,6 @@
+{
+  "lane": "drupal7",
+  "tier": 1,
+  "timeout_s": 900,
+  "required_stages": ["lint", "enable", "permission_defined", "anon_403", "authorized_json"]
+}
