@@ -1,0 +1,77 @@
+<?php
+
+/**
+ * @file
+ * Install hooks for the Phonebook module — FLAWED self-test variant: forgets the revision table.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function phonebook_install() {
+  $type = node_type_set_defaults(array(
+    'type' => 'contact',
+    'name' => st('Contact'),
+    'base' => 'node_content',
+    'custom' => TRUE,
+  ));
+  node_type_save($type);
+
+  if (!field_info_field('field_phone')) {
+    field_create_field(array(
+      'field_name' => 'field_phone',
+      'type' => 'text',
+      'cardinality' => 1,
+    ));
+  }
+  if (!field_info_instance('node', 'field_phone', 'contact')) {
+    field_create_instance(array(
+      'field_name' => 'field_phone',
+      'entity_type' => 'node',
+      'bundle' => 'contact',
+      'label' => 'Phone',
+    ));
+  }
+}
+
+/**
+ * Normalize a stored phone value to E.164.
+ */
+function _phonebook_normalize_phone($value) {
+  if ($value === NULL || $value === '') {
+    return $value;
+  }
+  $cleaned = preg_replace('/[^0-9+]/', '', $value);
+  if (strpos($cleaned, '+972') === 0) {
+    return '+972' . preg_replace('/[^0-9]/', '', substr($cleaned, 4));
+  }
+  if (strpos($cleaned, '0') === 0) {
+    return '+972' . substr($cleaned, 1);
+  }
+  return $value;
+}
+
+/**
+ * Normalize all stored phone numbers to E.164 (current and revision data).
+ */
+function phonebook_update_7100() {
+  $count = 0;
+  foreach (array('field_data_field_phone') as $table) {
+    $rows = db_query('SELECT entity_id, revision_id, delta, language, field_phone_value FROM {' . $table . '}');
+    foreach ($rows as $row) {
+      $normalized = _phonebook_normalize_phone($row->field_phone_value);
+      if ($normalized !== $row->field_phone_value) {
+        db_update($table)
+          ->fields(array('field_phone_value' => $normalized))
+          ->condition('entity_id', $row->entity_id)
+          ->condition('revision_id', $row->revision_id)
+          ->condition('delta', $row->delta)
+          ->condition('language', $row->language)
+          ->execute();
+        $count++;
+      }
+    }
+  }
+  field_cache_clear();
+  return t('Normalized @count phone values.', array('@count' => $count));
+}

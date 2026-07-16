@@ -1,0 +1,4 @@
+name = Phonebook
+description = Contact directory with a phone field (eval task).
+core = 7.x
+package = Eval

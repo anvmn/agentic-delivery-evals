@@ -1,0 +1,37 @@
+<?php
+
+/**
+ * @file
+ * Install hooks for the Phonebook module.
+ *
+ * TODO: add hook_update_7100() per task.md. Do not modify hook_install().
+ */
+
+/**
+ * Implements hook_install().
+ */
+function phonebook_install() {
+  $type = node_type_set_defaults(array(
+    'type' => 'contact',
+    'name' => st('Contact'),
+    'base' => 'node_content',
+    'custom' => TRUE,
+  ));
+  node_type_save($type);
+
+  if (!field_info_field('field_phone')) {
+    field_create_field(array(
+      'field_name' => 'field_phone',
+      'type' => 'text',
+      'cardinality' => 1,
+    ));
+  }
+  if (!field_info_instance('node', 'field_phone', 'contact')) {
+    field_create_instance(array(
+      'field_name' => 'field_phone',
+      'entity_type' => 'node',
+      'bundle' => 'contact',
+      'label' => 'Phone',
+    ));
+  }
+}
