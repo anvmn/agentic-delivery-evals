@@ -2,7 +2,7 @@
 
 Coding evals for agentic work on **Drupal (7 and 10)** and **Elm** — the measurement layer of the [agentic-delivery-harness](https://github.com/anvmn/agentic-delivery-harness). Realistic tasks, mechanical grading, hidden holdouts, and a runner that executes coding agents headlessly and reports pass rates per model. Built and validated on the workflow behind a production digital-health platform.
 
-## v0.1 results (suite 0.1.1 · 72 runs · 4 models · 2026-07-16)
+## v0.1 results (suite 0.1.2 · 84 runs · 4 models · 2026-07-17)
 
 | task | lane | tier | fable-5 | opus-4-8 | sonnet-5 | haiku-4-5 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -12,8 +12,9 @@ Coding evals for agentic work on **Drupal (7 and 10)** and **Elm** — the measu
 | d10-02 cache invalidation | drupal10 | 2 | 3/3 | 3/3 | 3/3 | 3/3 |
 | **d7-01 menu endpoint** | **drupal7** | **2** | **3/3** | **1/3** | **0/3** | **0/3** |
 | d7-03 field migration | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 |
+| d7-05 save-trigger queue | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 |
 
-**The finding, refined by its own replication test:** on d7-01, four models spanning the capability range separate in a clean staircase — Fable 5 3/3, Opus 4.8 1/3, Sonnet 5 and Haiku 4.5 0/3 — while every modern-stack task is 12/12 across all four. But a second Drupal 7 task (d7-03, a *harder*-tier data migration through update hooks and revision tables) came back nearly a clean sweep: 11/12. So "legacy code is hard for AI" is the wrong lesson. The evidence so far points somewhere more specific: **what separates models isn't code age — it's idiom traps**, places where the correct legacy pattern *looks wrong* to instincts trained on modern frameworks (d7-01's delivery callback), as opposed to legacy work that is mechanical and well-documented, however fiddly (d7-03's dual-table migration). Two tasks are still two tasks; the trap-density hypothesis is what v0.2 is designed to test.
+**The finding, twice refined by replication:** on d7-01, four models spanning the capability range separate in a clean staircase — Fable 5 3/3, Opus 4.8 1/3, Sonnet 5 and Haiku 4.5 0/3 — while every modern-stack task is 12/12 across all four. Two more Drupal 7 tasks then tested whether "legacy is hard" explains it. It doesn't: d7-03 (a harder-tier dual-table data migration) came back 11/12, and d7-05 — which deliberately stacks *four* legacy-API axes (DrupalQueue vs QueueWorker instincts, variables vs State API, EntityFieldQuery vs entityQuery, plus an idempotency requirement) and is modeled on the most common pattern in a real production D7 backend — came back **12/12**. Old and obscure APIs alone don't separate models. What separated them, in the one task that did, is sharper: **d7-01 is the only task where the canonical-*looking* solution is wrong** (`drupal_json_output` as a delivery callback reads like textbook D7 and silently breaks access control). The working hypothesis after three legacy tasks: models fail not where code is old, but where **plausible looks-right patterns are subtly incorrect** — and that is also precisely where unaided human reviewers fail. v0.2's task design targets exactly such looks-right-is-wrong spots, in both eras.
 
 The failure modes are distinct, and all three are real Drupal 7 production hazards:
 
@@ -25,7 +26,7 @@ Models are trained overwhelmingly on modern-framework idioms; the **paradigm-ble
 
 A practical corollary from the cost column of the receipts: Haiku passed every modern-stack task at $0.06–$0.11 per run — 4–8× cheaper than the frontier models on the same green results. In this suite's domains, capability spend only pays off where the training distribution runs thin.
 
-Honest caveats: n=3 trials per cell — error bars are wide, and differences under ~2 tasks are noise. Five of six tasks are (nearly) saturated across the whole capability band, so they demonstrate competence, not separation; v0.2 grows the trap-density end. Every number above is regenerable from `results/runs.jsonl` (receipts: stages, duration, cost, transcript per run; six d7 records are marked `regraded` after grader-fairness fixes — see [`VALIDATION.md`](VALIDATION.md)).
+Honest caveats: n=3 trials per cell — error bars are wide, and differences under ~2 tasks are noise. Six of seven tasks are (nearly) saturated across the whole capability band, so they demonstrate competence, not separation; v0.2 targets looks-right-is-wrong spots. Every number above is regenerable from `results/runs.jsonl` (receipts: stages, duration, cost, transcript per run; six d7 records are marked `regraded` after grader-fairness fixes — see [`VALIDATION.md`](VALIDATION.md)).
 
 ## How it works
 
