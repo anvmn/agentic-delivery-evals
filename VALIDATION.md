@@ -37,3 +37,20 @@ the suite applies its own "test the smoke detector" rule to itself.
   invisible and the buggy fixture passed. The harness now wraps the build with keys the
   way core's BlockViewBuilder does; cacheability bubbles up and both directions grade
   correctly.
+
+## Matrix-day grader fixes (2026-07-16, all re-graded from preserved workspaces)
+
+- **Contract-only grading:** the authorized_json probe hardcoded the page-callback
+  *function name*; both models legitimately chose another name and were failed
+  unfairly. The probe now resolves whatever callback the module registered via
+  `menu_get_item()`. Rule: grade only what task.md contracts.
+- **Canonicalized workspace paths:** grade.sh cd's into the eval site mid-run;
+  called with a relative workspace path it wrote grade.json/receipts into the
+  site tree while stale originals were being read. Workspace arg is now
+  canonicalized on entry. (Cost: ~an hour of chasing phantom flakiness.)
+- **Shared-fixture state reset:** each grade now disables the module, replaces
+  files, clears caches, then enables — grades are order-independent; the anon
+  HTTP probe retries once to ride out router rebuilds.
+- **Outcome:** d7-01 final: fable-5 3/3 (correct custom delivery callback each
+  time), opus-4-8 1/3 (2 trials hit the drupal_json_output/403 trap — the same
+  one that caught the suite author).

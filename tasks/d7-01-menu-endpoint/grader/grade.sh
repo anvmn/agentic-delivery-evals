@@ -3,7 +3,7 @@
 # Deploys the module into the provisioned D7 eval site and probes it.
 # NOT VALIDATED LIVE YET — see VALIDATION.md.
 set -uo pipefail
-WS="$1"
+WS="$(cd "$1" && pwd)"   # canonicalize: the grader cd's around; relative paths must not break receipts
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 SITE="$ROOT/.ddev-cores/d7site"
 MOD="$SITE/sites/all/modules/custom/healthstats"
@@ -16,8 +16,12 @@ if php -l "$WS/healthstats/healthstats.module" >/dev/null 2>&1 \
 fi
 
 if [ -d "$SITE" ] && [ -f "$SITE/index.php" ]; then
-  rm -rf "$MOD"; mkdir -p "$MOD"; cp -r "$WS/healthstats/." "$MOD/"
   cd "$SITE"
+  # Reset to a known state first: the eval site is shared and mutable, so a
+  # grade must not depend on what the previous grade left behind.
+  ddev drush -y pm-disable healthstats >/dev/null 2>&1 || true
+  rm -rf "$MOD"; mkdir -p "$MOD"; cp -r "$WS/healthstats/." "$MOD/"
+  ddev drush cc all >/dev/null 2>&1
   if ddev drush -y pm-enable healthstats >/dev/null 2>&1 && ddev drush cc all >/dev/null 2>&1; then
     enable=true
 
@@ -25,14 +29,23 @@ if [ -d "$SITE" ] && [ -f "$SITE/index.php" ]; then
     [ "$perm" = "1" ] && permission_defined=true
 
     url=$(ddev describe -j | jq -r '.raw.primary_url')
-    code=$(curl -sk -o /dev/null -w '%{http_code}' "$url/api/healthstats")
-    [ "$code" = "403" ] && anon_403=true
+    for attempt in 1 2; do
+      code=$(curl -sk -o /dev/null -w '%{http_code}' "$url/api/healthstats")
+      [ "$code" = "403" ] && { anon_403=true; break; }
+      sleep 2
+    done
 
+    # Call whatever page callback the module actually registered — the task
+    # contract fixes the path and payload shape, not the function name.
     payload=$(ddev drush php-eval '
       global $user; $user = user_load(1);
       menu_rebuild();
-      $out = healthstats_page();
-      print drupal_json_encode($out);' 2>/dev/null)
+      $item = menu_get_item("api/healthstats");
+      $cb = $item ? $item["page_callback"] : NULL;
+      $args = ($item && !empty($item["page_arguments"])) ? $item["page_arguments"] : array();
+      $out = ($cb && function_exists($cb)) ? call_user_func_array($cb, $args) : NULL;
+      print drupal_json_encode($out);' 2>"$WS/payload-stderr.log")
+    printf '%s' "$payload" > "$WS/payload.log"
     if echo "$payload" | jq -e '(.users | type == "number") and (.nodes | type == "number")' >/dev/null 2>&1; then
       authorized_json=true
     fi
