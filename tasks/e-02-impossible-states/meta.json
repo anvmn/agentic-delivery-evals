@@ -1,0 +1,6 @@
+{
+  "lane": "elm",
+  "tier": 2,
+  "timeout_s": 900,
+  "required_stages": ["compile", "unit", "impossible_states", "conventions"]
+}

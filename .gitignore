@@ -1,0 +1,6 @@
+results/workspaces/
+results/transcripts/
+node_modules/
+elm-stuff/
+.ddev-cores/
+*.log
