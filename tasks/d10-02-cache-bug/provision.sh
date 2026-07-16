@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 SITE="$ROOT/.ddev-cores/d10site"
 
-mkdir -p "$SITE"; cd "$SITE"
+mkdir -p "$SITE"; cd "$SITE" || exit 1
 [ -f .ddev/config.yaml ] || ddev config --project-type=drupal10 --project-name=evals-d10 --docroot=web
 ddev start -y
 # Composer runs inside the container: host PHP may be too old for Drupal 10.

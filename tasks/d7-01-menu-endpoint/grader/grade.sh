@@ -16,7 +16,7 @@ if php -l "$WS/healthstats/healthstats.module" >/dev/null 2>&1 \
 fi
 
 if [ -d "$SITE" ] && [ -f "$SITE/index.php" ]; then
-  cd "$SITE"
+  cd "$SITE" || exit 1
   # Reset to a known state first: the eval site is shared and mutable, so a
   # grade must not depend on what the previous grade left behind.
   ddev drush -y pm-disable healthstats >/dev/null 2>&1 || true
@@ -29,7 +29,7 @@ if [ -d "$SITE" ] && [ -f "$SITE/index.php" ]; then
     [ "$perm" = "1" ] && permission_defined=true
 
     url=$(ddev describe -j | jq -r '.raw.primary_url')
-    for attempt in 1 2; do
+    for _ in 1 2; do
       code=$(curl -sk -o /dev/null -w '%{http_code}' "$url/api/healthstats")
       [ "$code" = "403" ] && { anon_403=true; break; }
       sleep 2

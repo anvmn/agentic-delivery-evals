@@ -29,7 +29,7 @@ Three consumers, in priority order:
 
 ## 3. Task format
 
-```
+```text
 tasks/<lane>-<nn>-<slug>/
 ├── task.md          # the spec (harness template: goal, context, acceptance
 │                    #   criteria in prose, out of scope) — agent-visible
@@ -83,7 +83,7 @@ v0.1 ships **five**: D7-01, D10-02, E-01, E-02, B-01 — both Drupal eras repres
 
 Bash + jq (no framework; the repo should be readable in ten minutes):
 
-```
+```bash
 runner/run.sh --tasks tasks/ --models "claude-opus-4-8,claude-fable-5" --trials 3
 ```
 

@@ -12,7 +12,7 @@ rm -rf "$G/tests"; mkdir -p "$G/tests"
 cp "$HERE/assets/RoundTripHoldout.elm" "$G/tests/"
 
 compile=false; unit=false; conventions=false
-cd "$G"
+cd "$G" || exit 1
 ( [ -d node_modules ] || npm install --silent --no-audit --no-fund ) >/dev/null 2>&1
 
 if npx elm make src/Codec.elm --output=/dev/null > compile.log 2>&1; then compile=true; fi

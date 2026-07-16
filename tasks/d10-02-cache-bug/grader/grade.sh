@@ -29,7 +29,7 @@ fi
 if [ -d "$SITE" ] && [ -f "$SITE/web/index.php" ]; then
   rm -rf "$MOD"; mkdir -p "$MOD"; cp -r "$WS/notice_board/." "$MOD/"
   cp "$HERE/assets/render_block.php" "$SITE/render_block.php"
-  cd "$SITE"
+  cd "$SITE" || exit 1
   if ddev drush -y pm:install notice_board >/dev/null 2>&1 && ddev drush cr >/dev/null 2>&1; then
     enable=true
     marker="Notice-$(date +%s%N)"

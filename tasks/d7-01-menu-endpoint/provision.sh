@@ -6,7 +6,7 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 SITE="$ROOT/.ddev-cores/d7site"
 D7_VERSION="7.103"
 
-mkdir -p "$SITE"; cd "$SITE"
+mkdir -p "$SITE"; cd "$SITE" || exit 1
 if [ ! -f index.php ]; then
   curl -fsSL "https://ftp.drupal.org/files/projects/drupal-${D7_VERSION}.tar.gz" | tar xz --strip-components=1
 fi

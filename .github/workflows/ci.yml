@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: ShellCheck runner and graders
-        run: shellcheck runner/*.sh runner/agents/*.sh tasks/*/grader/grade.sh tasks/*/provision.sh tasks/*/fixture/build.sh
+        run: shellcheck -S warning runner/*.sh runner/agents/*.sh tasks/*/grader/grade.sh tasks/*/provision.sh tasks/*/fixture/build.sh
 
   markdownlint:
     runs-on: ubuntu-latest

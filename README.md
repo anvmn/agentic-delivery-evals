@@ -18,7 +18,7 @@ Honest caveats: n=3 trials per cell — error bars are wide, and differences und
 
 ## How it works
 
-```
+```text
 tasks/<id>/         task.md (agent-visible spec) · fixture/ (starting state)
                     grader/ (answer key — never enters the agent workspace)
                     meta.json (lane, tier, timeout, required stages)
