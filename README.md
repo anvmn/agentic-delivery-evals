@@ -39,6 +39,15 @@ A practical corollary from the cost column of the receipts: Haiku passed every m
 
 **The v0.3 negative result — an expert hunting traps went 0-for-5.** Five more tasks were engineered *deliberately* to the looks-right-is-wrong recipe, harder than anything before them and weighted to Drupal 7: node-access grants vs the runtime-hook leak, the `$sandbox` batching contract, multilingual field access, `Decode.oneOf` silent mis-decoding, clinical boundary conditions. Frontier models: **45/45.** Only Haiku dropped two trials. Every one of these traps turns out to be *well-warned* in the corpus — node access grants and `$sandbox` batching are among the most-documented D7 topics precisely because they burned so many humans. The task-author (20 years in these stacks, actively hunting) could not construct a second d7-01 on purpose. Which sharpens the finding to its final v0.x form: frontier models are robust to *famous* traps regardless of era or complexity; what still catches them is the rare spot where the wrong pattern is popular **and its warning never made it into the corpus** — d7-01's delivery-callback interaction remains, after 15 tasks and 192 runs, the only such spot found. Corollary: those spots are exactly as hard for humans to enumerate — the suite's development caught its own author five times.
 
+**Cross-lab replication (2026-07-18): the trap belongs to the internet, not to a lab.** Google's models, run through the identical pipeline (a thin Gemini-CLI adapter; same tasks, same graders, same blind protocol) on d7-01:
+
+| model | d7-01 | failure stage | failing line |
+| --- | --- | --- | --- |
+| gemini-3.1-pro-preview | 1/3 | anon_403 | `'delivery callback' => 'drupal_json_output'` |
+| gemini-3-flash | 0/3 | anon_403 | `'delivery callback' => 'drupal_json_output'` |
+
+Frontier-for-frontier the pattern mirrors Claude: Google's top model escapes the trap at the same ~1-in-3 rate as Opus 4.8, its smaller model never does, and every failure is the *same mode, same line* — the canonical-looking delivery callback that serves access-denied as HTTP 200. Two labs, one shared training distribution, one shared blind spot. (Caveat: different CLI scaffolding — these are model+harness systems, stated as such.)
+
 Honest caveats: n=3 trials per cell — error bars are wide, and differences under ~2 tasks are noise. Nine of ten tasks are (nearly) saturated for frontier models; d7-01 remains the sole strong discriminator. Every number above is regenerable from `results/runs.jsonl` (receipts: stages, duration, cost, transcript per run; six d7 records are marked `regraded` after grader-fairness fixes — see [`VALIDATION.md`](VALIDATION.md)).
 
 ## How it works

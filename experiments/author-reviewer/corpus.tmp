@@ -22,3 +22,5 @@
 {"ws":"/home/anatoly/projects/agentic-delivery-evals/results/workspaces/d7-01-menu-endpoint--claude-haiku-4-5--t1--20260717T082028Z","author":"claude-haiku-4-5","truth":false}
 {"ws":"/home/anatoly/projects/agentic-delivery-evals/results/workspaces/d7-01-menu-endpoint--claude-haiku-4-5--t2--20260717T082102Z","author":"claude-haiku-4-5","truth":false}
 {"ws":"/home/anatoly/projects/agentic-delivery-evals/results/workspaces/d7-01-menu-endpoint--claude-haiku-4-5--t3--20260717T082126Z","author":"claude-haiku-4-5","truth":true}
+{"ws":"/home/anatoly/projects/agentic-delivery-evals/results/workspaces/d7-01-menu-endpoint--gemini_gemini-3.1-pro-preview--t1--20260717T203736Z","author":"gemini:gemini-3.1-pro-preview","truth":false}
+{"ws":"/home/anatoly/projects/agentic-delivery-evals/results/workspaces/d7-01-menu-endpoint--gemini_gemini-3.1-pro-preview--t2--20260717T203840Z","author":"gemini:gemini-3.1-pro-preview","truth":false}
