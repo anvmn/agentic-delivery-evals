@@ -68,6 +68,11 @@ for task_dir in "$TASKS_DIR"/*/; do
         rm -rf "$ws"
         exit 3
       fi
+      if jq -e '.agent_exit == 99' <<<"$agent_json" >/dev/null 2>&1; then
+        echo "PROVIDER QUOTA exhausted (adapter exit 99) — aborting matrix; voiding this cell." >&2
+        rm -rf "$ws"
+        exit 3
+      fi
 
       grade_json="{}"; pass=false
       if "$task_dir/grader/grade.sh" "$ws" > "$ws/grade-stdout.log" 2>&1; then
