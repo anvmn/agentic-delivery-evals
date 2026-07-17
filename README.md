@@ -2,7 +2,7 @@
 
 Coding evals for agentic work on **Drupal (7 and 10)** and **Elm** — the measurement layer of the [agentic-delivery-harness](https://github.com/anvmn/agentic-delivery-harness). Realistic tasks, mechanical grading, hidden holdouts, and a runner that executes coding agents headlessly and reports pass rates per model. Built and validated on the workflow behind a production digital-health platform.
 
-## v0.1 results (suite 0.1.2 · 96 runs · 4 models · 2026-07-17)
+## Results (suites 0.1–0.2 · 132 runs · 4 models · 2026-07-17)
 
 | task | lane | tier | fable-5 | opus-4-8 | sonnet-5 | haiku-4-5 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -13,6 +13,9 @@ Coding evals for agentic work on **Drupal (7 and 10)** and **Elm** — the measu
 | **d7-01 menu endpoint** (two independent runs) | **drupal7** | **2** | **6/6** | **1/6** | **0/6** | **1/6** |
 | d7-03 field migration | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 |
 | d7-05 save-trigger queue | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 |
+| e-06 unicode length | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 |
+| d10-04 cache context (poisoning) | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 2/3 |
+| d10-05 query access leak | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 2/3 |
 
 **The finding, twice refined by replication — and now test-retested:** on d7-01, four models spanning the capability range separate in a clean staircase — Fable 5 6/6, Opus 4.8 1/6, Sonnet 5 0/6, Haiku 4.5 1/6 over two independent runs a day apart — while every modern-stack task is 12/12 across all four. Two more Drupal 7 tasks then tested whether "legacy is hard" explains it. It doesn't: d7-03 (a harder-tier dual-table data migration) came back 11/12, and d7-05 — which deliberately stacks *four* legacy-API axes (DrupalQueue vs QueueWorker instincts, variables vs State API, EntityFieldQuery vs entityQuery, plus an idempotency requirement) and is modeled on the most common pattern in a real production D7 backend — came back **12/12**. Old and obscure APIs alone don't separate models. What separated them, in the one task that did, is sharper: **d7-01 is the only task where the canonical-*looking* solution is wrong** (`drupal_json_output` as a delivery callback reads like textbook D7 and silently breaks access control). The working hypothesis after three legacy tasks: models fail not where code is old, but where **plausible looks-right patterns are subtly incorrect** — and that is also precisely where unaided human reviewers fail. v0.2's task design targets exactly such looks-right-is-wrong spots, in both eras.
 
@@ -27,7 +30,9 @@ Models are trained overwhelmingly on modern-framework idioms; the **paradigm-ble
 
 A practical corollary from the cost column of the receipts: Haiku passed every modern-stack task at $0.06–$0.11 per run — 4–8× cheaper than the frontier models on the same green results. In this suite's domains, capability spend only pays off where the training distribution runs thin.
 
-Honest caveats: n=3 trials per cell — error bars are wide, and differences under ~2 tasks are noise. Six of seven tasks are (nearly) saturated across the whole capability band, so they demonstrate competence, not separation; v0.2 targets looks-right-is-wrong spots. Every number above is regenerable from `results/runs.jsonl` (receipts: stages, duration, cost, transcript per run; six d7 records are marked `regraded` after grader-fairness fixes — see [`VALIDATION.md`](VALIDATION.md)).
+**The v0.2 counter-result — traps with published warnings don't trap.** We built three tasks deliberately engineered to d7-01's recipe (popular-wrong pattern, framework-interaction bug, happy-path camouflage) in *modern* territory: Elm's UTF-16 length trap, Drupal 10 cache-context poisoning, and the entityQuery access leak. The frontier models dodged all three, 27/27; only Haiku dropped points (a runtime crash from a missing `accessCheck()`, and one genuine access leak). The distinction this forces is the sharpest yet: modern traps are *loudly documented as traps* — change records, security advisories, a decade of blog posts — so the warnings live in the training corpus alongside the bugs. d7-01's delivery-callback trap predates that discourse: the corpus carries the disease without the vaccine. Working formulation after ten tasks: **models fail where the training corpus contains the wrong pattern but not its warning.** Corollary, measured on ourselves: these traps caught the suite's human author four times during development — more often than they caught any frontier model.
+
+Honest caveats: n=3 trials per cell — error bars are wide, and differences under ~2 tasks are noise. Nine of ten tasks are (nearly) saturated for frontier models; d7-01 remains the sole strong discriminator. Every number above is regenerable from `results/runs.jsonl` (receipts: stages, duration, cost, transcript per run; six d7 records are marked `regraded` after grader-fairness fixes — see [`VALIDATION.md`](VALIDATION.md)).
 
 ## How it works
 

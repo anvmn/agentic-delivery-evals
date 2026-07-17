@@ -85,3 +85,14 @@ happy-path camouflage, and a spec written at the observable layer.
   status; the correct solution needs the status condition too. The task
   therefore has two camouflage layers: the naive pattern AND the
   sophisticated-looking fix are both wrong.
+
+## v0.2 matrix-day notes (2026-07-17)
+
+- **Author-catch #4 (harness):** Fable's d10-04 solutions declared cacheability
+  via the canonical plugin methods (getCacheContexts()/getCacheTags()); the
+  render harness only merged inline #cache and wrongly failed them. Fixed to
+  merge plugin-level metadata like core's BlockViewBuilder; all 12 workspaces
+  re-graded (records marked "regraded"). Post-fix: fable/opus/sonnet 3/3.
+- haiku d10-04 t3 classified: not a cache failure — build() crashes on a
+  D10 entityQuery missing accessCheck() (empty render receipts). Genuine fail.
+- e-06 12/12: the String.length trap is too well-documented to discriminate.

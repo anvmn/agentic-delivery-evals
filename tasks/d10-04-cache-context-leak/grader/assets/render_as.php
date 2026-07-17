@@ -32,11 +32,21 @@ $renderer = \Drupal::service('renderer');
 $block = \Drupal::service('plugin.manager.block')->createInstance('greeting_block', []);
 $context = new RenderContext();
 $html = $renderer->executeInRenderContext($context, function () use ($renderer, $block) {
+  $build = $block->build();
+  // Like core's BlockViewBuilder: the PLUGIN's cacheability (from
+  // getCacheContexts()/getCacheTags()/getCacheMaxAge()) merges into the
+  // render array. Solutions using the canonical plugin methods instead of
+  // inline #cache must be honored equally.
+  $metadata = \Drupal\Core\Cache\CacheableMetadata::createFromRenderArray($build);
+  $metadata->addCacheContexts($block->getCacheContexts());
+  $metadata->addCacheTags($block->getCacheTags());
+  $metadata->setCacheMaxAge(\Drupal\Core\Cache\Cache::mergeMaxAges($metadata->getCacheMaxAge(), $block->getCacheMaxAge()));
+  $metadata->applyTo($build);
   $wrapped = [
     '#cache' => [
       'keys' => ['eval', 'greeting_block'],
     ],
-    'content' => $block->build(),
+    'content' => $build,
   ];
   return $renderer->render($wrapped);
 });
