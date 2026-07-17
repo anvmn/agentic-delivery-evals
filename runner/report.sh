@@ -2,9 +2,14 @@
 # report.sh — regenerate RESULTS.md from results/runs.jsonl (receipts -> table).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-RUNS="$ROOT/results/runs.jsonl"
+RUNS_ALL="$ROOT/results/runs.jsonl"
 OUT="$ROOT/RESULTS.md"
-[ -f "$RUNS" ] || { echo "no runs.jsonl yet" >&2; exit 1; }
+[ -f "$RUNS_ALL" ] || { echo "no runs.jsonl yet" >&2; exit 1; }
+# The scoreboard covers default-effort runs only; effort experiments are
+# analyzed separately from the same receipts.
+RUNS=$(mktemp)
+jq -c 'select((.agent.effort // "default") == "default")' "$RUNS_ALL" > "$RUNS"
+trap 'rm -f "$RUNS"' EXIT
 
 {
   echo "# Results"
