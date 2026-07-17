@@ -2,7 +2,7 @@
 
 Coding evals for agentic work on **Drupal (7 and 10)** and **Elm** — the measurement layer of the [agentic-delivery-harness](https://github.com/anvmn/agentic-delivery-harness). Realistic tasks, mechanical grading, hidden holdouts, and a runner that executes coding agents headlessly and reports pass rates per model. Built and validated on the workflow behind a production digital-health platform.
 
-## v0.1 results (suite 0.1.2 · 84 runs · 4 models · 2026-07-17)
+## v0.1 results (suite 0.1.2 · 96 runs · 4 models · 2026-07-17)
 
 | task | lane | tier | fable-5 | opus-4-8 | sonnet-5 | haiku-4-5 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -10,17 +10,18 @@ Coding evals for agentic work on **Drupal (7 and 10)** and **Elm** — the measu
 | e-02 impossible states | elm | 2 | 3/3 | 3/3 | 3/3 | 3/3 |
 | b-01 write-the-E2E | behavioral | 2 | 3/3 | 3/3 | 3/3 | 3/3 |
 | d10-02 cache invalidation | drupal10 | 2 | 3/3 | 3/3 | 3/3 | 3/3 |
-| **d7-01 menu endpoint** | **drupal7** | **2** | **3/3** | **1/3** | **0/3** | **0/3** |
+| **d7-01 menu endpoint** (two independent runs) | **drupal7** | **2** | **6/6** | **1/6** | **0/6** | **1/6** |
 | d7-03 field migration | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 |
 | d7-05 save-trigger queue | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 |
 
-**The finding, twice refined by replication:** on d7-01, four models spanning the capability range separate in a clean staircase — Fable 5 3/3, Opus 4.8 1/3, Sonnet 5 and Haiku 4.5 0/3 — while every modern-stack task is 12/12 across all four. Two more Drupal 7 tasks then tested whether "legacy is hard" explains it. It doesn't: d7-03 (a harder-tier dual-table data migration) came back 11/12, and d7-05 — which deliberately stacks *four* legacy-API axes (DrupalQueue vs QueueWorker instincts, variables vs State API, EntityFieldQuery vs entityQuery, plus an idempotency requirement) and is modeled on the most common pattern in a real production D7 backend — came back **12/12**. Old and obscure APIs alone don't separate models. What separated them, in the one task that did, is sharper: **d7-01 is the only task where the canonical-*looking* solution is wrong** (`drupal_json_output` as a delivery callback reads like textbook D7 and silently breaks access control). The working hypothesis after three legacy tasks: models fail not where code is old, but where **plausible looks-right patterns are subtly incorrect** — and that is also precisely where unaided human reviewers fail. v0.2's task design targets exactly such looks-right-is-wrong spots, in both eras.
+**The finding, twice refined by replication — and now test-retested:** on d7-01, four models spanning the capability range separate in a clean staircase — Fable 5 6/6, Opus 4.8 1/6, Sonnet 5 0/6, Haiku 4.5 1/6 over two independent runs a day apart — while every modern-stack task is 12/12 across all four. Two more Drupal 7 tasks then tested whether "legacy is hard" explains it. It doesn't: d7-03 (a harder-tier dual-table data migration) came back 11/12, and d7-05 — which deliberately stacks *four* legacy-API axes (DrupalQueue vs QueueWorker instincts, variables vs State API, EntityFieldQuery vs entityQuery, plus an idempotency requirement) and is modeled on the most common pattern in a real production D7 backend — came back **12/12**. Old and obscure APIs alone don't separate models. What separated them, in the one task that did, is sharper: **d7-01 is the only task where the canonical-*looking* solution is wrong** (`drupal_json_output` as a delivery callback reads like textbook D7 and silently breaks access control). The working hypothesis after three legacy tasks: models fail not where code is old, but where **plausible looks-right patterns are subtly incorrect** — and that is also precisely where unaided human reviewers fail. v0.2's task design targets exactly such looks-right-is-wrong spots, in both eras.
 
 The failure modes are distinct, and all three are real Drupal 7 production hazards:
 
-- **The delivery trap** (Opus ×2, Haiku ×3): `'delivery callback' => 'drupal_json_output'` looks canonical but delivers access-denied as HTTP 200 with body `3` (the JSON-encoded `MENU_ACCESS_DENIED` constant). The same trap caught the suite's author writing the reference solution.
-- **The echo instinct** (Sonnet ×3): calling `drupal_json_output()` *inside* the page callback and returning nothing — through D7's real delivery pipeline that yields JSON followed by a 404 page (a NULL callback return means "not found"), and it violates the task's explicit return-array contract.
-- Only Fable consistently wrote what D7 actually requires: a custom delivery callback that routes integer menu-status results through standard delivery.
+- **The delivery trap** (all 5 Opus failures, 3 of 5 Haiku failures): `'delivery callback' => 'drupal_json_output'` looks canonical but delivers access-denied as HTTP 200 with body `3` (the JSON-encoded `MENU_ACCESS_DENIED` constant). The same trap caught the suite's author writing the reference solution.
+- **The echo instinct** (all 6 Sonnet failures, 2 of 5 Haiku failures): calling `drupal_json_output()` *inside* the page callback and returning nothing — through D7's real delivery pipeline that yields JSON followed by a 404 page (a NULL callback return means "not found"), violating the task's explicit return-array contract.
+- Only Fable consistently wrote what D7 actually requires: a custom delivery callback routing integer menu-status results through standard delivery.
+- **Failure modes are model-stable:** across two runs a day apart, Sonnet *always* fails by echoing, Opus *always* by the delivery trap. These read as stable per-model instincts, not coin flips — only Haiku, the smallest, mixes modes.
 
 Models are trained overwhelmingly on modern-framework idioms; the **paradigm-bleed hypothesis** — that agents underperform where legacy conventions predate their training distribution's center of mass — now has a four-model data point *and* a boundary condition from its first replication attempt. No other public eval measures agents on legacy stacks at all.
 
