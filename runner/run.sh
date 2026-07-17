@@ -52,7 +52,13 @@ for task_dir in "$TASKS_DIR"/*/; do
       cp "$task_dir/task.md" "$ws/task.md"
 
       echo ">>> $task_id | $model | trial $trial"
-      agent_json=$("$ROOT/runner/agents/claude-code.sh" "$ws" "$model" "$timeout_s" \
+      # Adapter routing by model-string prefix: "gemini:<model>" -> gemini
+      # CLI; anything else -> Claude Code. Graders never see the difference.
+      adapter="$ROOT/runner/agents/claude-code.sh"; agent_model="$model"
+      case "$model" in
+        gemini:*) adapter="$ROOT/runner/agents/gemini.sh"; agent_model="${model#gemini:}" ;;
+      esac
+      agent_json=$("$adapter" "$ws" "$agent_model" "$timeout_s" \
                    "$RESULTS/transcripts/$(basename "$ws").json" || true)
       [ -n "$agent_json" ] || agent_json='{"error":"adapter produced no output"}'
 
