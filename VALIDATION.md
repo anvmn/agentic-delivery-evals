@@ -118,3 +118,11 @@ weighted toward warning-poor D7. All self-tested three ways.
   contract demanded '' for an unavailable language, but field_get_items()
   resolves through Field API language fallback and returns an available value
   — the API fought the naive contract. Fixed to test a truly-empty node.
+
+## v0.3 matrix results (2026-07-17)
+
+Frontier models 45/45 across all five engineered traps; haiku 13/15 (one
+grants leak, one batched-correctness miss). No second discriminator found —
+the deliberately-hunted traps are all well-warned in the corpus. d7-01
+remains unique. Infra audit of the resumed d7-08 cells: clean (normal
+durations/costs/exit codes).
