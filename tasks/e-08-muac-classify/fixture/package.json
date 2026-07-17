@@ -1,0 +1,8 @@
+{
+  "name": "e-08-muac-classify-fixture",
+  "private": true,
+  "devDependencies": {
+    "elm-test": "^0.19.1-revision12",
+    "elm-format": "^0.8.7"
+  }
+}
