@@ -1,0 +1,6 @@
+notice_api.list:
+  path: '/api/notices'
+  defaults:
+    _controller: '\Drupal\notice_api\Controller\NoticeListController::list'
+  requirements:
+    _access: 'TRUE'

@@ -1,0 +1,5 @@
+name: Notice API
+type: module
+description: 'Public notices listing endpoint (eval task).'
+package: Eval
+core_version_requirement: ^10 || ^11

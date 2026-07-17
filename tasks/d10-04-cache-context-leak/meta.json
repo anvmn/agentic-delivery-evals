@@ -1,0 +1,6 @@
+{
+  "lane": "drupal10",
+  "tier": 3,
+  "timeout_s": 900,
+  "required_stages": ["lint", "enable", "no_cache_optout", "per_user", "invalidation"]
+}

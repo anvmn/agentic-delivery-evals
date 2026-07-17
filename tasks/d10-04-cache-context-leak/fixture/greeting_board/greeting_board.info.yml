@@ -1,0 +1,5 @@
+name: Greeting Board
+type: module
+description: 'Per-user greeting block (eval task).'
+package: Eval
+core_version_requirement: ^10 || ^11

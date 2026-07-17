@@ -66,3 +66,22 @@ during updb and left data unnormalized) — the d7-01 staircase did NOT
 reproduce, refining the finding from "legacy is hard" to the trap-density
 hypothesis. Records before d7-03 carry suite 0.1.0; the table is regenerated
 over both — treated as one suite since no earlier task changed.
+
+## v0.2 trap tasks (added 2026-07-17 → suite 0.2.0)
+
+Design rule extracted from d7-01's anatomy: a discriminating task needs a
+popular-but-wrong consensus pattern, a bug living in framework interaction,
+happy-path camouflage, and a spec written at the observable layer.
+
+- **e-06-unicode-length**: reference PASS · String.length variant FAIL (unit)
+  · fixture FAIL. The holdout's astral/ZWJ/niqqud cases catch the UTF-16 trap.
+- **d10-04-cache-context-leak**: reference PASS · tags-but-no-user-context
+  variant FAIL on exactly per_user (cross-process cache poisoning reproduces
+  through the keyed-wrapper harness with account switching) · fixture FAIL.
+- **d10-05-query-access-leak**: reference PASS · accessCheck(FALSE) variant
+  FAIL on exactly no_leak · fixture FAIL. **Author-catch #3:** the first
+  reference used accessCheck(TRUE) alone and still leaked — on sites without
+  node-access modules it checks the permission, not per-node published
+  status; the correct solution needs the status condition too. The task
+  therefore has two camouflage layers: the naive pattern AND the
+  sophisticated-looking fix are both wrong.
