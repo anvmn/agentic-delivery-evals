@@ -1,0 +1,71 @@
+<?php
+
+/**
+ * @file
+ * Bulk Normalize install/update — reference solution (self-tests only).
+ */
+
+/**
+ * Implements hook_install().
+ */
+function bulknorm_install() {
+  $type = node_type_set_defaults(array(
+    'type' => 'item',
+    'name' => st('Item'),
+    'base' => 'node_content',
+    'custom' => TRUE,
+  ));
+  node_type_save($type);
+
+  if (!field_info_field('field_code')) {
+    field_create_field(array(
+      'field_name' => 'field_code',
+      'type' => 'text',
+      'cardinality' => 1,
+    ));
+  }
+  if (!field_info_instance('node', 'field_code', 'item')) {
+    field_create_instance(array(
+      'field_name' => 'field_code',
+      'entity_type' => 'node',
+      'bundle' => 'item',
+      'label' => 'Code',
+    ));
+  }
+}
+
+/**
+ * Uppercase all item codes, batched at 50 per pass.
+ */
+function bulknorm_update_7100(&$sandbox) {
+  $batch = 50;
+  if (!isset($sandbox['max'])) {
+    $sandbox['progress'] = 0;
+    $sandbox['last_nid'] = 0;
+    $sandbox['max'] = (int) db_query("SELECT COUNT(*) FROM {node} WHERE type = 'item'")->fetchField();
+  }
+  if ($sandbox['max'] == 0) {
+    $sandbox['#finished'] = 1;
+    return t('No items to normalize.');
+  }
+
+  $nids = db_query_range(
+    "SELECT nid FROM {node} WHERE type = 'item' AND nid > :last ORDER BY nid ASC",
+    0, $batch, array(':last' => $sandbox['last_nid'])
+  )->fetchCol();
+
+  foreach ($nids as $nid) {
+    foreach (array('field_data_field_code', 'field_revision_field_code') as $table) {
+      db_update($table)
+        ->expression('field_code_value', 'UPPER(field_code_value)')
+        ->condition('entity_type', 'node')
+        ->condition('entity_id', $nid)
+        ->execute();
+    }
+    $sandbox['last_nid'] = (int) $nid;
+    $sandbox['progress']++;
+  }
+
+  $sandbox['#finished'] = $sandbox['progress'] >= $sandbox['max'] ? 1 : ($sandbox['progress'] / $sandbox['max']);
+  return t('Normalized @n of @m items.', array('@n' => $sandbox['progress'], '@m' => $sandbox['max']));
+}

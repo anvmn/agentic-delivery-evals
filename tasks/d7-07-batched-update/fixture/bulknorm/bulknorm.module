@@ -1,0 +1,6 @@
+<?php
+
+/**
+ * @file
+ * Bulk Normalize module (eval task). Logic lives in bulknorm.install.
+ */

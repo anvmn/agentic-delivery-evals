@@ -96,3 +96,25 @@ happy-path camouflage, and a spec written at the observable layer.
 - haiku d10-04 t3 classified: not a cache failure — build() crashes on a
   D10 entityQuery missing accessCheck() (empty render receipts). Genuine fail.
 - e-06 12/12: the String.length trap is too well-documented to discriminate.
+
+## v0.3 complex trap tasks (added 2026-07-17 → suite 0.3.0)
+
+Five tasks engineered to the d7-01 recipe (canonical-looking-but-wrong),
+weighted toward warning-poor D7. All self-tested three ways.
+
+- **e-07 tagged-union-decode**: reference PASS · oneOf variant FAIL (unit, the
+  "gotcha" case: malformed visit silently becomes a Note) · fixture FAIL.
+- **e-08 muac-classify**: reference PASS · <= variant FAIL (boundary unit) ·
+  fixture FAIL. Author-error caught: miscounted the summarize holdout.
+- **d7-06 node-access-grants** (flagship): reference PASS · runtime-hook_node_access
+  variant FAIL (both scoped stages — it leaks every center's records to every
+  user through listing queries, the exact production footgun) · fixture FAIL.
+  First try, no author-catch.
+- **d7-07 batched-update**: reference PASS (3 passes, maxdelta 50) · one-pass
+  variant FAIL on exactly `batched` (maxdelta 120) · fixture FAIL. Grader
+  detects batching mechanically via per-pass progress deltas.
+- **d7-08 multilingual-field**: reference PASS · LANGUAGE_NONE-hardcode variant
+  FAIL on exactly `translated` · fixture FAIL. **Author-catch #5:** the first
+  contract demanded '' for an unavailable language, but field_get_items()
+  resolves through Field API language fallback and returns an available value
+  — the API fought the naive contract. Fixed to test a truly-empty node.

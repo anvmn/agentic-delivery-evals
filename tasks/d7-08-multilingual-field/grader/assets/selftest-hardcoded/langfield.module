@@ -1,0 +1,18 @@
+<?php
+
+/**
+ * @file
+ * FLAWED self-test variant: the LANGUAGE_NONE-hardcode trap — the ubiquitous
+ * D7 pattern that ignores $langcode and returns the wrong value (or nothing)
+ * for translated content.
+ */
+
+/**
+ * Returns an article body — but always from LANGUAGE_NONE.
+ */
+function langfield_body_value($node, $langcode) {
+  if (isset($node->field_body[LANGUAGE_NONE][0]['value'])) {
+    return $node->field_body[LANGUAGE_NONE][0]['value'];
+  }
+  return '';
+}

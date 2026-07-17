@@ -1,0 +1,5 @@
+name = Lang Field
+description = Language-correct field access (eval task).
+core = 7.x
+package = Eval
+dependencies[] = locale

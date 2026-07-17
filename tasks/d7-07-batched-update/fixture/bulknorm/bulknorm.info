@@ -1,0 +1,4 @@
+name = Bulk Normalize
+description = Batched field normalization update (eval task).
+core = 7.x
+package = Eval

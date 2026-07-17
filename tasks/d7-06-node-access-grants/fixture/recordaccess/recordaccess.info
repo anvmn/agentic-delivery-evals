@@ -1,0 +1,4 @@
+name = Record Access
+description = Per-center node access grants (eval task).
+core = 7.x
+package = Eval

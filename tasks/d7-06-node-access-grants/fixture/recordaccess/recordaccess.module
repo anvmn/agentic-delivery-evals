@@ -1,0 +1,9 @@
+<?php
+
+/**
+ * @file
+ * Record Access module — implement per task.md.
+ *
+ * TODO: implement node access grants so per-center visibility applies to
+ * listing queries: hook_node_grants() and hook_node_access_records().
+ */

@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * @file
+ * FLAWED self-test variant: the runtime-hook trap.
+ *
+ * hook_node_access() gates single-node view correctly, but does NOT write
+ * grant records, so {node_access} keeps its default "grant all" row and
+ * listing queries leak every center's records. This is the D7 trap.
+ */
+
+/**
+ * Reads an integer field's first value from an entity.
+ */
+function _recordaccess_center($entity_type, $entity, $field) {
+  $items = field_get_items($entity_type, $entity, $field);
+  return empty($items[0]['value']) ? NULL : (int) $items[0]['value'];
+}
+
+/**
+ * Implements hook_node_access().
+ */
+function recordaccess_node_access($node, $op, $account) {
+  if (!is_object($node) || $node->type !== 'record' || $op !== 'view') {
+    return NODE_ACCESS_IGNORE;
+  }
+  $node_center = _recordaccess_center('node', $node, 'field_center_id');
+  $user_center = _recordaccess_center('user', $account, 'field_user_center');
+  if ($node_center !== NULL && $node_center === $user_center) {
+    return NODE_ACCESS_ALLOW;
+  }
+  return NODE_ACCESS_DENY;
+}

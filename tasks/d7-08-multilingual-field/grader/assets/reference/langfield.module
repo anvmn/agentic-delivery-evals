@@ -1,0 +1,22 @@
+<?php
+
+/**
+ * @file
+ * Lang Field — reference solution (grader self-tests only).
+ *
+ * Resolves the requested language, then falls back to LANGUAGE_NONE, then ''.
+ */
+
+/**
+ * Returns an article body in the requested language, with fallback.
+ */
+function langfield_body_value($node, $langcode) {
+  $items = field_get_items('node', $node, 'field_body', $langcode);
+  if (!empty($items[0]['value'])) {
+    return $items[0]['value'];
+  }
+  if (isset($node->field_body[LANGUAGE_NONE][0]['value'])) {
+    return $node->field_body[LANGUAGE_NONE][0]['value'];
+  }
+  return '';
+}

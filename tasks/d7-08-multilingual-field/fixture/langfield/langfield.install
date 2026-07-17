@@ -1,0 +1,36 @@
+<?php
+
+/**
+ * @file
+ * Install hooks for Lang Field. Do not modify this file.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function langfield_install() {
+  $type = node_type_set_defaults(array(
+    'type' => 'article',
+    'name' => st('Article'),
+    'base' => 'node_content',
+    'custom' => TRUE,
+  ));
+  node_type_save($type);
+
+  if (!field_info_field('field_body')) {
+    field_create_field(array(
+      'field_name' => 'field_body',
+      'type' => 'text',
+      'cardinality' => 1,
+      'translatable' => 1,
+    ));
+  }
+  if (!field_info_instance('node', 'field_body', 'article')) {
+    field_create_instance(array(
+      'field_name' => 'field_body',
+      'entity_type' => 'node',
+      'bundle' => 'article',
+      'label' => 'Body',
+    ));
+  }
+}

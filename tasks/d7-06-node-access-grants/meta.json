@@ -1,0 +1,6 @@
+{
+  "lane": "drupal7",
+  "tier": 3,
+  "timeout_s": 900,
+  "required_stages": ["lint", "enable", "alice_scoped", "bob_scoped"]
+}

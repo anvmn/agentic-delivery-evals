@@ -1,0 +1,51 @@
+<?php
+
+/**
+ * @file
+ * Install hooks for Record Access. Do not modify this file.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function recordaccess_install() {
+  $type = node_type_set_defaults(array(
+    'type' => 'record',
+    'name' => st('Record'),
+    'base' => 'node_content',
+    'custom' => TRUE,
+  ));
+  node_type_save($type);
+
+  if (!field_info_field('field_center_id')) {
+    field_create_field(array(
+      'field_name' => 'field_center_id',
+      'type' => 'number_integer',
+      'cardinality' => 1,
+    ));
+  }
+  if (!field_info_instance('node', 'field_center_id', 'record')) {
+    field_create_instance(array(
+      'field_name' => 'field_center_id',
+      'entity_type' => 'node',
+      'bundle' => 'record',
+      'label' => 'Center ID',
+    ));
+  }
+
+  if (!field_info_field('field_user_center')) {
+    field_create_field(array(
+      'field_name' => 'field_user_center',
+      'type' => 'number_integer',
+      'cardinality' => 1,
+    ));
+  }
+  if (!field_info_instance('user', 'field_user_center', 'user')) {
+    field_create_instance(array(
+      'field_name' => 'field_user_center',
+      'entity_type' => 'user',
+      'bundle' => 'user',
+      'label' => 'User Center',
+    ));
+  }
+}
