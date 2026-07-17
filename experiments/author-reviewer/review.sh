@@ -35,7 +35,8 @@ while IFS= read -r sol; do
          'select(.solution == $s and .reviewer == $r)' "$OUT" >/dev/null 2>&1; then
       continue  # resume support
     fi
-    if jq -n --argjson s "$(spent)" --argjson m "$MAX_COST" '$s >= $m' | grep -q true; then
+    s_now=$(spent); [ -n "$s_now" ] || s_now=0
+    if jq -n --argjson s "$s_now" --argjson m "$MAX_COST" '$s >= $m' | grep -q true; then
       echo "BUDGET CAP reached — stopping." >&2; exit 2
     fi
 
@@ -68,13 +69,24 @@ Reject if any acceptance criterion is violated, including edge-case behavior."
       correct=true
     fi
 
-    jq -cn --arg s "$sid" --arg author "$author" --argjson truth "$truth" \
+    dur=$((end - start))
+    [ -n "$cost" ] || cost=0
+    [ -n "$reasons" ] || reasons='[]'
+    [ -n "$verdict" ] || verdict=parse_error
+    [ -n "$truth" ] || truth=false
+    if ! jq -cn --arg s "$sid" --arg author "$author" --argjson truth "$truth" \
       --arg reviewer "$reviewer" --arg verdict "$verdict" --argjson reasons "$reasons" \
-      --argjson correct "$correct" --argjson cost "${cost:-0}" \
-      --argjson dur "$((end - start))" \
+      --argjson correct "$correct" --argjson cost "$cost" \
+      --argjson dur "$dur" \
       '{solution: $s, author: $author, truth_pass: $truth, reviewer: $reviewer,
         verdict: $verdict, reasons: $reasons, correct: $correct,
-        cost: $cost, duration_s: $dur}' >> "$OUT"
+        cost: $cost, duration_s: $dur}' >> "$OUT" 2>>"$HERE/jq-fail.log"; then
+      { echo "=== $(date -u '+%FT%TZ') cell: $sid / $reviewer"
+        printf 'cost=[%s] truth=[%s] verdict=[%s] correct=[%s] dur=[%s]\nreasons=[%s]\n' \
+          "$cost" "$truth" "$verdict" "$correct" "$dur" "$reasons"
+      } >> "$HERE/jq-fail.log"
+      echo "RECORD-WRITE FAILED for $sid / $reviewer — dumped to jq-fail.log, continuing." >&2
+    fi
     echo "$sid | $reviewer -> $verdict ($correct)"
   done
 done < "$HERE/corpus.tmp"
