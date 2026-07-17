@@ -7,10 +7,12 @@
 # Notes:
 # - --yolo auto-approves tool calls: the workspace is a throwaway sandbox copy.
 #   NEVER point this adapter at a directory you care about.
-# - cost_usd is 0: AI-Studio free-tier/key usage is not dollar-metered by the
-#   CLI; token stats land in the transcript when the CLI provides them.
+# - cost_usd is estimated from the CLI's token stats and a pinned price table
+#   (see below) so the runner's --max-cost-usd cap applies to paid Gemini keys.
 # - Flags pinned against gemini-cli 0.51.x; revalidate on upgrade.
 set -uo pipefail
+# The user's ~/.bashrc guards against non-interactive sourcing; pull just the key.
+eval "$(grep '^export GEMINI_API_KEY=' ~/.bashrc 2>/dev/null)" || true
 
 WS="$1"; MODEL="$2"; TIMEOUT_S="$3"; TRANSCRIPT="$4"
 
@@ -40,11 +42,23 @@ if printf '%s' "$out" | grep -qi "exhausted your daily quota"; then
   exit 99
 fi
 
-turns=$(printf '%s' "$out" | jq -r '.stats.turns // .stats.metrics.turns // 0' 2>/dev/null || echo 0)
+turns=$(printf '%s' "$out" | jq '[.stats.models // {} | to_entries[] | .value.api.totalRequests // 0] | add // 0' 2>/dev/null || echo 0)
 model_used=$(printf '%s' "$out" | jq -r '.stats.models // {} | keys | first // "gemini-cli-default"' 2>/dev/null || echo "gemini-cli-default")
+# Estimated dollars from token stats (per-1M prices, 2026-07; cache reads at 10%;
+# thinking tokens bill as output). Keeps the runner budget cap real for Gemini.
+cost=$(printf '%s' "$out" | jq '[.stats.models // {} | to_entries[] |
+  (.value.tokens // {}) as $t |
+  (if (.key | startswith("gemini-3.1-pro")) then {i: 2.0, o: 12.0}
+   elif (.key | startswith("gemini-3.5-flash")) then {i: 1.5, o: 9.0}
+   elif (.key | startswith("gemini-3-flash")) then {i: 0.5, o: 3.0}
+   else {i: 2.0, o: 12.0} end) as $p |
+  ((($t.prompt // 0) - ($t.cached // 0)) * $p.i
+   + ($t.cached // 0) * $p.i * 0.1
+   + ((($t.candidates // 0) + ($t.thoughts // 0)) * $p.o)) / 1000000
+] | add // 0 | .*10000 | round / 10000' 2>/dev/null || echo 0)
 
 jq -cn \
-  --argjson cost 0 --argjson turns "${turns:-0}" \
+  --argjson cost "${cost:-0}" --argjson turns "${turns:-0}" \
   --argjson dur "$((end - start))" --argjson ec "$agent_exit" \
   --argjson to "$timed_out" --arg mu "${model_used:-unknown}" \
   '{cost_usd:$cost, duration_s:$dur, turns:$turns, agent_exit:$ec, timed_out:$to, model_used:$mu}'
