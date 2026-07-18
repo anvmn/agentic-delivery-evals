@@ -68,16 +68,16 @@ Honest caveats: n=3 trials per cell — error bars are wide, and differences und
 | opus-4-8 | 1/6 | **2/3** (`max`) | **rescued** — its passing runs ran ~2× longer and found the trap |
 | sonnet-5 | 0/6 | 0/3 (`max`) | no rescue; shuffles between the same wrong patterns |
 | haiku-4-5 | 1/6 | 0/3 (`max`) | no rescue |
-| g3.1-pro | 1/3 | no knob in its CLI† | — |
-| g3-flash | 0/3 | no knob in its CLI† | — |
+| g3.1-pro | 1/3 | self-raised (dynamic)† | **self-rescued** — its one pass is exactly the trial where its own allocator maxed out: 9.8k thinking tokens vs 4.0k/5.6k in its fails |
+| g3-flash | 0/3 | self-raised (dynamic)† | no rescue — thought up to **10.0k tokens** (more than Pro's passing trial) and still wrote the trap |
 | 5.6-sol | 0/3 | 0/3 (`xhigh`) | no rescue; failures **unified** into the delivery trap — the closest-to-correct wrong answer — at ~2.5× the reasoning tokens |
 | 5.6-luna | 0/3 | not run | — |
 
-*† The Gemini CLI exposes no effort control; its receipts carry the observational twin — Pro's one passing trial spontaneously spent 9.8k thinking tokens vs 4–5.6k in its failing trials.*
+*† The Gemini CLI exposes no external effort control — the model allocates its own thinking budget per request, so these rows are observational (self-raised effort) rather than experimental. Thinking-token counts are from the run transcripts.*
 
 The middle case: d10-05's thinly-warned accessCheck subtlety, Sol's only other drop — default **2/3**, xhigh **2/3**. No rescue there either: the xhigh failing trial wrote the identical accessCheck(TRUE)-only query at 2k reasoning tokens, while the passes took two different correct routes (query-level status condition; per-entity `access('view')` filtering — the contract-level grader accepts both). All effort arms are n=3 — "no effect detected," not "no effect."
 
-Two conclusions survive across three labs. The tiered verdict: **effort rescues a model that is one step below the trap (Opus); it cannot substitute for knowledge that isn't there** (Sonnet, Haiku, Sol). And the allocation wrinkle: even at xhigh, Sol spent only ~1.3k reasoning tokens — thinking budgets are allocated by *perceived* difficulty, so a looks-easy trap starves the effort mechanism before reasoning even starts. Below the threshold, only behavioral gates help.
+Two conclusions survive across three labs — and the Gemini pair replicates both from the *inside*, without any external knob: Pro self-rescued in the one trial its allocator chose to think ~2× harder, while Flash out-thought Pro's passing trial and stayed trapped. The tiered verdict: **effort rescues a model that is one step below the trap (Opus by external control, Gemini Pro by its own allocation); it cannot substitute for knowledge that isn't there** (Sonnet, Haiku, Sol — and Flash, at any thinking volume). And the allocation wrinkle: even at xhigh, Sol spent only ~1.3k reasoning tokens — thinking budgets are allocated by *perceived* difficulty, so a looks-easy trap starves the effort mechanism before reasoning even starts. Below the threshold, only behavioral gates help.
 
 **Can models review their way out?** All four Claude models blindly reviewed 24 graded d7-01 solutions (plus Gemini's), 95 reviews against grader ground truth ([`experiments/author-reviewer/`](experiments/author-reviewer/)):
 
