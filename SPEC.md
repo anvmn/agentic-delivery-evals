@@ -1,6 +1,16 @@
-# agentic-delivery-evals — coding evals for agentic Drupal & Elm work (SPEC, v0 draft)
+# agentic-delivery-evals — coding evals for agentic Drupal & Elm work (SPEC)
 
-**Status:** draft for review — nothing built, nothing published.
+**Status:** shipped — kept as the original pre-build design, unedited below this note. Current truth: [README](README.md) (results + roadmap), [RESULTS.md](RESULTS.md) (generated from receipts), [VALIDATION.md](VALIDATION.md) (grader log).
+
+> **As built vs. planned (delta note, 2026-07-18):**
+>
+> - v0.1 shipped exactly the five planned seeds (D7-01, D10-02, E-01, E-02, B-01). After that, task selection stopped following §4's list and switched to **discriminator-hunting**: v0.2/v0.3 tasks (d7-03, d7-05…d7-08, d10-04, d10-05, e-06…e-08) were engineered to d7-01's anatomy. Planned D7-02, D10-01, D10-03, E-03…E-05 and B-02 were never built; D7-02 remains on the roadmap.
+> - The difficulty ladder (§2, principle 4) did not survive contact with data: tier is a design label, not an observed difficulty — frontier models went 45/45 on the tier-3 traps, and the suite's only discriminator is a tier-2 task.
+> - The runner outgrew §5: multi-lab adapter routing (Gemini CLI), effort passthrough, session-limit and provider-quota aborts with run voiding, and the `--max-cost-usd` cap (§10 Q5: yes).
+> - §7 actuals: 222 default-effort runs, $84.82 total agent cost, 6 models across 2 labs.
+> - §8 ran, corpus-narrowed to d7-01 solutions (the only cell with meaningful fails): 95 blind reviews; results in the README.
+> - §10: all six questions decided — name kept, separate repo, published after v0.1 results, 4 Claude + 2 Gemini models, 3 trials with the small-n caveat printed on every table, clean-room D7 fixture.
+
 **Author:** Anatoly Vaitsman (drafted 2026-07-15)
 **Working name:** `agentic-delivery-evals` (alternatives: `drupal-elm-agent-evals`, `harness-evals`)
 **Sibling:** [agentic-delivery-harness](https://github.com/anvmn/agentic-delivery-harness) — the harness is the *process*, this is the *measurement*. Graders implement the harness's verify contract; task specs use its spec template.
