@@ -24,7 +24,7 @@ Coding evals for agentic work on **Drupal (7 and 10)** and **Elm** — the measu
 
 *Gemini columns: subset by design (— = not run); ※ = pending the provider's suspension appeal. Gemini d7-01 cells are single-run (n=3).*
 
-**The finding, twice refined by replication — and now test-retested:** on d7-01, four models spanning the capability range separate in a clean staircase — Fable 5 6/6, Opus 4.8 1/6, Sonnet 5 0/6, Haiku 4.5 1/6 over two independent runs a day apart — while every modern-stack task is 12/12 across all four. Two more Drupal 7 tasks then tested whether "legacy is hard" explains it. It doesn't: d7-03 (a harder-tier dual-table data migration) came back 11/12, and d7-05 — which deliberately stacks *four* legacy-API axes (DrupalQueue vs QueueWorker instincts, variables vs State API, EntityFieldQuery vs entityQuery, plus an idempotency requirement) and is modeled on the most common pattern in a real production D7 backend — came back **12/12**. Old and obscure APIs alone don't separate models. What separated them, in the one task that did, is sharper: **d7-01 is the only task where the canonical-*looking* solution is wrong** (`drupal_json_output` as a delivery callback reads like textbook D7 and silently breaks access control). The working hypothesis after three legacy tasks: models fail not where code is old, but where **plausible looks-right patterns are subtly incorrect** — and that is also precisely where unaided human reviewers fail. v0.2's task design targets exactly such looks-right-is-wrong spots, in both eras.
+**The finding, twice refined by replication — and now test-retested:** on d7-01, four models spanning the capability range separate in a clean staircase — Fable 5 6/6, Opus 4.8 1/6, Sonnet 5 0/6, Haiku 4.5 1/6 over two independent runs a day apart — while every modern-stack task is 12/12 across all four. Two more Drupal 7 tasks then tested whether "legacy is hard" explains it. It doesn't: d7-03 (a harder-tier dual-table data migration) came back 11/12, and d7-05 — which deliberately stacks *four* legacy-API axes (DrupalQueue vs QueueWorker instincts, variables vs State API, EntityFieldQuery vs entityQuery, plus an idempotency requirement) and is modeled on the most common pattern in a real production D7 backend — came back **12/12**. Old and obscure APIs alone don't separate models. What separated them, in the one task that did, is sharper: **d7-01 is the only task where the canonical-*looking* solution is wrong** (`drupal_json_output` as a delivery callback reads like textbook D7 and silently breaks access control). The working hypothesis after three legacy tasks: models fail not where code is old, but where **plausible looks-right patterns are subtly incorrect** — and that is also precisely where unaided human reviewers fail. v0.2's task design targeted exactly such looks-right-is-wrong spots, in both eras.
 
 The failure modes are distinct, and all three are real Drupal 7 production hazards:
 
@@ -35,11 +35,11 @@ The failure modes are distinct, and all three are real Drupal 7 production hazar
 
 Models are trained overwhelmingly on modern-framework idioms; the **paradigm-bleed hypothesis** — that agents underperform where legacy conventions predate their training distribution's center of mass — now has a four-model data point *and* a boundary condition from its first replication attempt. No other public eval measures agents on legacy stacks at all.
 
-A practical corollary from the cost column of the receipts: Haiku passed every modern-stack task at $0.06–$0.11 per run — 4–8× cheaper than the frontier models on the same green results. In this suite's domains, capability spend only pays off where the training distribution runs thin.
+A practical corollary from the cost column of the receipts: Haiku cleared 25 of 27 modern-stack trials at $0.05–$0.16 per run, against a frontier mean of $0.60 on the same lanes — and its only two modern-stack drops are the two engineered Drupal 10 traps. In this suite's domains, capability spend only pays off where the traps are.
 
 **The v0.2 counter-result — traps with published warnings don't trap.** We built three tasks deliberately engineered to d7-01's recipe (popular-wrong pattern, framework-interaction bug, happy-path camouflage) in *modern* territory: Elm's UTF-16 length trap, Drupal 10 cache-context poisoning, and the entityQuery access leak. The frontier models dodged all three, 27/27; only Haiku dropped points (a runtime crash from a missing `accessCheck()`, and one genuine access leak). The distinction this forces is the sharpest yet: modern traps are *loudly documented as traps* — change records, security advisories, a decade of blog posts — so the warnings live in the training corpus alongside the bugs. d7-01's delivery-callback trap predates that discourse: the corpus carries the disease without the vaccine. Working formulation after ten tasks: **models fail where the training corpus contains the wrong pattern but not its warning.** Corollary, measured on ourselves: these traps caught the suite's human author four times during development — more often than they caught any frontier model.
 
-**The v0.3 negative result — an expert hunting traps went 0-for-5.** Five more tasks were engineered *deliberately* to the looks-right-is-wrong recipe, harder than anything before them and weighted to Drupal 7: node-access grants vs the runtime-hook leak, the `$sandbox` batching contract, multilingual field access, `Decode.oneOf` silent mis-decoding, clinical boundary conditions. Frontier models: **45/45.** Only Haiku dropped two trials. Every one of these traps turns out to be *well-warned* in the corpus — node access grants and `$sandbox` batching are among the most-documented D7 topics precisely because they burned so many humans. The task-author (20 years in these stacks, actively hunting) could not construct a second d7-01 on purpose. Which sharpens the finding to its final v0.x form: frontier models are robust to *famous* traps regardless of era or complexity; what still catches them is the rare spot where the wrong pattern is popular **and its warning never made it into the corpus** — d7-01's delivery-callback interaction remains, after 15 tasks and 192 runs, the only such spot found. Corollary: those spots are exactly as hard for humans to enumerate — the suite's development caught its own author five times.
+**The v0.3 negative result — an expert hunting traps went 0-for-5.** Five more tasks were engineered *deliberately* to the looks-right-is-wrong recipe, harder than anything before them and weighted to Drupal 7: node-access grants vs the runtime-hook leak, the `$sandbox` batching contract, multilingual field access, `Decode.oneOf` silent mis-decoding, clinical boundary conditions. Frontier models: **45/45.** Only Haiku dropped two trials. Every one of these traps turns out to be *well-warned* in the corpus — node access grants and `$sandbox` batching are among the most-documented D7 topics precisely because they burned so many humans. The task-author (20 years in these stacks, actively hunting) could not construct a second d7-01 on purpose. Which sharpens the finding to its final v0.x form: frontier models are robust to *famous* traps regardless of era or complexity; what still catches them is the rare spot where the wrong pattern is popular **and its warning never made it into the corpus** — d7-01's delivery-callback interaction remains, after 15 tasks and 192 Claude runs, the only such spot found. Corollary: those spots are exactly as hard for humans to enumerate — the suite's development caught its own author five times.
 
 **Cross-lab replication (2026-07-18): the trap belongs to the internet, not to a lab.** Google's models, run through the identical pipeline (a thin Gemini-CLI adapter; same tasks, same graders, same blind protocol) on d7-01:
 
@@ -52,7 +52,7 @@ Frontier-for-frontier the pattern mirrors Claude: Google's top model escapes the
 
 Beyond the trap, the symmetry held everywhere it was tested: gemini-3.1-pro went **18/18** on a stratified six-task subset (e-01, e-02, e-07, b-01, d10-02, and notably d10-04 — the cache-poisoning trap), and gemini-3-flash passed both floor-calibration tasks 6/6, placing it inside the Claude band on famous-trap work. Three subset cells (d10-05, d7-06, d7-07) are **not run**: the provider first exhausted its 250-requests/day tier cap (nine poisoned records voided; the runner now honors the adapter's quota signal), and the project's API access was subsequently suspended pending an Acceptable Use appeal — plausibly triggered by this suite's own overnight quota-retry loop, a bot-shaped mistake we've documented and stopped. Benchmarking across vendors means inheriting every vendor's failure modes; the receipts include theirs and ours.
 
-Honest caveats: n=3 trials per cell — error bars are wide, and differences under ~2 tasks are noise. Nine of ten tasks are (nearly) saturated for frontier models; d7-01 remains the sole strong discriminator. Every number above is regenerable from `results/runs.jsonl` (receipts: stages, duration, cost, transcript per run; six d7 records are marked `regraded` after grader-fairness fixes — see [`VALIDATION.md`](VALIDATION.md)).
+Honest caveats: n=3 trials per cell — error bars are wide, and differences under ~2 tasks are noise. Fourteen of fifteen tasks are (nearly) saturated for frontier models; d7-01 remains the sole strong discriminator. Every number above is regenerable from `results/runs.jsonl` (receipts: stages, duration, cost, transcript per run; six d7 records are marked `regraded` after grader-fairness fixes — see [`VALIDATION.md`](VALIDATION.md)).
 
 ## Beyond authoring: two experiments on the same receipts
 
@@ -75,7 +75,9 @@ Three results: review capability is the **same staircase as authoring capability
 tasks/<id>/         task.md (agent-visible spec) · fixture/ (starting state)
                     grader/ (answer key — never enters the agent workspace)
                     meta.json (lane, tier, timeout, required stages)
-runner/run.sh       task × model × trial matrix over headless Claude Code
+runner/run.sh       task × model × trial matrix over headless agents
+                    (Claude Code; `gemini:`-prefixed models route to the
+                    Gemini CLI adapter in runner/agents/)
 runner/report.sh    results/runs.jsonl -> RESULTS.md scoreboard
 ```
 
@@ -98,9 +100,12 @@ tasks/b-01-write-e2e/provision.sh
 
 runner/run.sh --models "claude-opus-4-8,claude-fable-5" --trials 3 --max-cost-usd 15
 runner/report.sh
+
+# cross-lab column (routes to the Gemini CLI adapter; needs GEMINI_API_KEY)
+runner/run.sh --models "gemini:gemini-3.1-pro-preview" --only d7-01-menu-endpoint
 ```
 
-Requirements: ddev, node ≥ 20, elm 0.19, jq, and the Claude Code CLI authenticated. The runner's `--max-cost-usd` is a hard cap checked before every session.
+Requirements: ddev, node ≥ 20, elm 0.19, jq, and the Claude Code CLI authenticated (plus the Gemini CLI for `gemini:` models). The runner's `--max-cost-usd` is a hard cap checked before every session.
 
 ## Roadmap
 
