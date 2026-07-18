@@ -2,7 +2,7 @@
 
 Coding evals for agentic work on **Drupal (7 and 10)** and **Elm** — the measurement layer of the [agentic-delivery-harness](https://github.com/anvmn/agentic-delivery-harness). Realistic tasks, mechanical grading, hidden holdouts, and a runner that executes coding agents headlessly and reports pass rates per model. Built and validated on the workflow behind a production digital-health platform.
 
-## Results (suites 0.1–0.3 · 255 runs · 8 models, 3 labs · 2026-07-18)
+## Results (suites 0.1–0.3 · 264 runs · 8 models, 3 labs · 2026-07-18)
 
 | task | lane | tier | fable-5 | opus-4-8 | sonnet-5 | haiku-4-5 | g3.1-pro | g3-flash | 5.6-sol | 5.6-luna |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -15,11 +15,11 @@ Coding evals for agentic work on **Drupal (7 and 10)** and **Elm** — the measu
 | d7-05 save-trigger queue | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — |
 | e-06 unicode length | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — |
 | d10-04 cache context (poisoning) | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | 3/3 | — | 3/3 | — |
-| d10-05 query access leak | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | — | — |
+| d10-05 query access leak | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | 2/3 | — |
 | e-07 tagged-union decode (oneOf) | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | 3/3 | — |
 | e-08 MUAC boundary classify | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — |
-| d7-06 node-access grants | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | — | — |
-| d7-07 batched $sandbox update | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | — | — |
+| d7-06 node-access grants | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | 3/3 | — |
+| d7-07 batched $sandbox update | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | 3/3 | — |
 | d7-08 multilingual field access | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — |
 
 *Gemini and OpenAI columns: subset by design (— = not run); ※ = pending the provider's suspension appeal. Gemini and OpenAI d7-01 cells are single-run (n=3).*
@@ -54,9 +54,9 @@ Beyond the trap, the symmetry held everywhere it was tested: gemini-3.1-pro went
 
 **Third lab (2026-07-18): OpenAI, same trap — and now both failure modes replicate.** GPT-5.6 Sol (OpenAI's flagship, via a thin Codex-CLI adapter) went **0/3 on d7-01**, and its three failures land exactly in the two known grooves: one trial wrote the delivery trap — `'delivery callback' => 'drupal_json_output'`, the same line as Opus and both Geminis — and two trials wrote the echo mode (JSON emitted inside the page callback, nothing returned), previously Sonnet's signature. At n=3, 0/3 is statistically indistinguishable from the Opus/Gemini-Pro ~1-in-3 band, so no ranking claim; what is *not* noise is that a third lab's flagship produced no novel failure — every wrong answer across nine frontier-model failures on this task is one of the same two canonical-looking patterns. System caveat, stated plainly: Codex-CLI runs were single-shot (~35 s, a few commands, no live-site testing), a different agent style than the Claude runs — these are model+harness systems.
 
-The subset completed the symmetry: Sol went **18/18** on the same six-task famous-trap subset as Gemini Pro, and Luna matched Flash's floor — 9/9 on the calibration tasks, **0/3 on d7-01** with the same one-delivery-two-echo split as its big sibling. Full census after three labs: **27 default-effort failures on d7-01 (37 counting the effort arms), and every single one is one of the same two canonical-looking wrong patterns.** No model from any lab has produced a third way to be wrong. The trap has exactly two attractors on the internet, and every training corpus appears to contain both.
+The subset completed the symmetry: Sol went **18/18** on the same six-task famous-trap subset as Gemini Pro, and Luna matched Flash's floor — 9/9 on the calibration tasks, **0/3 on d7-01** with the same one-delivery-two-echo split as its big sibling. Sol then ran the three tasks Gemini's suspension left unmeasured: **8/9**, and the one dropped trial is a finding in miniature — on d10-05 it wrote `accessCheck(TRUE)` without the status condition, the *sophisticated-looking* wrong answer whose second camouflage layer caught the suite's human author during development (author-catch #3 in [`VALIDATION.md`](VALIDATION.md)) and one Haiku trial before it. That thinly-warned subtlety now has catches across two labs plus the author — a candidate weak discriminator, flagged for higher trial counts. Full census after three labs: **27 default-effort failures on d7-01 (37 counting the effort arms), and every single one is one of the same two canonical-looking wrong patterns.** No model from any lab has produced a third way to be wrong. The trap has exactly two attractors on the internet, and every training corpus appears to contain both.
 
-Honest caveats: n=3 trials per cell — error bars are wide, and differences under ~2 tasks are noise. Fourteen of fifteen tasks are (nearly) saturated for frontier models; d7-01 remains the sole strong discriminator. Every number above is regenerable from `results/runs.jsonl` (receipts: stages, duration, cost, transcript per run; six d7 records are marked `regraded` after grader-fairness fixes — see [`VALIDATION.md`](VALIDATION.md)).
+Honest caveats: n=3 trials per cell — error bars are wide, and differences under ~2 tasks are noise. Fourteen of fifteen tasks are (nearly) saturated for frontier models; d7-01 remains the sole strong discriminator, with d10-05's accessCheck subtlety a candidate weak one (one Sol and one Haiku catch; n far too small to call). Every number above is regenerable from `results/runs.jsonl` (receipts: stages, duration, cost, transcript per run; six d7 records are marked `regraded` after grader-fairness fixes — see [`VALIDATION.md`](VALIDATION.md)).
 
 ## Beyond authoring: two experiments on the same receipts
 
@@ -119,7 +119,7 @@ Shipped so far: 15 tasks across four lanes; a 4-model Claude matrix with a test-
 - **More labs:** OpenAI is complete to Gemini parity (adapter, subset, floor, effort arm). Next: open-weights models (DeepSeek, Qwen, Kimi) via a single Aider/OpenRouter adapter — the corpus-trap prediction stays on record for them.
 - **Complete the Gemini column:** three subset cells (d10-05, d7-06, d7-07) pending the provider's suspension appeal.
 - **Hunt more discriminators:** the recipe is documented (popular wrong pattern + absent corpus warning) and hard to satisfy on purpose — the author went 0-for-5. Candidate contributions welcome as issues; the D7-02 Features-module task remains unbuilt and unmeasured anywhere.
-- **Tighter intervals where it matters:** raise trial counts on discriminating cells (d7-01 sits at n=6; saturated cells don't need more).
+- **Tighter intervals where it matters:** raise trial counts on discriminating cells (d7-01 sits at n=6; d10-05's second camouflage layer just earned candidate status; saturated cells don't need more).
 - **Effort curve:** the max-effort experiment rescued exactly one model; a low→max sweep would map the full budget-capability trade.
 - **Judge lane** for code-quality dimensions — still future, still reported separately, never mixed into pass rates.
 
