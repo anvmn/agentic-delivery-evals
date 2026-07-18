@@ -102,8 +102,14 @@ Requirements: ddev, node ≥ 20, elm 0.19, jq, and the Claude Code CLI authentic
 
 ## Roadmap
 
-- **v0.2:** 15 tasks (more tier-3; the Features-module task D7-02 has no modern analogue and no public eval anywhere), 4-model matrix, and the **author × reviewer experiment**: score each model as a reviewer of the accumulated pass/fail-labeled solutions — precision/recall of rejecting broken code, self-pairs vs cross-pairs.
-- Judge lane for code-quality dimensions (reported separately, never mixed into pass rates).
+Shipped so far: 15 tasks across four lanes; a 4-model Claude matrix with a test-retest replication; cross-lab columns (Gemini Pro/Flash); the effort experiment; and the author × reviewer experiment (95 blind reviews). What's genuinely next:
+
+- **More labs:** OpenAI's flagship via Codex CLI, then open-weights models (DeepSeek, Qwen, Kimi) via a single Aider/OpenRouter adapter — the corpus-trap prediction is on record for all of them.
+- **Complete the Gemini column:** three subset cells (d10-05, d7-06, d7-07) pending the provider's suspension appeal.
+- **Hunt more discriminators:** the recipe is documented (popular wrong pattern + absent corpus warning) and hard to satisfy on purpose — the author went 0-for-5. Candidate contributions welcome as issues; the D7-02 Features-module task remains unbuilt and unmeasured anywhere.
+- **Tighter intervals where it matters:** raise trial counts on discriminating cells (d7-01 sits at n=6; saturated cells don't need more).
+- **Effort curve:** the max-effort experiment rescued exactly one model; a low→max sweep would map the full budget-capability trade.
+- **Judge lane** for code-quality dimensions — still future, still reported separately, never mixed into pass rates.
 
 ## License
 
