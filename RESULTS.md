@@ -1,6 +1,6 @@
 # Results
 
-Suite version **0.3.0** · generated 2026-07-18 · 226 runs · total agent cost $85.31
+Suite version **0.3.0** · generated 2026-07-18 · 226 runs · total agent cost $85.36
 
 > n=trials per cell is small — treat differences under ~2 tasks as noise, not signal.
 

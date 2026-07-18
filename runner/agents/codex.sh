@@ -25,9 +25,13 @@ fi
 export OPENAI_API_KEY="${OPENAI_API_KEY:-}"
 
 start=$(date +%s)
+EFFORT_FLAG=()
+[ -n "${CODEX_EFFORT:-}" ] && EFFORT_FLAG=(-c "model_reasoning_effort=${CODEX_EFFORT}")
+
 (cd "$WS" && timeout "${TIMEOUT_S}s" \
   codex exec \
     -m "$MODEL" \
+    "${EFFORT_FLAG[@]}" \
     --json \
     --ephemeral \
     --skip-git-repo-check \
@@ -53,8 +57,8 @@ refusal='insufficient_quota|exceeded your current quota|account is not active|in
 err_events=$(jq -r 'select(.type=="error") | .message // empty' "$TRANSCRIPT" 2>/dev/null || true)
 if { cat "$WS/agent-stderr.log" "$WS/agent-last-message.txt" 2>/dev/null; printf '%s' "$err_events"; } \
    | grep -qiE "$refusal"; then
-  jq -cn --argjson dur "$((end - start))" \
-    '{cost_usd:0, duration_s:$dur, turns:0, agent_exit:99, timed_out:false, effort:"default"}'
+  jq -cn --argjson dur "$((end - start))" --arg eff "${CODEX_EFFORT:-default}" \
+    '{cost_usd:0, duration_s:$dur, turns:0, agent_exit:99, timed_out:false, effort:$eff}'
   exit 99
 fi
 
@@ -64,7 +68,7 @@ usage=$(jq -s '
   [ .[] | (.usage? // .msg?.usage? // .payload?.usage?) | select(. != null) ] |
   { in:  ([.[] | .input_tokens        // 0] | add // 0),
     cin: ([.[] | .cached_input_tokens // 0] | add // 0),
-    out: ([.[] | .output_tokens       // 0] | add // 0) }' \
+    out: ([.[] | (.output_tokens // 0) + (.reasoning_output_tokens // 0)] | add // 0) }' \
   "$TRANSCRIPT" 2>/dev/null || echo '{"in":0,"cin":0,"out":0}')
 
 case "$MODEL" in
@@ -81,9 +85,15 @@ cost=$(jq -n --argjson u "$usage" --argjson pi "$p_in" --argjson po "$p_out" '
 turns=$(grep -c '"type":"turn.completed"' "$TRANSCRIPT" 2>/dev/null)
 [ -n "$turns" ] || turns=0
 [ -n "${cost:-}" ] || cost=0
+if [ "$agent_exit" -eq 0 ] && [ "$turns" -eq 0 ]; then
+  echo "codex exited 0 with zero completed turns — treating as provider refusal" >&2
+  jq -cn --argjson dur "$((end - start))" --arg eff "${CODEX_EFFORT:-default}" \
+    '{cost_usd:0, duration_s:$dur, turns:0, agent_exit:99, timed_out:false, effort:$eff}'
+  exit 99
+fi
 
 jq -cn \
   --argjson cost "${cost:-0}" --argjson turns "${turns:-0}" \
   --argjson dur "$((end - start))" --argjson ec "$agent_exit" \
-  --argjson to "$timed_out" \
-  '{cost_usd:$cost, duration_s:$dur, turns:$turns, agent_exit:$ec, timed_out:$to, effort:"default"}'
+  --argjson to "$timed_out" --arg eff "${CODEX_EFFORT:-default}" \
+  '{cost_usd:$cost, duration_s:$dur, turns:$turns, agent_exit:$ec, timed_out:$to, effort:$eff}'
