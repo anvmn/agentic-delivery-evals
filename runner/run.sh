@@ -71,6 +71,13 @@ for task_dir in "$TASKS_DIR"/*/; do
       fi
       if jq -e '.agent_exit == 99' <<<"$agent_json" >/dev/null 2>&1; then
         echo "PROVIDER QUOTA exhausted (adapter exit 99) — aborting matrix; voiding this cell." >&2
+        cp "$ws/agent-stderr.log" "$RESULTS/transcripts/$(basename "$ws").stderr.log" 2>/dev/null || true
+        rm -rf "$ws"
+        exit 3
+      fi
+      if jq -e '.error' <<<"$agent_json" >/dev/null 2>&1; then
+        echo "ADAPTER FAILURE ($(jq -r .error <<<"$agent_json")) — aborting matrix; voiding this cell." >&2
+        cp "$ws/agent-stderr.log" "$RESULTS/transcripts/$(basename "$ws").stderr.log" 2>/dev/null || true
         rm -rf "$ws"
         exit 3
       fi

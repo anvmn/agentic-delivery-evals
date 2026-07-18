@@ -50,7 +50,8 @@ refusal='insufficient_quota|exceeded your current quota|account is not active|in
 # cat-pipe, not multi-file grep: grep exits 2 (no match reported) if any
 # listed file is missing — and the last-message file is exactly what's
 # missing when the CLI dies early.
-if cat "$WS/agent-stderr.log" "$WS/agent-last-message.txt" 2>/dev/null \
+err_events=$(jq -r 'select(.type=="error") | .message // empty' "$TRANSCRIPT" 2>/dev/null || true)
+if { cat "$WS/agent-stderr.log" "$WS/agent-last-message.txt" 2>/dev/null; printf '%s' "$err_events"; } \
    | grep -qiE "$refusal"; then
   jq -cn --argjson dur "$((end - start))" \
     '{cost_usd:0, duration_s:$dur, turns:0, agent_exit:99, timed_out:false, effort:"default"}'
@@ -73,11 +74,13 @@ case "$MODEL" in
   gpt-5.2-codex|gpt-5.3-codex) p_in=1.75; p_out=14.00 ;;
   *) p_in=0; p_out=0; echo "WARN: no pinned price for $MODEL — cost recorded as 0" >&2 ;;
 esac
+printf '%s' "$usage" | jq -e . >/dev/null 2>&1 || usage='{"in":0,"cin":0,"out":0}'
 cost=$(jq -n --argjson u "$usage" --argjson pi "$p_in" --argjson po "$p_out" '
   ((($u.in - $u.cin) * $pi) + ($u.cin * $pi * 0.1) + ($u.out * $po)) / 1000000
-  | if . < 0 then 0 else . end')
-
-turns=$(grep -c '"type":"turn.completed"' "$TRANSCRIPT" 2>/dev/null || echo 0)
+  | if . < 0 then 0 else . end' 2>/dev/null)
+turns=$(grep -c '"type":"turn.completed"' "$TRANSCRIPT" 2>/dev/null)
+[ -n "$turns" ] || turns=0
+[ -n "${cost:-}" ] || cost=0
 
 jq -cn \
   --argjson cost "${cost:-0}" --argjson turns "${turns:-0}" \
