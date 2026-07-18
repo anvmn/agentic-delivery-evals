@@ -2,7 +2,7 @@
 
 Coding evals for agentic work on **Drupal (7 and 10)** and **Elm** — the measurement layer of the [agentic-delivery-harness](https://github.com/anvmn/agentic-delivery-harness). Realistic tasks, mechanical grading, hidden holdouts, and a runner that executes coding agents headlessly and reports pass rates per model. Built and validated on the workflow behind a production digital-health platform.
 
-## Results (suites 0.1–0.3 · 192 runs · 4 models · 2026-07-17)
+## Results (suites 0.1–0.3 · 222 runs · 6 models, 2 labs · 2026-07-18)
 
 | task | lane | tier | fable-5 | opus-4-8 | sonnet-5 | haiku-4-5 | g3.1-pro | g3-flash |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
