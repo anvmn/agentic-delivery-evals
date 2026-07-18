@@ -50,6 +50,21 @@ Frontier-for-frontier the pattern mirrors Claude: Google's top model escapes the
 
 Honest caveats: n=3 trials per cell — error bars are wide, and differences under ~2 tasks are noise. Nine of ten tasks are (nearly) saturated for frontier models; d7-01 remains the sole strong discriminator. Every number above is regenerable from `results/runs.jsonl` (receipts: stages, duration, cost, transcript per run; six d7 records are marked `regraded` after grader-fairness fixes — see [`VALIDATION.md`](VALIDATION.md)).
 
+## Beyond authoring: two experiments on the same receipts
+
+**Does thinking budget rescue models from the trap?** Rerunning d7-01 at `--effort max` for the models that fail at default effort: Opus 4.8 jumped from 1/6 to **2/3** — its max-effort passes ran ~2× longer and found the trap. Sonnet 5 (0/3) and Haiku 4.5 (0/3) stayed trapped, merely shuffling *which* wrong pattern they chose. Gemini's receipts show the observational twin: with dynamic thinking, its Pro's one passing trial spontaneously spent 9.8k thinking tokens vs 4–5.6k in its failing trials. The verdict is tiered: **effort rescues a model that is one step below the trap; it cannot substitute for knowledge that isn't there.** Below the threshold, only behavioral gates help.
+
+**Can models review their way out?** All four Claude models blindly reviewed 24 graded d7-01 solutions (plus Gemini's), 95 reviews against grader ground truth ([`experiments/author-reviewer/`](experiments/author-reviewer/)):
+
+| reviewer | delivery-trap catches | echo catches | good code approved |
+| --- | --- | --- | --- |
+| fable-5 | 12/12 | 0/6 | 7/7 |
+| opus-4-8 | 6/7 | 0/2 | 2/2 |
+| sonnet-5 | 7/12 | 1/5 | 6/7 |
+| haiku-4-5 | 1/12 | 2/5 | 6/7 |
+
+Three results: review capability is the **same staircase as authoring capability** (and it transfers cross-lab — Fable rejects Gemini's trap failures 4/4, Haiku 1/4); the echo failure mode is **near-invisible to every reviewer** — 3/18 caught, pooled — with reviewers routinely praising the bug as a virtue; and false alarms stay low (21/23 good solutions approved). Model review is a filter that inherits the reviewer's blind spots; the grader — the behavioral gate — was the floor.
+
 ## How it works
 
 ```text
