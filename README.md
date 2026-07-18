@@ -2,27 +2,27 @@
 
 Coding evals for agentic work on **Drupal (7 and 10)** and **Elm** — the measurement layer of the [agentic-delivery-harness](https://github.com/anvmn/agentic-delivery-harness). Realistic tasks, mechanical grading, hidden holdouts, and a runner that executes coding agents headlessly and reports pass rates per model. Built and validated on the workflow behind a production digital-health platform.
 
-## Results (suites 0.1–0.3 · 226 runs · 8 models, 3 labs · 2026-07-18)
+## Results (suites 0.1–0.3 · 255 runs · 8 models, 3 labs · 2026-07-18)
 
 | task | lane | tier | fable-5 | opus-4-8 | sonnet-5 | haiku-4-5 | g3.1-pro | g3-flash | 5.6-sol | 5.6-luna |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| e-01 decoder round-trip | elm | 1 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | 1/1 |
-| e-02 impossible states | elm | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — |
-| b-01 write-the-E2E | behavioral | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — |
-| d10-02 cache invalidation | drupal10 | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — |
-| **d7-01 menu endpoint** (two independent runs) | **drupal7** | **2** | **6/6** | **1/6** | **0/6** | **1/6** | 1/3 | 0/3 | 0/3 | — |
+| e-01 decoder round-trip | elm | 1 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | 3/3 | 3/3 |
+| e-02 impossible states | elm | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 |
+| b-01 write-the-E2E | behavioral | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | 3/3 | — |
+| d10-02 cache invalidation | drupal10 | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 |
+| **d7-01 menu endpoint** (two independent runs) | **drupal7** | **2** | **6/6** | **1/6** | **0/6** | **1/6** | 1/3 | 0/3 | 0/3 | 0/3 |
 | d7-03 field migration | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | — | — | — | — |
 | d7-05 save-trigger queue | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — |
 | e-06 unicode length | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — |
-| d10-04 cache context (poisoning) | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | 3/3 | — | — | — |
+| d10-04 cache context (poisoning) | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | 3/3 | — | 3/3 | — |
 | d10-05 query access leak | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | — | — |
-| e-07 tagged-union decode (oneOf) | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — |
+| e-07 tagged-union decode (oneOf) | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | 3/3 | — |
 | e-08 MUAC boundary classify | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — |
 | d7-06 node-access grants | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | — | — |
 | d7-07 batched $sandbox update | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | — | — |
 | d7-08 multilingual field access | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — |
 
-*Gemini and OpenAI columns: subset by design (— = not run); ※ = pending the provider's suspension appeal. Gemini/OpenAI d7-01 cells are single-run (n=3); OpenAI stage 2 (the six-task subset) is planned.*
+*Gemini and OpenAI columns: subset by design (— = not run); ※ = pending the provider's suspension appeal. Gemini and OpenAI d7-01 cells are single-run (n=3).*
 
 **The finding, twice refined by replication — and now test-retested:** on d7-01, four models spanning the capability range separate in a clean staircase — Fable 5 6/6, Opus 4.8 1/6, Sonnet 5 0/6, Haiku 4.5 1/6 over two independent runs a day apart — while every modern-stack task is 12/12 across all four. Two more Drupal 7 tasks then tested whether "legacy is hard" explains it. It doesn't: d7-03 (a harder-tier dual-table data migration) came back 11/12, and d7-05 — which deliberately stacks *four* legacy-API axes (DrupalQueue vs QueueWorker instincts, variables vs State API, EntityFieldQuery vs entityQuery, plus an idempotency requirement) and is modeled on the most common pattern in a real production D7 backend — came back **12/12**. Old and obscure APIs alone don't separate models. What separated them, in the one task that did, is sharper: **d7-01 is the only task where the canonical-*looking* solution is wrong** (`drupal_json_output` as a delivery callback reads like textbook D7 and silently breaks access control). The working hypothesis after three legacy tasks: models fail not where code is old, but where **plausible looks-right patterns are subtly incorrect** — and that is also precisely where unaided human reviewers fail. v0.2's task design targeted exactly such looks-right-is-wrong spots, in both eras.
 
@@ -52,7 +52,9 @@ Frontier-for-frontier the pattern mirrors Claude: Google's top model escapes the
 
 Beyond the trap, the symmetry held everywhere it was tested: gemini-3.1-pro went **18/18** on a stratified six-task subset (e-01, e-02, e-07, b-01, d10-02, and notably d10-04 — the cache-poisoning trap), and gemini-3-flash passed both floor-calibration tasks 6/6, placing it inside the Claude band on famous-trap work. Three subset cells (d10-05, d7-06, d7-07) are **not run**: the provider first exhausted its 250-requests/day tier cap (nine poisoned records voided; the runner now honors the adapter's quota signal), and the project's API access was subsequently suspended pending an Acceptable Use appeal — plausibly triggered by this suite's own overnight quota-retry loop, a bot-shaped mistake we've documented and stopped. Benchmarking across vendors means inheriting every vendor's failure modes; the receipts include theirs and ours.
 
-**Third lab (2026-07-18): OpenAI, same trap — and now both failure modes replicate.** GPT-5.6 Sol (OpenAI's flagship, via a thin Codex-CLI adapter) went **0/3 on d7-01**, and its three failures land exactly in the two known grooves: one trial wrote the delivery trap — `'delivery callback' => 'drupal_json_output'`, the same line as Opus and both Geminis — and two trials wrote the echo mode (JSON emitted inside the page callback, nothing returned), previously Sonnet's signature. At n=3, 0/3 is statistically indistinguishable from the Opus/Gemini-Pro ~1-in-3 band, so no ranking claim; what is *not* noise is that a third lab's flagship produced no novel failure — every wrong answer across nine frontier-model failures on this task is one of the same two canonical-looking patterns. System caveat, stated plainly: Codex-CLI runs were single-shot (~35 s, a few commands, no live-site testing), a different agent style than the Claude runs — these are model+harness systems. GPT-5.6 Luna passed the e-01 smoke test 1/1; the OpenAI subset run mirroring Gemini's stage 2 is planned.
+**Third lab (2026-07-18): OpenAI, same trap — and now both failure modes replicate.** GPT-5.6 Sol (OpenAI's flagship, via a thin Codex-CLI adapter) went **0/3 on d7-01**, and its three failures land exactly in the two known grooves: one trial wrote the delivery trap — `'delivery callback' => 'drupal_json_output'`, the same line as Opus and both Geminis — and two trials wrote the echo mode (JSON emitted inside the page callback, nothing returned), previously Sonnet's signature. At n=3, 0/3 is statistically indistinguishable from the Opus/Gemini-Pro ~1-in-3 band, so no ranking claim; what is *not* noise is that a third lab's flagship produced no novel failure — every wrong answer across nine frontier-model failures on this task is one of the same two canonical-looking patterns. System caveat, stated plainly: Codex-CLI runs were single-shot (~35 s, a few commands, no live-site testing), a different agent style than the Claude runs — these are model+harness systems.
+
+The subset completed the symmetry: Sol went **18/18** on the same six-task famous-trap subset as Gemini Pro, and Luna matched Flash's floor — 9/9 on the calibration tasks, **0/3 on d7-01** with the same one-delivery-two-echo split as its big sibling. Full census after three labs: **27 default-effort failures on d7-01 (37 counting the effort arms), and every single one is one of the same two canonical-looking wrong patterns.** No model from any lab has produced a third way to be wrong. The trap has exactly two attractors on the internet, and every training corpus appears to contain both.
 
 Honest caveats: n=3 trials per cell — error bars are wide, and differences under ~2 tasks are noise. Fourteen of fifteen tasks are (nearly) saturated for frontier models; d7-01 remains the sole strong discriminator. Every number above is regenerable from `results/runs.jsonl` (receipts: stages, duration, cost, transcript per run; six d7 records are marked `regraded` after grader-fairness fixes — see [`VALIDATION.md`](VALIDATION.md)).
 
@@ -113,7 +115,7 @@ Requirements: ddev, node ≥ 20, elm 0.19, jq, and the Claude Code CLI authentic
 
 Shipped so far: 15 tasks across four lanes; a 4-model Claude matrix with a test-retest replication; cross-lab columns (Gemini Pro/Flash); the effort experiment; and the author × reviewer experiment (95 blind reviews). What's genuinely next:
 
-- **More labs:** OpenAI is in progress — the Codex-CLI adapter landed and GPT-5.6 Sol has its d7-01 cell (0/3, both known failure modes; subset run pending). Next: open-weights models (DeepSeek, Qwen, Kimi) via a single Aider/OpenRouter adapter — the corpus-trap prediction stays on record for them.
+- **More labs:** OpenAI is complete to Gemini parity (adapter, subset, floor, effort arm). Next: open-weights models (DeepSeek, Qwen, Kimi) via a single Aider/OpenRouter adapter — the corpus-trap prediction stays on record for them.
 - **Complete the Gemini column:** three subset cells (d10-05, d7-06, d7-07) pending the provider's suspension appeal.
 - **Hunt more discriminators:** the recipe is documented (popular wrong pattern + absent corpus warning) and hard to satisfy on purpose — the author went 0-for-5. Candidate contributions welcome as issues; the D7-02 Features-module task remains unbuilt and unmeasured anywhere.
 - **Tighter intervals where it matters:** raise trial counts on discriminating cells (d7-01 sits at n=6; saturated cells don't need more).
