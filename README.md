@@ -6,21 +6,21 @@ Coding evals for agentic work on **Drupal (7 and 10)** and **Elm** — the measu
 
 | task | lane | tier | fable-5 | opus-4-8 | sonnet-5 | haiku-4-5 | g3.1-pro | g3-flash | 5.6-sol | 5.6-luna |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| e-01 decoder round-trip | elm | 1 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — |
-| e-02 impossible states | elm | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 |
-| b-01 write-the-E2E | behavioral | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — |
-| d10-02 cache invalidation | drupal10 | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 |
-| **d7-01 menu endpoint** (two independent runs) | **drupal7** | **2** | **6/6** | **1/6** | **0/6** | **1/6** | 1/3 | 0/3 |
-| d7-03 field migration | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | — | — |
-| d7-05 save-trigger queue | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — |
-| e-06 unicode length | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — |
-| d10-04 cache context (poisoning) | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | 3/3 | — |
-| d10-05 query access leak | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — |
-| e-07 tagged-union decode (oneOf) | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — |
-| e-08 MUAC boundary classify | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — |
-| d7-06 node-access grants | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — |
-| d7-07 batched $sandbox update | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — |
-| d7-08 multilingual field access | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — |
+| e-01 decoder round-trip | elm | 1 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | 1/1 |
+| e-02 impossible states | elm | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — |
+| b-01 write-the-E2E | behavioral | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — |
+| d10-02 cache invalidation | drupal10 | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — |
+| **d7-01 menu endpoint** (two independent runs) | **drupal7** | **2** | **6/6** | **1/6** | **0/6** | **1/6** | 1/3 | 0/3 | 0/3 | — |
+| d7-03 field migration | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | — | — | — | — |
+| d7-05 save-trigger queue | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — |
+| e-06 unicode length | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — |
+| d10-04 cache context (poisoning) | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | 3/3 | — | — | — |
+| d10-05 query access leak | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | — | — |
+| e-07 tagged-union decode (oneOf) | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — |
+| e-08 MUAC boundary classify | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — |
+| d7-06 node-access grants | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | — | — |
+| d7-07 batched $sandbox update | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | — | — |
+| d7-08 multilingual field access | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — |
 
 *Gemini and OpenAI columns: subset by design (— = not run); ※ = pending the provider's suspension appeal. Gemini/OpenAI d7-01 cells are single-run (n=3); OpenAI stage 2 (the six-task subset) is planned.*
 
