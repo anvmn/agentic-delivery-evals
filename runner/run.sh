@@ -57,6 +57,7 @@ for task_dir in "$TASKS_DIR"/*/; do
       adapter="$ROOT/runner/agents/claude-code.sh"; agent_model="$model"
       case "$model" in
         gemini:*) adapter="$ROOT/runner/agents/gemini.sh"; agent_model="${model#gemini:}" ;;
+        openai:*) adapter="$ROOT/runner/agents/codex.sh"; agent_model="${model#openai:}" ;;
       esac
       agent_json=$("$adapter" "$ws" "$agent_model" "$timeout_s" \
                    "$RESULTS/transcripts/$(basename "$ws").json" || true)
