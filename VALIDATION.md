@@ -150,5 +150,10 @@ Two batches of receipts were voided — kept out of runs.jsonl and every table:
   250 req/day cap. The adapter flagged them (exit 99) but the runner ignored
   it; voided, and the runner now treats exit 99 as a matrix abort.
 
+- **Adapter-failure poisoning (OpenAI onboarding):** the codex adapter's first
+  invocation failed on a missing execute bit and the runner recorded pass=false.
+  Voided; the runner now aborts the matrix on any adapter error object and
+  preserves stderr forensics before voiding the workspace.
+
 Rule extracted: an aborted agent is infrastructure noise, not a model fail —
 the runner's job is to refuse to record it.
