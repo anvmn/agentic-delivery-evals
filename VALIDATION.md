@@ -155,5 +155,12 @@ Two batches of receipts were voided — kept out of runs.jsonl and every table:
   Voided; the runner now aborts the matrix on any adapter error object and
   preserves stderr forensics before voiding the workspace.
 
+- **Cost-metering correction (OpenAI):** the Codex event schema reports
+  reasoning tokens in a separate `reasoning_output_tokens` field; the first
+  four OpenAI receipts under-billed by ~10%. Re-metered from transcripts,
+  records marked `remetered`.
+
 Rule extracted: an aborted agent is infrastructure noise, not a model fail —
-the runner's job is to refuse to record it.
+the runner's job is to refuse to record it. And a receipt is only as honest
+as its parser — meter fields are verified against the provider's schema
+before a lab's numbers are published.

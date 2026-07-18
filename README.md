@@ -80,8 +80,8 @@ tasks/<id>/         task.md (agent-visible spec) · fixture/ (starting state)
                     grader/ (answer key — never enters the agent workspace)
                     meta.json (lane, tier, timeout, required stages)
 runner/run.sh       task × model × trial matrix over headless agents
-                    (Claude Code; `gemini:`-prefixed models route to the
-                    Gemini CLI adapter in runner/agents/)
+                    (Claude Code; `gemini:`/`openai:`-prefixed models route
+                    to the Gemini CLI / Codex CLI adapters in runner/agents/)
 runner/report.sh    results/runs.jsonl -> RESULTS.md scoreboard
 ```
 
@@ -105,11 +105,12 @@ tasks/b-01-write-e2e/provision.sh
 runner/run.sh --models "claude-opus-4-8,claude-fable-5" --trials 3 --max-cost-usd 15
 runner/report.sh
 
-# cross-lab column (routes to the Gemini CLI adapter; needs GEMINI_API_KEY)
+# cross-lab columns (adapter routing by prefix; need GEMINI_API_KEY / a Codex CLI login)
 runner/run.sh --models "gemini:gemini-3.1-pro-preview" --only d7-01-menu-endpoint
+runner/run.sh --models "openai:gpt-5.6-sol" --only d7-01-menu-endpoint
 ```
 
-Requirements: ddev, node ≥ 20, elm 0.19, jq, and the Claude Code CLI authenticated (plus the Gemini CLI for `gemini:` models). The runner's `--max-cost-usd` is a hard cap checked before every session.
+Requirements: ddev, node ≥ 20, elm 0.19, jq, and the Claude Code CLI authenticated (plus the Gemini CLI for `gemini:` models, the Codex CLI for `openai:` models). The runner's `--max-cost-usd` is a hard cap checked before every session.
 
 ## Roadmap
 
