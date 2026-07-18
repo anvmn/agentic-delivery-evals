@@ -1,8 +1,14 @@
 # agentic-delivery-evals
 
-Coding evals for agentic work on **Drupal (7 and 10)** and **Elm** — the measurement layer of the [agentic-delivery-harness](https://github.com/anvmn/agentic-delivery-harness). Realistic tasks, mechanical grading, hidden holdouts, and a runner that executes coding agents headlessly and reports pass rates per model. Built and validated on the workflow behind a production digital-health platform.
+A test suite that measures how well AI coding agents handle real-world work — and where they quietly fail.
 
-## Results (suites 0.1–0.3 · 264 runs · 8 models, 3 labs · 2026-07-18)
+It covers two under-measured territories: **Drupal** (the CMS platform behind a large share of institutional websites, in both its modern version 10 and its legacy 2011-era version 7) and **Elm** (a typed functional language for web apps). The tasks are modeled on the real workflow behind a production digital-health platform. This repo is the measurement layer of the [agentic-delivery-harness](https://github.com/anvmn/agentic-delivery-harness); every claim below is regenerable from machine-readable receipts in `results/runs.jsonl`.
+
+> **The short version:** we gave 8 AI models from 3 companies (Anthropic, Google, OpenAI) 15 coding tasks — 264 graded runs. Nearly every model passed nearly everything, including tasks deliberately engineered to be treacherous. But one task splits the field dramatically, and the reason became the central finding: **models fail where the internet contains a popular wrong answer but not the warning about it.** All three labs' models fall into the exact same two wrong patterns on that task, more "thinking" usually doesn't save them, and AI code reviewers miss the same bugs AI authors write.
+
+## The scoreboard (suites 0.1–0.3 · 264 runs · 8 models, 3 labs · 2026-07-18)
+
+Each cell shows passes/attempts. "Tier" is the intended difficulty (1 = easy, 3 = hard). The bold row is the one task that separates models.
 
 | task | lane | tier | fable-5 | opus-4-8 | sonnet-5 | haiku-4-5 | g3.1-pro | g3-flash | 5.6-sol | 5.6-luna |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -22,45 +28,69 @@ Coding evals for agentic work on **Drupal (7 and 10)** and **Elm** — the measu
 | d7-07 batched $sandbox update | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | 3/3 | — |
 | d7-08 multilingual field access | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — |
 
-*Gemini and OpenAI columns: subset by design (— = not run); ※ = pending the provider's suspension appeal. Gemini and OpenAI d7-01 cells are single-run (n=3).*
+*Gemini and OpenAI columns cover a subset by design (— = not run); ※ = pending the provider's suspension appeal. Gemini and OpenAI d7-01 cells are single-run (n=3).*
 
-**The finding, twice refined by replication — and now test-retested:** on d7-01, four models spanning the capability range separate in a clean staircase — Fable 5 6/6, Opus 4.8 1/6, Sonnet 5 0/6, Haiku 4.5 1/6 over two independent runs a day apart — while every modern-stack task is 12/12 across all four. Two more Drupal 7 tasks then tested whether "legacy is hard" explains it. It doesn't: d7-03 (a harder-tier dual-table data migration) came back 11/12, and d7-05 — which deliberately stacks *four* legacy-API axes (DrupalQueue vs QueueWorker instincts, variables vs State API, EntityFieldQuery vs entityQuery, plus an idempotency requirement) and is modeled on the most common pattern in a real production D7 backend — came back **12/12**. Old and obscure APIs alone don't separate models. What separated them, in the one task that did, is sharper: **d7-01 is the only task where the canonical-*looking* solution is wrong** (`drupal_json_output` as a delivery callback reads like textbook D7 and silently breaks access control). The working hypothesis after three legacy tasks: models fail not where code is old, but where **plausible looks-right patterns are subtly incorrect** — and that is also precisely where unaided human reviewers fail. v0.2's task design targeted exactly such looks-right-is-wrong spots, in both eras.
+## The story the numbers tell
 
-The failure modes are distinct, and all three are real Drupal 7 production hazards:
+### One task splits the field
 
-- **The delivery trap** (all 5 Opus failures, 3 of 5 Haiku failures): `'delivery callback' => 'drupal_json_output'` looks canonical but delivers access-denied as HTTP 200 with body `3` (the JSON-encoded `MENU_ACCESS_DENIED` constant). The same trap caught the suite's author writing the reference solution.
-- **The echo instinct** (all 6 Sonnet failures, 2 of 5 Haiku failures): calling `drupal_json_output()` *inside* the page callback and returning nothing — through D7's real delivery pipeline that yields JSON followed by a 404 page (a NULL callback return means "not found"), violating the task's explicit return-array contract.
-- Only Fable consistently wrote what D7 actually requires: a custom delivery callback routing integer menu-status results through standard delivery.
-- **Failure modes are model-stable:** across two runs a day apart, Sonnet *always* fails by echoing, Opus *always* by the delivery trap. These read as stable per-model instincts, not coin flips — only Haiku, the smallest, mixes modes.
+Task d7-01 asks for something a Drupal 7 developer did routinely: a small web endpoint that returns data as JSON, restricted to users with the right permission. There is a way to write it that *looks* like textbook code — the pattern is all over the internet — but silently breaks the security requirement: users who should get "access denied" (HTTP 403) instead get a friendly "200 OK" whose entire content is the number `3` (the framework's internal access-denied code, helpfully converted to JSON). That line is `'delivery callback' => 'drupal_json_output'`.
 
-Models are trained overwhelmingly on modern-framework idioms; the **paradigm-bleed hypothesis** — that agents underperform where legacy conventions predate their training distribution's center of mass — now has a four-model data point *and* a boundary condition from its first replication attempt. No other public eval measures agents on legacy stacks at all.
+On this task, four Claude models spanning the capability range separate into a clean staircase — **Fable 5: 6/6 · Opus 4.8: 1/6 · Sonnet 5: 0/6 · Haiku 4.5: 1/6** — measured across two independent runs a day apart, identical both days. Meanwhile every modern-stack task is 12/12 across those same four models.
 
-A practical corollary from the cost column of the receipts: Haiku cleared 25 of 27 modern-stack trials at $0.05–$0.16 per run, against a frontier mean of $0.60 on the same lanes — and its only two modern-stack drops are the two engineered Drupal 10 traps. In this suite's domains, capability spend only pays off where the traps are.
+### It is not because old code is hard
 
-**The v0.2 counter-result — traps with published warnings don't trap.** We built three tasks deliberately engineered to d7-01's recipe (popular-wrong pattern, framework-interaction bug, happy-path camouflage) in *modern* territory: Elm's UTF-16 length trap, Drupal 10 cache-context poisoning, and the entityQuery access leak. The frontier models dodged all three, 27/27; only Haiku dropped points (a runtime crash from a missing `accessCheck()`, and one genuine access leak). The distinction this forces is the sharpest yet: modern traps are *loudly documented as traps* — change records, security advisories, a decade of blog posts — so the warnings live in the training corpus alongside the bugs. d7-01's delivery-callback trap predates that discourse: the corpus carries the disease without the vaccine. Working formulation after ten tasks: **models fail where the training corpus contains the wrong pattern but not its warning.** Corollary, measured on ourselves: these traps caught the suite's human author four times during development — more often than they caught any frontier model.
+The obvious explanation — "models are bad at legacy code" — was tested and failed:
 
-**The v0.3 negative result — an expert hunting traps went 0-for-5.** Five more tasks were engineered *deliberately* to the looks-right-is-wrong recipe, harder than anything before them and weighted to Drupal 7: node-access grants vs the runtime-hook leak, the `$sandbox` batching contract, multilingual field access, `Decode.oneOf` silent mis-decoding, clinical boundary conditions. Frontier models: **45/45.** Only Haiku dropped two trials. Every one of these traps turns out to be *well-warned* in the corpus — node access grants and `$sandbox` batching are among the most-documented D7 topics precisely because they burned so many humans. The task-author (20 years in these stacks, actively hunting) could not construct a second d7-01 on purpose. Which sharpens the finding to its final v0.x form: frontier models are robust to *famous* traps regardless of era or complexity; what still catches them is the rare spot where the wrong pattern is popular **and its warning never made it into the corpus** — d7-01's delivery-callback interaction remains, after 15 tasks and 192 Claude runs, the only such spot found. Corollary: those spots are exactly as hard for humans to enumerate — the suite's development caught its own author five times.
+- **d7-03**, a *harder*-tier legacy task (migrating a field's stored data across two database tables without losing anything): **11/12**.
+- **d7-05**, deliberately stacked with **four** legacy-vs-modern API confusions at once (old queue API vs new, old variables vs the modern State API, old query API vs new, plus an idempotency requirement) and modeled on the most common backend pattern in a real production Drupal 7 platform: **12/12**.
 
-**Cross-lab replication (2026-07-18): the trap belongs to the internet, not to a lab.** Google's models, run through the identical pipeline (a thin Gemini-CLI adapter; same tasks, same graders, same blind protocol) on d7-01:
+Old and obscure APIs alone trip nobody. What's special about d7-01 is sharper: **it is the only task where the canonical-looking solution is wrong.** (The suite began from a broader *paradigm-bleed* hypothesis — models underperform where legacy conventions predate their training data's center of mass. These results gave it a precise boundary: the bleed shows up only at unwarned wrong-pattern spots, not everywhere code is old. No other public eval measures agents on legacy stacks at all.)
+
+### There are exactly two ways models get it wrong
+
+Every failure on d7-01 is one of two patterns — both real production hazards:
+
+- **The delivery trap** (all 5 Opus failures, 3 of 5 Haiku failures): the one-line configuration above — looks canonical, delivers access-denied as a 200 OK with body `3`. The same trap caught the suite's human author while writing the reference solution.
+- **The echo instinct** (all 6 Sonnet failures, 2 of 5 Haiku failures): printing the JSON directly inside the page handler and returning nothing — which, through the framework's real delivery pipeline, produces JSON followed by a stray "page not found" (a missing return value means "not found"), violating the task's explicit contract.
+- Only Fable consistently wrote what the framework actually requires: a small custom delivery handler that routes error codes through the standard path.
+- **Failure modes are stable per model:** across two runs a day apart, Sonnet *always* fails by echoing, Opus *always* by the delivery trap — ingrained instincts, not coin flips. Only Haiku, the smallest, mixes modes.
+
+### We tried to build more traps on purpose — and mostly failed
+
+If models fail where a wrong pattern is popular, we should be able to manufacture more tasks like d7-01. Two deliberate attempts:
+
+- **v0.2 — three engineered modern traps** (Elm's Unicode text-length pitfall, Drupal 10 per-user cache poisoning, and a query access leak): frontier models dodged all three, **27/27**. Only Haiku dropped points (a crash from a missing access check, and one genuine access leak).
+- **v0.3 — five harder traps** built by a 20-year veteran of these stacks actively hunting for d7-01's shape (node-access grants vs a leaky shortcut, batched-update contracts, multilingual field access, silent JSON mis-decoding, clinical boundary values): frontier models went **45/45**. Haiku dropped two trials.
+
+The expert went **0-for-5**. Why? Famous traps are famous *because they burned people* — the warnings (blog posts, security advisories, changelogs) live in the training data right next to the bugs. d7-01's trap predates that discourse: **the corpus carries the disease without the vaccine.** So the refined finding: models fail not where code is old or hard, but **where the training corpus contains the wrong pattern and not its warning.** During development, these traps caught the human author **five times** — more often than they caught any frontier model.
+
+### Three labs, one shared blind spot
+
+Google's and OpenAI's models, run through the identical pipeline (thin CLI adapters; same tasks, same graders, same blind protocol):
 
 | model | d7-01 | failure stage | failing line |
 | --- | --- | --- | --- |
 | gemini-3.1-pro-preview | 1/3 | anon_403 | `'delivery callback' => 'drupal_json_output'` |
 | gemini-3-flash | 0/3 | anon_403 | `'delivery callback' => 'drupal_json_output'` |
 
-Frontier-for-frontier the pattern mirrors Claude: Google's top model escapes the trap at the same ~1-in-3 rate as Opus 4.8, its smaller model never does, and every failure is the *same mode, same line* — the canonical-looking delivery callback that serves access-denied as HTTP 200. Two labs, one shared training distribution, one shared blind spot. (Caveat: different CLI scaffolding — these are model+harness systems, stated as such.)
+- **Google:** Pro escapes the trap at the same roughly 1-in-3 rate as Opus; Flash never does — and every failure is the *same line of code*. Beyond the trap, Pro went **18/18** on a six-task subset (including the engineered cache-poisoning trap) and Flash passed both floor-calibration tasks **6/6**.
+- **OpenAI:** GPT-5.6 Sol (the flagship) went **0/3** on d7-01 — one delivery-trap failure (same line again), two echo failures. It matched Pro's **18/18** on the same subset, then ran the three tasks Google's suspension left unmeasured: **8/9**. Luna (the small model) matched Flash's floor: 9/9 on calibration tasks, 0/3 on d7-01, with the same one-delivery-two-echo split as Sol.
+- **The census: 27 default-effort failures on d7-01 across three labs (37 counting the effort experiments below) — every single one is one of the same two wrong patterns.** No model from any lab has produced a third way to be wrong.
 
-Beyond the trap, the symmetry held everywhere it was tested: gemini-3.1-pro went **18/18** on a stratified six-task subset (e-01, e-02, e-07, b-01, d10-02, and notably d10-04 — the cache-poisoning trap), and gemini-3-flash passed both floor-calibration tasks 6/6, placing it inside the Claude band on famous-trap work. Three subset cells (d10-05, d7-06, d7-07) are **not run**: the provider first exhausted its 250-requests/day tier cap (nine poisoned records voided; the runner now honors the adapter's quota signal), and the project's API access was subsequently suspended pending an Acceptable Use appeal — plausibly triggered by this suite's own overnight quota-retry loop, a bot-shaped mistake we've documented and stopped. Benchmarking across vendors means inheriting every vendor's failure modes; the receipts include theirs and ours.
+Sol's one non-d7-01 drop is a finding in miniature: on the access-leak task it wrote the *sophisticated-looking* wrong answer — an access check that verifies permission but not published status — the exact pattern that caught the suite's human author during development ([author-catch #3 in VALIDATION.md](VALIDATION.md)) and one Haiku trial. That thinly-warned subtlety is now flagged as a **candidate second discriminator**.
 
-**Third lab (2026-07-18): OpenAI, same trap — and now both failure modes replicate.** GPT-5.6 Sol (OpenAI's flagship, via a thin Codex-CLI adapter) went **0/3 on d7-01**, and its three failures land exactly in the two known grooves: one trial wrote the delivery trap — `'delivery callback' => 'drupal_json_output'`, the same line as Opus and both Geminis — and two trials wrote the echo mode (JSON emitted inside the page callback, nothing returned), previously Sonnet's signature. At n=3, 0/3 is statistically indistinguishable from the Opus/Gemini-Pro ~1-in-3 band, so no ranking claim; what is *not* noise is that a third lab's flagship produced no novel failure — every wrong answer across nine frontier-model failures on this task is one of the same two canonical-looking patterns. System caveat, stated plainly: Codex-CLI runs were single-shot (~35 s, a few commands, no live-site testing), a different agent style than the Claude runs — these are model+harness systems.
+Honesty notes: at n=3, Sol's 0/3 and Pro's 1/3 are statistically indistinguishable — no ranking claims. Codex-CLI runs were single-shot (~35 seconds, no live-site testing), a different agent style than the Claude runs — these are model+harness systems, compared as such. Three Gemini cells (※) are not run: the provider first hit its 250-requests/day cap (nine poisoned records voided; the runner now aborts on quota signals), then suspended the project pending an Acceptable Use appeal — plausibly triggered by this suite's own overnight quota-retry loop, a bot-shaped mistake we've documented and stopped. Cross-vendor benchmarking means inheriting every vendor's failure modes; the receipts include theirs and ours.
 
-The subset completed the symmetry: Sol went **18/18** on the same six-task famous-trap subset as Gemini Pro, and Luna matched Flash's floor — 9/9 on the calibration tasks, **0/3 on d7-01** with the same one-delivery-two-echo split as its big sibling. Sol then ran the three tasks Gemini's suspension left unmeasured: **8/9**, and the one dropped trial is a finding in miniature — on d10-05 it wrote `accessCheck(TRUE)` without the status condition, the *sophisticated-looking* wrong answer whose second camouflage layer caught the suite's human author during development (author-catch #3 in [`VALIDATION.md`](VALIDATION.md)) and one Haiku trial before it. That thinly-warned subtlety now has catches across two labs plus the author — a candidate weak discriminator, flagged for higher trial counts. Full census after three labs: **27 default-effort failures on d7-01 (37 counting the effort arms), and every single one is one of the same two canonical-looking wrong patterns.** No model from any lab has produced a third way to be wrong. The trap has exactly two attractors on the internet, and every training corpus appears to contain both.
+### Cheap models are fine — until the traps
 
-Honest caveats: n=3 trials per cell — error bars are wide, and differences under ~2 tasks are noise. Fourteen of fifteen tasks are (nearly) saturated for frontier models; d7-01 remains the sole strong discriminator, with d10-05's accessCheck subtlety a candidate weak one (one Sol and one Haiku catch; n far too small to call). Every number above is regenerable from `results/runs.jsonl` (receipts: stages, duration, cost, transcript per run; six d7 records are marked `regraded` after grader-fairness fixes — see [`VALIDATION.md`](VALIDATION.md)).
+From the cost column of the receipts: Haiku cleared 25 of 27 modern-stack trials at **$0.05–$0.16 per run**, against a frontier average of **$0.60** on the same lanes — and its only two modern-stack drops are the two engineered Drupal 10 traps. In these domains, paying for capability only pays off where the traps are.
 
-## Beyond authoring: two experiments on the same receipts
+## Two experiments on the same receipts
 
-**Does raising effort rescue models from the trap?** d7-01 rerun with each system's effort control at its top tier, against the default-effort baselines:
+### Can more "thinking" fix it?
+
+Most systems have an effort dial — more reasoning before answering. d7-01 rerun with each system's dial at its top setting, against the default results:
 
 | model | d7-01 default | d7-01 raised effort | what changed |
 | --- | --- | --- | --- |
@@ -75,11 +105,13 @@ Honest caveats: n=3 trials per cell — error bars are wide, and differences und
 
 *† The Gemini CLI exposes no external effort control — the model allocates its own thinking budget per request, so these rows are observational (self-raised effort) rather than experimental. Thinking-token counts are from the run transcripts.*
 
-The middle case: d10-05's thinly-warned accessCheck subtlety, Sol's only other drop — default **2/3**, xhigh **2/3**. No rescue there either: the xhigh failing trial wrote the identical accessCheck(TRUE)-only query at 2k reasoning tokens, while the passes took two different correct routes (query-level status condition; per-entity `access('view')` filtering — the contract-level grader accepts both). All effort arms are n=3 — "no effect detected," not "no effect."
+The middle case: the thinly-warned access-leak subtlety (d10-05), Sol's only other drop — default **2/3**, raised effort **2/3**. No rescue there either: the failing trial wrote the identical wrong query at 2k reasoning tokens, while the passes took two different correct routes (a status condition in the query, or filtering each loaded item through an access check — the grader tests observable behavior and accepts both). All effort arms are n=3 — "no effect detected," not "no effect."
 
-Two conclusions survive across three labs — and the Gemini pair replicates both from the *inside*, without any external knob: Pro self-rescued in the one trial its allocator chose to think ~2× harder, while Flash out-thought Pro's passing trial and stayed trapped. The tiered verdict: **effort rescues a model that is one step below the trap (Opus by external control, Gemini Pro by its own allocation); it cannot substitute for knowledge that isn't there** (Sonnet, Haiku, Sol — and Flash, at any thinking volume). And the allocation wrinkle: even at xhigh, Sol spent only ~1.3k reasoning tokens — thinking budgets are allocated by *perceived* difficulty, so a looks-easy trap starves the effort mechanism before reasoning even starts. Below the threshold, only behavioral gates help.
+Two conclusions survive across three labs — and the Gemini pair replicates both from the *inside*, without any external knob: Pro self-rescued in the one trial its allocator chose to think ~2× harder, while Flash out-thought Pro's passing trial and stayed trapped. The tiered verdict: **effort rescues a model that is one step below the trap (Opus by external control, Gemini Pro by its own allocation); it cannot substitute for knowledge that isn't there** (Sonnet, Haiku, Sol — and Flash, at any thinking volume). And an allocation wrinkle: even told to think as hard as possible, Sol spent only ~1.3k reasoning tokens — thinking budgets follow *perceived* difficulty, and this trap's whole camouflage is looking easy. Below the threshold, only behavioral gates help.
 
-**Can models review their way out?** All four Claude models blindly reviewed 24 graded d7-01 solutions (plus Gemini's), 95 reviews against grader ground truth ([`experiments/author-reviewer/`](experiments/author-reviewer/)):
+### Can AI reviewers catch what AI authors miss?
+
+All four Claude models blindly reviewed 24 graded d7-01 solutions (plus Gemini's), 95 reviews scored against grader ground truth ([`experiments/author-reviewer/`](experiments/author-reviewer/)):
 
 | reviewer | delivery-trap catches | echo catches | good code approved |
 | --- | --- | --- | --- |
@@ -88,7 +120,19 @@ Two conclusions survive across three labs — and the Gemini pair replicates bot
 | sonnet-5 | 7/12 | 1/5 | 6/7 |
 | haiku-4-5 | 1/12 | 2/5 | 6/7 |
 
-Three results: review capability is the **same staircase as authoring capability** (and it transfers cross-lab — Fable rejects Gemini's trap failures 4/4, Haiku 1/4); the echo failure mode is **near-invisible to every reviewer** — 3/18 caught, pooled — with reviewers routinely praising the bug as a virtue; and false alarms stay low (21/23 good solutions approved). Model review is a filter that inherits the reviewer's blind spots; the grader — the behavioral gate — was the floor.
+Three results:
+
+- **Review skill is the same staircase as authoring skill** — and it transfers across labs (Fable rejects Gemini's trap failures 4/4; Haiku, 1/4).
+- **The echo bug is near-invisible to every reviewer**: 3 catches out of 18 chances, pooled — reviewers routinely *praised* the bug as a virtue.
+- **False alarms stay low**: 21 of 23 good solutions approved.
+
+Model review is a filter that inherits the reviewer's blind spots. The mechanical grader — the behavioral gate — was the floor that caught everything.
+
+## Honest caveats
+
+- n=3 trials per cell: error bars are wide; treat differences under ~2 tasks as noise.
+- Fourteen of fifteen tasks are (nearly) saturated for frontier models. d7-01 remains the sole strong discriminator; d10-05's access-check subtlety is a candidate weak one (one Sol and one Haiku catch — far too small to call).
+- Every number above is regenerable from `results/runs.jsonl` (per-run receipts: stages, duration, cost, transcript). Six Drupal 7 records are marked `regraded` after grader-fairness fixes — see [`VALIDATION.md`](VALIDATION.md).
 
 ## How it works
 
@@ -104,12 +148,12 @@ runner/report.sh    results/runs.jsonl -> RESULTS.md scoreboard
 
 Design rules (full reasoning in [`SPEC.md`](SPEC.md)):
 
-- **Mechanical grading only** — compiler, tests, linters, browser; no LLM judge in the headline score.
-- **Hidden holdouts** — task.md states criteria in prose; the grader's assertions stay outside the agent workspace.
-- **Pristine tests re-imposed** — "agent edits the test until green" is structurally impossible.
-- **The double-fixture rule** (b-01): the agent's test must pass on the healthy app *and fail* on a seeded-broken variant. A test that can't fail is not a test — the repo includes a deliberately lazy spec that the grader correctly rejects.
-- **Compile-failure as a grade** (e-02): correctness of an opaque type is proven by injected invalid code *failing* to compile.
-- **Graders are self-tested both directions** — every task ships a reference solution that must pass and a flawed baseline that must fail on the intended stage ([`VALIDATION.md`](VALIDATION.md) logs what this caught, including in the suite's own reference solutions).
+- **Mechanical grading only** — compiler, tests, linters, browser checks; no AI judge in the headline score.
+- **Hidden holdouts** — the task states requirements in prose; the grader's exact checks stay outside the agent's workspace, so a model can't read the answer key.
+- **Pristine tests re-imposed** — original tests are restored before grading, so "edit the test until it passes" is structurally impossible.
+- **The double-fixture rule** (b-01): a test written by the agent must pass on the healthy app *and fail* on a deliberately broken variant. A test that can't fail is not a test.
+- **Compile-failure as a grade** (e-02): for one task, correctness is proven by injected bad code *failing* to compile.
+- **Graders are tested on themselves** — every task ships a reference solution that must pass and a flawed one that must fail at the intended stage. [`VALIDATION.md`](VALIDATION.md) logs what this caught — including five bugs in the suite author's own reference solutions.
 
 ## Run it
 
@@ -131,7 +175,7 @@ Requirements: ddev, node ≥ 20, elm 0.19, jq, and the Claude Code CLI authentic
 
 ## Roadmap
 
-Shipped so far: 15 tasks across four lanes; a 4-model Claude matrix with a test-retest replication; cross-lab columns (Gemini Pro/Flash); the effort experiment; and the author × reviewer experiment (95 blind reviews). What's genuinely next:
+Shipped so far: 15 tasks across four lanes; a 4-model Claude matrix with a test-retest replication; cross-lab columns (Gemini Pro/Flash, GPT-5.6 Sol/Luna); the effort experiment; and the author × reviewer experiment (95 blind reviews). What's genuinely next:
 
 - **More labs:** OpenAI is complete to Gemini parity (adapter, subset, floor, effort arm). Next: open-weights models (DeepSeek, Qwen, Kimi) via a single Aider/OpenRouter adapter — the corpus-trap prediction stays on record for them.
 - **Complete the Gemini column:** three subset cells (d10-05, d7-06, d7-07) pending the provider's suspension appeal.
