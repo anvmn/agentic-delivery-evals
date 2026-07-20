@@ -1,0 +1,60 @@
+<?php
+
+/**
+ * @file
+ * Provides a permission-protected JSON endpoint with site statistics.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health statistics'),
+      'description' => t('Access the health statistics JSON endpoint.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items['api/healthstats'] = array(
+    'page callback' => 'healthstats_page',
+    'access arguments' => array('view healthstats'),
+    'delivery callback' => 'healthstats_deliver',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Delivers statistics as JSON while preserving Drupal error responses.
+ *
+ * @param mixed $page_callback_result
+ *   The result of the page callback or a Drupal menu error code.
+ */
+function healthstats_deliver($page_callback_result) {
+  if (is_array($page_callback_result)) {
+    drupal_json_output($page_callback_result);
+  }
+  else {
+    drupal_deliver_html_page($page_callback_result);
+  }
+}
+
+/**
+ * Returns the site statistics for JSON delivery.
+ *
+ * @return array
+ *   The active user and published node counts.
+ */
+function healthstats_page() {
+  return array(
+    'users' => (int) db_query('SELECT COUNT(*) FROM {users} WHERE status = :status', array(':status' => 1))->fetchField(),
+    'nodes' => (int) db_query('SELECT COUNT(*) FROM {node} WHERE status = :status', array(':status' => 1))->fetchField(),
+  );
+}

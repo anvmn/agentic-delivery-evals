@@ -3,11 +3,15 @@
 #
 # Same d7-01 spec, but the agent gets a LIVE Drupal 7 site and a probe.sh that
 # reports the endpoint's real behavior. Question: do models that fail d7-01
-# blind (no site) catch and fix their own bug once they can observe it?
+# blind catch and fix their own bug once they can observe it?
+#
+# Routes each model through the SAME adapters as the main runner
+# (claude-code.sh / codex.sh), so it is multi-lab and inherits their cost
+# metering + refusal guards. Claude agents run clean-room. Runs SERIALLY (the
+# probe and grader share one D7 site).
 #
 # Usage: experiments/live-site/run.sh "<model1,model2,...>" [trials] [max_cost]
-# Writes receipts to experiments/live-site/runs.jsonl. Runs SERIALLY (the probe
-# and grader share one D7 site). Clean-room agents (no operator CLAUDE.md).
+#   models: claude-*  or  openai:<codex-model>
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
@@ -16,7 +20,7 @@ TASK="$ROOT/tasks/d7-01-menu-endpoint"
 OUT="$HERE/runs.jsonl"
 WSROOT="$HERE/workspaces"; mkdir -p "$WSROOT"
 
-MODELS="${1:?models required, e.g. claude-sonnet-5,claude-fable-5}"
+MODELS="${1:?models required, e.g. claude-haiku-4-5,openai:gpt-5.6-sol}"
 TRIALS="${2:-3}"; MAX_COST="${3:-30}"
 export D7_SITE="$SITE"
 timeout_s=$(jq -r .timeout_s "$TASK/meta.json")
@@ -25,6 +29,11 @@ spent() { jq -s '[.[] | .cost // 0] | add // 0' "$OUT" 2>/dev/null || echo 0; }
 
 IFS=',' read -ra MODEL_ARR <<< "$MODELS"
 for model in "${MODEL_ARR[@]}"; do
+  adapter="$ROOT/runner/agents/claude-code.sh"; agent_model="$model"
+  case "$model" in
+    openai:*) adapter="$ROOT/runner/agents/codex.sh"; agent_model="${model#openai:}" ;;
+  esac
+
   for trial in $(seq 1 "$TRIALS"); do
     s_now=$(spent); [ -n "$s_now" ] || s_now=0
     if jq -n --argjson s "$s_now" --argjson m "$MAX_COST" '$s >= $m' | grep -q true; then
@@ -38,30 +47,38 @@ for model in "${MODEL_ARR[@]}"; do
     cp "$HERE/task-live.md" "$ws/task.md"
 
     echo ">>> live-site | $model | trial $trial"
-    start=$(date +%s)
-    out=$(cd "$ws" && timeout "${timeout_s}s" \
-      claude -p "$(cat task.md)" \
-        --model "$model" \
-        --setting-sources "project,local" \
-        --output-format json \
-        --dangerously-skip-permissions 2>"$ws/agent-stderr.log" || true)
-    dur=$(( $(date +%s) - start ))
-    printf '%s' "$out" > "$ws/transcript.json"
-    cost=$(printf '%s' "$out" | jq -r '.total_cost_usd // .cost_usd // 0' 2>/dev/null || echo 0)
-    turns=$(printf '%s' "$out" | jq -r '.num_turns // 0' 2>/dev/null || echo 0)
+    # Clean-room only applies to the Claude adapter; the codex adapter ignores it.
+    agent_json=$(CLAUDE_CLEAN_ROOM=1 "$adapter" "$ws" "$agent_model" "$timeout_s" "$ws/transcript.json" || true)
+    [ -n "$agent_json" ] || agent_json='{"error":"adapter produced no output"}'
+
+    # Void infra failures (usage limits, provider quota, adapter errors) — never
+    # record them as model failures.
+    if grep -qiE "reached your [a-z0-9. ]*limit|\"api_error_status\": ?(429|401|403)" \
+         "$ws/transcript.json" 2>/dev/null \
+       || jq -e '(.agent_exit == 99) or (.error != null)' <<<"$agent_json" >/dev/null 2>&1; then
+      echo "    !! infra failure (limit/quota/adapter) — voiding this trial" >&2
+      rm -rf "$ws"; continue
+    fi
+
+    cost=$(jq -r '.cost_usd // 0' <<<"$agent_json" 2>/dev/null || echo 0)
+    turns=$(jq -r '.turns // 0' <<<"$agent_json" 2>/dev/null || echo 0)
     probes=$( [ -f "$ws/.probe-invocations" ] && wc -l < "$ws/.probe-invocations" || echo 0 )
 
-    # Blind grade with the standard d7-01 grader (resets the site first).
     pass=false; grade='{}'
     if "$TASK/grader/grade.sh" "$ws" >"$ws/grade-stdout.log" 2>&1; then pass=true; fi
     [ -f "$ws/grade.json" ] && grade=$(cat "$ws/grade.json")
 
-    jq -cn --arg model "$model" --argjson trial "$trial" --argjson pass "$pass" \
-      --argjson probes "${probes:-0}" --argjson grade "$grade" \
-      --argjson cost "${cost:-0}" --argjson turns "${turns:-0}" --argjson dur "$dur" \
-      --arg ts "$ts" \
-      '{experiment:"live-site", ts:$ts, model:$model, trial:$trial, pass:$pass,
-        probe_invocations:$probes, grade:$grade, cost:$cost, turns:$turns, duration_s:$dur}' >> "$OUT"
+    # Empty-guard every argjson input (the fill.sh footgun).
+    printf '%s' "$grade" | jq -e . >/dev/null 2>&1 || grade='{}'
+    [ -n "$cost" ] || cost=0; [ -n "$turns" ] || turns=0; [ -n "$probes" ] || probes=0
+
+    if ! jq -cn --arg model "$model" --argjson trial "$trial" --argjson pass "$pass" \
+        --argjson probes "$probes" --argjson grade "$grade" \
+        --argjson cost "$cost" --argjson turns "$turns" --arg ts "$ts" \
+        '{experiment:"live-site", ts:$ts, model:$model, trial:$trial, pass:$pass,
+          probe_invocations:$probes, grade:$grade, cost:$cost, turns:$turns}' >> "$OUT"; then
+      echo "    !! receipt write failed for $model t$trial — skipping record" >&2
+    fi
     echo "    -> pass=$pass · probed ${probes}x · \$$cost"
   done
 done

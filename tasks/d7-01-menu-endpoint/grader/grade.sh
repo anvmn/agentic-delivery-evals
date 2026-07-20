@@ -37,16 +37,33 @@ if [ -d "$SITE" ] && [ -f "$SITE/index.php" ]; then
 
     # Call whatever page callback the module actually registered — the task
     # contract fixes the path and payload shape, not the function name.
+    #
+    # Criterion #3 ("deliver via D7's native mechanism — not print + exit") is
+    # enforced here: the page callback must RETURN {users,nodes} and must NOT
+    # print/echo or exit. We wrap the call in an output buffer and only trust a
+    # run that reaches the MARKER (a callback that exit()s never does) with an
+    # EMPTY buffer (a callback that print/echoes leaves bytes) and the right
+    # return value. This distinguishes the reference (returns the array; a
+    # delivery callback renders it) from the drupal_json_output()+drupal_exit()
+    # or +return artifacts that game the old shape-only check. The delivery
+    # trap is unaffected — its page callback returns cleanly and it is caught
+    # by anon_403 instead.
     payload=$(ddev drush php-eval '
       global $user; $user = user_load(1);
       menu_rebuild();
       $item = menu_get_item("api/healthstats");
       $cb = $item ? $item["page_callback"] : NULL;
       $args = ($item && !empty($item["page_arguments"])) ? $item["page_arguments"] : array();
+      ob_start();
       $out = ($cb && function_exists($cb)) ? call_user_func_array($cb, $args) : NULL;
-      print drupal_json_encode($out);' 2>"$WS/payload-stderr.log")
+      $printed = ob_get_clean();
+      print drupal_json_encode(array(
+        "MARKER" => "RETURNED",
+        "printed_len" => strlen($printed),
+        "ret" => $out,
+      ));' 2>"$WS/payload-stderr.log")
     printf '%s' "$payload" > "$WS/payload.log"
-    if echo "$payload" | jq -e '(.users | type == "number") and (.nodes | type == "number")' >/dev/null 2>&1; then
+    if echo "$payload" | jq -e '.MARKER == "RETURNED" and .printed_len == 0 and (.ret.users | type == "number") and (.ret.nodes | type == "number")' >/dev/null 2>&1; then
       authorized_json=true
     fi
   fi

@@ -193,3 +193,36 @@ reproducible clean-room mode anyway — `CLAUDE_CLEAN_ROOM=1` passes
 keeping auth; receipts carry `clean_room:true` and `report.sh` filters them
 out of the headline scoreboard. A clean-room confirmation run is pending a
 provider usage-limit reset.
+
+## Author-catch #6 — the d7-01 grader checked output, not delivery (2026-07-20)
+
+Tracing Haiku's single blind d7-01 "pass" exposed a grader gap, not a real
+solution. That run used `drupal_json_output(); drupal_exit();` *inside* the page
+callback — the print+exit pattern criterion #3 forbids — and passed only because
+`drupal_exit()` terminated the `authorized_json` probe after the JSON printed but
+before the probe's own trailing output could invalidate it (captured `{...}` vs
+the echo-no-exit variant's `{...}null`). A second variant surfaced in the
+live-site experiment (`drupal_json_output(); return $data;`): the return value
+satisfied the old shape check while a real authorized request would emit JSON
+followed by an HTML render.
+
+Fix: the `authorized_json` stage now wraps the page-callback call in an output
+buffer and passes only when (a) a completion MARKER is reached — a callback that
+`exit()`s never gets there — AND (b) the buffer is empty (no print/echo) AND (c)
+the RETURN value is `{users:int, nodes:int}`. This enforces "deliver via the
+return value / a delivery callback, not print+exit."
+
+Self-test: reference **PASS** · print+exit variant **FAIL** (authorized_json) ·
+print+return variant **FAIL** (authorized_json) · delivery-trap **FAIL**
+(anon_403, unchanged). Re-graded every preserved d7-01 workspace (blind, effort,
+live-site): exactly two flips, both Haiku, both the print shortcut — **Haiku
+blind 1/6 → 0/6**, **Haiku live-site 2/3 → 1/3**. Fable/Opus/Sonnet/Sol/Gemini-Pro
+use the return-array pattern and were unaffected. Flipped/refreshed records carry
+`grade.regraded_c3 = true`.
+
+Lesson: a mechanical grader that checks only the observable OUTPUT can pass a
+solution that violates a stated criterion about HOW the output is produced. The
+suite's own thesis — looks-right-but-isn't — applies to graders too. (Bug hit en
+route: `ddev` inside a `while read` loop drained the loop's stdin, so a first
+re-grade pass silently processed only one workspace; fixed with `mapfile` + a
+`</dev/null` on the grader call.)

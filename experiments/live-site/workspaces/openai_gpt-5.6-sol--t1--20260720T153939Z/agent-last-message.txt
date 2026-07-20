@@ -1,0 +1,9 @@
+Implemented [healthstats.module](/home/anatoly/projects/agentic-delivery-evals/experiments/live-site/workspaces/openai_gpt-5.6-sol--t1--20260720T153939Z/healthstats/healthstats.module).
+
+Verified:
+
+- `php -l` passes.
+- Anonymous request returns HTTP 403.
+- Authorized callback returns `users: 1`, `nodes: 13`.
+- JSON uses Drupal 7’s `drupal_json_output()`.
+- Permission `view healthstats` is defined.

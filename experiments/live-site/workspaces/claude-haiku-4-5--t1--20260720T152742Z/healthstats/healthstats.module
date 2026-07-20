@@ -1,0 +1,72 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — JSON statistics endpoint.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health statistics'),
+      'description' => t('Access the JSON health statistics endpoint.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  return array(
+    'api/healthstats' => array(
+      'page callback' => 'healthstats_page_callback',
+      'access callback' => TRUE,
+      'delivery callback' => 'healthstats_delivery',
+      'type' => MENU_CALLBACK,
+    ),
+  );
+}
+
+/**
+ * Delivery callback for /api/healthstats.
+ */
+function healthstats_delivery($page_callback_result) {
+  drupal_add_http_header('Content-Type', 'application/json');
+  $status = 200;
+  if (isset($page_callback_result['_http_status'])) {
+    $status = $page_callback_result['_http_status'];
+    unset($page_callback_result['_http_status']);
+  }
+  if ($status !== 200) {
+    header('HTTP/1.1 ' . $status, TRUE, $status);
+  }
+  echo drupal_json_encode($page_callback_result);
+}
+
+/**
+ * Page callback for /api/healthstats.
+ */
+function healthstats_page_callback() {
+  if (!user_access('view healthstats')) {
+    return array('_http_status' => 403);
+  }
+
+  $query = db_select('users', 'u')
+    ->condition('u.status', 1)
+    ->countQuery();
+  $user_count = $query->execute()->fetchField();
+
+  $query = db_select('node', 'n')
+    ->condition('n.status', 1)
+    ->countQuery();
+  $node_count = $query->execute()->fetchField();
+
+  return array(
+    'users' => (int) $user_count,
+    'nodes' => (int) $node_count,
+  );
+}

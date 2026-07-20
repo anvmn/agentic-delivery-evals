@@ -1,0 +1,59 @@
+<?php
+
+/**
+ * @file
+ * Provides a JSON endpoint containing site health statistics.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items['api/healthstats'] = array(
+    'page callback' => 'healthstats_page',
+    'delivery callback' => 'healthstats_deliver_json',
+    'access arguments' => array('view healthstats'),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health statistics'),
+      'description' => t('Access the JSON health statistics endpoint.'),
+    ),
+  );
+}
+
+/**
+ * Returns active user and published node counts as JSON.
+ */
+function healthstats_page() {
+  $statistics = array(
+    'users' => (int) db_query('SELECT COUNT(*) FROM {users} WHERE status = :status', array(':status' => 1))->fetchField(),
+    'nodes' => (int) db_query('SELECT COUNT(*) FROM {node} WHERE status = :status', array(':status' => 1))->fetchField(),
+  );
+
+  return $statistics;
+}
+
+/**
+ * Delivers statistics as JSON while preserving Drupal menu error responses.
+ *
+ * @param mixed $page_callback_result
+ *   The result returned by the page callback.
+ */
+function healthstats_deliver_json($page_callback_result) {
+  if (is_int($page_callback_result)) {
+    drupal_deliver_html_page($page_callback_result);
+  }
+  else {
+    drupal_json_output($page_callback_result);
+  }
+}

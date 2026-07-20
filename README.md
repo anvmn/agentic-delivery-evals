@@ -16,7 +16,7 @@ Each cell shows passes/attempts. "Tier" is the intended difficulty (1 = easy, 3 
 | e-02 impossible states | elm | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 |
 | b-01 write-the-E2E | behavioral | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | 3/3 | — |
 | d10-02 cache invalidation | drupal10 | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 |
-| **d7-01 menu endpoint** (two independent runs) | **drupal7** | **2** | **6/6** | **1/6** | **0/6** | **1/6** | 1/3 | 0/3 | 0/3 | 0/3 |
+| **d7-01 menu endpoint** (two independent runs) | **drupal7** | **2** | **6/6** | **1/6** | **0/6** | **0/6** | 1/3 | 0/3 | 0/3 | 0/3 |
 | d7-03 field migration | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | — | — | — | — |
 | d7-05 save-trigger queue | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — |
 | e-06 unicode length | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — |
@@ -36,7 +36,7 @@ Each cell shows passes/attempts. "Tier" is the intended difficulty (1 = easy, 3 
 
 Task d7-01 asks for something a Drupal 7 developer did routinely: a small web endpoint that returns data as JSON, restricted to users with the right permission. There is a way to write it that *looks* like textbook code — the pattern is all over the internet — but silently breaks the security requirement: users who should get "access denied" (HTTP 403) instead get a friendly "200 OK" whose entire content is the number `3` (the framework's internal access-denied code, helpfully converted to JSON). That line is `'delivery callback' => 'drupal_json_output'`.
 
-On this task, four Claude models spanning the capability range separate into a clean staircase — **Fable 5: 6/6 · Opus 4.8: 1/6 · Sonnet 5: 0/6 · Haiku 4.5: 1/6** — measured across two independent runs a day apart, identical both days. Meanwhile every modern-stack task is 12/12 across those same four models.
+On this task, four Claude models spanning the capability range separate into a clean staircase — **Fable 5: 6/6 · Opus 4.8: 1/6 · Sonnet 5: 0/6 · Haiku 4.5: 0/6** — measured across two independent runs a day apart. Meanwhile every modern-stack task is 12/12 across those same four models. (Haiku's score was 1/6 until a grader-hardening pass: its one "pass" gamed a gap in the old check — see *A grader gap we closed* below.)
 
 ### It is not because old code is hard
 
@@ -51,10 +51,14 @@ Old and obscure APIs alone trip nobody. What's special about d7-01 is sharper: *
 
 Every failure on d7-01 is one of two patterns — both real production hazards:
 
-- **The delivery trap** (all 5 Opus failures, 3 of 5 Haiku failures): the one-line configuration above — looks canonical, delivers access-denied as a 200 OK with body `3`. The same trap caught the suite's human author while writing the reference solution.
-- **The echo instinct** (all 6 Sonnet failures, 2 of 5 Haiku failures): printing the JSON directly inside the page handler and returning nothing — which, through the framework's real delivery pipeline, produces JSON followed by a stray "page not found" (a missing return value means "not found"), violating the task's explicit contract.
+- **The delivery trap** (all 5 Opus failures, 3 of 6 Haiku failures): the one-line configuration above — looks canonical, delivers access-denied as a 200 OK with body `3`. The same trap caught the suite's human author while writing the reference solution.
+- **The echo instinct** (all 6 Sonnet failures, 2 of 6 Haiku failures): printing the JSON directly inside the page handler and returning nothing — which, through the framework's real delivery pipeline, produces JSON followed by a stray "page not found" (a missing return value means "not found"), violating the task's explicit contract.
 - Only Fable consistently wrote what the framework actually requires: a small custom delivery handler that routes error codes through the standard path.
 - **Failure modes are stable per model:** across two runs a day apart, Sonnet *always* fails by echoing, Opus *always* by the delivery trap — ingrained instincts, not coin flips. Only Haiku, the smallest, mixes modes.
+
+### A grader gap we closed
+
+Tracing Haiku's lone "pass" turned up a hole in the grader, not a real solution. That run used `drupal_json_output()` + `drupal_exit()` *inside* the page handler — the print-and-exit shortcut the task explicitly forbids (criterion #3: deliver via the return value, not `print`+`exit`). It happened to satisfy the old shape-only check because `exit()` fired before the grader could spoil the output. So the grader was passing a solution the spec disallows — the grader's own version of a looks-right-but-isn't. We hardened the `authorized_json` check to require the handler to **return** `{users, nodes}` and produce **no** output (a callback that prints leaves bytes; one that exits never reaches a completion marker), self-tested it (reference passes; print+exit and print+return variants fail; the delivery trap is unaffected and still caught by the 403 check), and re-graded every d7 record from its preserved workspace. One blind record and one live-site record flipped — both Haiku, both the print shortcut — taking Haiku to 0/6 and steepening the staircase to Fable 6/6 › Opus 1/6 › Sonnet 0/6 = Haiku 0/6. Every other model uses the return-array pattern and was unchanged. Author-catch #6; details in [`VALIDATION.md`](VALIDATION.md).
 
 ### We tried to build more traps on purpose — and mostly failed
 
@@ -97,7 +101,7 @@ Most systems have an effort dial — more reasoning before answering. d7-01 reru
 | fable-5 | **6/6** | not run | nothing to rescue |
 | opus-4-8 | 1/6 | **2/3** (`max`) | **rescued** — its passing runs ran ~2× longer and found the trap |
 | sonnet-5 | 0/6 | 0/3 (`max`) | no rescue; shuffles between the same wrong patterns |
-| haiku-4-5 | 1/6 | 0/3 (`max`) | no rescue |
+| haiku-4-5 | 0/6 | 0/3 (`max`) | no rescue |
 | g3.1-pro | 1/3 | self-raised (dynamic)† | **self-rescued** — its one pass is exactly the trial where its own allocator maxed out: 9.8k thinking tokens vs 4.0k/5.6k in its fails |
 | g3-flash | 0/3 | self-raised (dynamic)† | no rescue — thought up to **10.0k tokens** (more than Pro's passing trial) and still wrote the trap |
 | 5.6-sol | 0/3 | 0/3 (`xhigh`) | no rescue; failures **unified** into the delivery trap — the closest-to-correct wrong answer — at ~2.5× the reasoning tokens |

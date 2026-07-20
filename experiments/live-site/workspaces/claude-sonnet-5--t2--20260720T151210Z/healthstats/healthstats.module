@@ -1,0 +1,63 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — implement per task.md.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items['api/healthstats'] = array(
+    'title' => 'Health Stats',
+    'page callback' => 'healthstats_page',
+    'access arguments' => array('view healthstats'),
+    'type' => MENU_CALLBACK,
+    'delivery callback' => 'healthstats_deliver',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health stats'),
+      'description' => t('Allows access to the healthstats JSON API endpoint.'),
+    ),
+  );
+}
+
+/**
+ * Page callback: returns site statistics as an array for JSON delivery.
+ */
+function healthstats_page() {
+  $users = db_query("SELECT COUNT(uid) FROM {users} WHERE status = 1")->fetchField();
+  $nodes = db_query("SELECT COUNT(nid) FROM {node} WHERE status = 1")->fetchField();
+
+  return array(
+    'users' => (int) $users,
+    'nodes' => (int) $nodes,
+  );
+}
+
+/**
+ * Delivery callback: JSON-encodes the page callback result.
+ *
+ * menu_execute_active_handler() returns an int menu status constant (e.g.
+ * MENU_ACCESS_DENIED) instead of the page callback's return value when
+ * access is denied or the path isn't found. Those need to go through the
+ * normal HTML delivery so the correct HTTP status (403/404) is sent; only
+ * an actual result array should be delivered as JSON.
+ */
+function healthstats_deliver($page_callback_result) {
+  if (is_int($page_callback_result)) {
+    drupal_deliver_html_page($page_callback_result);
+  }
+  else {
+    drupal_json_output($page_callback_result);
+  }
+}

@@ -1,0 +1,79 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — implement per task.md.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health stats'),
+      'description' => t('Access the JSON health statistics endpoint.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items = array();
+
+  $items['api/healthstats'] = array(
+    'title' => 'Health stats',
+    'page callback' => 'healthstats_stats_page',
+    'access arguments' => array('view healthstats'),
+    'type' => MENU_CALLBACK,
+    'delivery callback' => 'healthstats_deliver',
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback: returns site statistics.
+ *
+ * @return array
+ *   Associative array with 'users' and 'nodes' counts.
+ */
+function healthstats_stats_page() {
+  $users = db_query('SELECT COUNT(uid) FROM {users} WHERE status = 1')->fetchField();
+  $nodes = db_query('SELECT COUNT(nid) FROM {node} WHERE status = 1')->fetchField();
+
+  return array(
+    'users' => (int) $users,
+    'nodes' => (int) $nodes,
+  );
+}
+
+/**
+ * Delivery callback: sends the page callback result as JSON.
+ *
+ * Honors the standard menu status constants (e.g. MENU_ACCESS_DENIED) so
+ * access-denied and not-found responses still get the correct HTTP status,
+ * instead of being JSON-encoded as-is.
+ */
+function healthstats_deliver($page_callback_result) {
+  if (is_int($page_callback_result)) {
+    switch ($page_callback_result) {
+      case MENU_NOT_FOUND:
+        drupal_add_http_header('Status', '404 Not Found');
+        break;
+
+      case MENU_ACCESS_DENIED:
+        drupal_add_http_header('Status', '403 Forbidden');
+        break;
+
+      case MENU_SITE_OFFLINE:
+        drupal_add_http_header('Status', '503 Service Unavailable');
+        break;
+    }
+  }
+  else {
+    drupal_json_output($page_callback_result);
+  }
+}

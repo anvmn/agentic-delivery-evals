@@ -1,0 +1,9 @@
+Implemented `healthstats` for Drupal 7.
+
+Verified:
+
+- Anonymous request returns HTTP 403.
+- Authorized callback returns `users: 1`, `nodes: 13`.
+- JSON uses Drupal’s native delivery.
+- `php -l` passes.
+- Coding standards and hook documentation applied.

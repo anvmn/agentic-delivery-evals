@@ -11,39 +11,52 @@ own bug?
 the agent's current module to the live Drupal 7 site and prints the real
 behavior — the HTTP status and body an anonymous request gets, and what the
 page callback returns for an authorized user. The task explicitly tells the
-agent to test and iterate. The final grade is still the blind 5-stage grader.
-Agents run clean-room (`--setting-sources project,local`). `probe.sh` was
-self-tested first: correct module → anon **403**; delivery-trap module → anon
-**200, body `3`**.
+agent to test and iterate. The final grade is the standard blind grader —
+including the hardened criterion-#3 check (deliver via the return value, not
+print+exit), so a pass here means a genuinely-working solution, not one that
+games the grader. Agents run clean-room. `probe.sh` was self-tested first:
+correct module → anon **403**; delivery-trap module → anon **200, body `3`**.
 
-## Result — Sonnet 5 (2026-07-20)
+## Results (2026-07-20)
 
-Sonnet is **0/6 on d7-01 blind**. With a live site to test against: **2/3.**
+Each model is a blind-failer on d7-01. Blind rates are the main-suite numbers.
 
-| trial | result | probes | turns | note |
-| --- | --- | --- | --- | --- |
-| 1 | **PASS** | 2 | 22 | tested, saw the failure, fixed it |
-| 2 | **PASS** | 3 | 33 | tested, iterated to green |
-| 3 | FAIL | 1 | 8 | probed once, quit early — shipped the echo-mode bug (`drupal_json_output()` inside the page callback, no return) → fails `authorized_json` |
+| model | blind | live-site | probe pattern |
+| --- | --- | --- | --- |
+| Sonnet 5 | 0/6 | **2/3** | passes probed 2–3× (22–33 turns); the fail probed 1× |
+| GPT-5.6 Sol | 0/3 | **3/3** | every pass probed 2–3× |
+| Haiku 4.5 | 0/6 | **1/3** | the pass probed 13× (74 turns); the two fails probed 1× and 7× |
 
-The mechanism is visible in the receipts: the two rescues are the trials where
-Sonnet actually *used* the loop (2–3 probes, 20–33 turns); the one failure is
-the trial where it barely tested (1 probe, 8 turns) and stopped before the
-probe's "page callback returned: NULL" signal could bite.
+**Correctness, not just grader-pass.** After the criterion-#3 hardening (see
+the main [`VALIDATION.md`](../../VALIDATION.md), author-catch #6) each pass was
+read by hand:
 
-**Reading.** A behavioral feedback loop rescues a model that fails blind —
-*conditional on the model engaging it*. The knowledge gap is real (blind: 0/6)
-but bridgeable by observation, not only by knowing the trap a priori. This is
-the constructive half of the suite's "below the threshold, only behavioral
-gates help": the gate doesn't just *catch* the bug, a visible gate lets the
-model *fix* it. The residual failure mode shifts from "doesn't know" to
-"didn't test enough."
+- **Sonnet — 2/3, both genuinely correct.** Custom delivery callback with the
+  `is_int()` routing (status codes → `drupal_deliver_html_page`, payload →
+  `drupal_json_output`). The reference pattern, reached by iteration.
+- **Sol — 3/3, all genuinely correct.** Same reference-quality pattern all
+  three times. It wrote the trap blind and the textbook solution once it could
+  test — the cleanest rescue of the three.
+- **Haiku — 1/3.** t1 works (returns the payload through its own delivery
+  callback; non-idiomatic — it disables declarative access and checks the
+  permission by hand — but it delivers correctly and returns a real 403). t2
+  was a print-and-return artifact (`drupal_json_output(); return $data;`) that
+  passed the *old* grader; the hardened grader now fails it. t3 failed.
 
-**Caveats.** n=3, one model — preliminary. Different protocol from the blind
-benchmark; not comparable to the headline scoreboard and kept out of it.
-GPT-5.6 Sol and Gemini Flash (the other blind-failers) are the natural next
-subjects, pending provider quota/suspension. Fable isn't a useful subject — it
-already passes blind.
+**Reading.** A behavioral feedback loop rescues models that fail blind —
+*conditional on the model engaging it*. Every fail across all three models is a
+trial that barely tested; every genuine pass came from real iteration. The
+knowledge gap is real (blind: 0/6, 0/3, 0/6) but bridgeable by observation, not
+only by knowing the trap a priori — and the two stronger models (Sonnet, Sol)
+iterate all the way to the reference pattern. This is the constructive half of
+the suite's "below the threshold, only behavioral gates help": a *visible* gate
+doesn't just catch the bug, it lets a model that lacks the knowledge fix it.
 
-Receipts: [`runs.jsonl`](runs.jsonl) (`probe_invocations` = how many times the
-agent chose to test).
+**Caveats.** n=3 per model — preliminary. A different protocol from the blind
+benchmark; kept out of the headline scoreboard. Fable isn't a useful subject —
+it already passes blind. Gemini Flash (the remaining blind-failer) is pending
+provider access.
+
+Receipts: [`runs.jsonl`](runs.jsonl) — `probe_invocations` = how many times the
+agent chose to test; `grade.regraded_c3` marks records re-scored under the
+hardened grader.
