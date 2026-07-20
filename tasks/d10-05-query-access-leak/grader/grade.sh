@@ -9,7 +9,7 @@ ROOT="$(cd "$HERE/../../.." && pwd)"
 SITE="$ROOT/.ddev-cores/d10site"
 MOD="$SITE/web/modules/custom/notice_api"
 
-lint=false; route_ok=false; lists_published=false; no_leak=false
+lint=false; route_ok=false; lists_published=false; no_leak=false; correct_order=false
 php -l "$WS/notice_api/src/Controller/NoticeListController.php" >/dev/null 2>&1 && lint=true
 
 if [ -d "$SITE" ] && [ -f "$SITE/web/index.php" ] && $lint; then
@@ -17,10 +17,19 @@ if [ -d "$SITE" ] && [ -f "$SITE/web/index.php" ] && $lint; then
   rm -rf "$MOD"; mkdir -p "$MOD"; cp -r "$WS/notice_api/." "$MOD/"
   if ddev drush -y pm:install notice_api >/dev/null 2>&1 && ddev drush cr >/dev/null 2>&1; then
     stamp=$(date +%s%N)
+    # Reset first: remove any leftover notice nodes so the top-5 is exactly our
+    # seed (grades must be order-independent and immune to accumulated content).
+    ddev drush php:eval "
+      \$old = \Drupal::entityQuery('node')->condition('type','notice')->accessCheck(FALSE)->execute();
+      foreach (\Drupal\node\Entity\Node::loadMultiple(\$old) as \$n) { \$n->delete(); }" >/dev/null 2>&1
+    # pub1 (Pub-A) is the OLDER published notice, pub2 (Pub-B) the NEWER — set
+    # distinct future-relative created times so "newest-first" is unambiguous
+    # and the seed always outranks anything else.
     pub1="Pub-A-$stamp"; pub2="Pub-B-$stamp"; unpub="Secret-$stamp"
     ddev drush php:eval "
-      foreach ([['$pub1',1],['$pub2',1],['$unpub',0]] as \$n) {
-        \Drupal\node\Entity\Node::create(['type'=>'notice','title'=>\$n[0],'status'=>\$n[1]])->save();
+      \$t = \Drupal::time()->getRequestTime();
+      foreach ([['$pub1',1,\$t+10],['$pub2',1,\$t+20],['$unpub',0,\$t+30]] as \$n) {
+        \Drupal\node\Entity\Node::create(['type'=>'notice','title'=>\$n[0],'status'=>\$n[1],'created'=>\$n[2]])->save();
       }" >/dev/null 2>&1
 
     url=$(ddev describe -j | jq -r '.raw.primary_url')
@@ -37,6 +46,13 @@ if [ -d "$SITE" ] && [ -f "$SITE/web/index.php" ] && $lint; then
     if ! echo "$body" | grep -q "$unpub"; then
       no_leak=true
     fi
+    # Order: the task returns the NEWEST titles first. Pub-B is newer than
+    # Pub-A, so it must appear at an earlier index. Catches solutions that sort
+    # the query but then iterate loadMultiple() (storage order, not query order).
+    if echo "$body" | jq -e --arg a "$pub1" --arg b "$pub2" \
+         '(index($b) != null) and (index($a) != null) and (index($b) < index($a))' >/dev/null 2>&1; then
+      correct_order=true
+    fi
 
     ddev drush php:eval "
       \$ids = \Drupal::entityQuery('node')->condition('title','%-$stamp','LIKE')->accessCheck(FALSE)->execute();
@@ -46,9 +62,10 @@ if [ -d "$SITE" ] && [ -f "$SITE/web/index.php" ] && $lint; then
   rm -rf "$MOD"
 fi
 
-pass=false; $lint && $route_ok && $lists_published && $no_leak && pass=true
+pass=false; $lint && $route_ok && $lists_published && $no_leak && $correct_order && pass=true
 jq -n --argjson lint $lint --argjson route $route_ok --argjson lp $lists_published \
-      --argjson nl $no_leak --argjson pass $pass \
-      '{pass:$pass, stages:{lint:$lint, route_ok:$route, lists_published:$lp, no_leak:$nl}}' \
+      --argjson nl $no_leak --argjson co $correct_order --argjson pass $pass \
+      '{pass:$pass, stages:{lint:$lint, route_ok:$route, lists_published:$lp, no_leak:$nl,
+        correct_order:$co}}' \
       > "$WS/grade.json"
 $pass

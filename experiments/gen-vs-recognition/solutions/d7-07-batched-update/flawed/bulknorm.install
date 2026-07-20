@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * @file
+ * Bulk Normalize: install and update hooks.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function bulknorm_install() {
+  $type = node_type_set_defaults(array(
+    'type' => 'item',
+    'name' => st('Item'),
+    'base' => 'node_content',
+    'custom' => TRUE,
+  ));
+  node_type_save($type);
+
+  if (!field_info_field('field_code')) {
+    field_create_field(array(
+      'field_name' => 'field_code',
+      'type' => 'text',
+      'cardinality' => 1,
+    ));
+  }
+  if (!field_info_instance('node', 'field_code', 'item')) {
+    field_create_instance(array(
+      'field_name' => 'field_code',
+      'entity_type' => 'node',
+      'bundle' => 'item',
+      'label' => 'Code',
+    ));
+  }
+}
+
+/**
+ * Uppercase all item codes.
+ */
+function bulknorm_update_7100(&$sandbox) {
+  foreach (array('field_data_field_code', 'field_revision_field_code') as $table) {
+    db_update($table)
+      ->expression('field_code_value', 'UPPER(field_code_value)')
+      ->condition('entity_type', 'node')
+      ->execute();
+  }
+  $sandbox['#finished'] = 1;
+  return t('Normalized all items in one pass.');
+}

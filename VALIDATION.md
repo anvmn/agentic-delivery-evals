@@ -226,3 +226,30 @@ suite's own thesis — looks-right-but-isn't — applies to graders too. (Bug hi
 route: `ddev` inside a `while read` loop drained the loop's stdin, so a first
 re-grade pass silently processed only one workspace; fixed with `mapfile` + a
 `</dev/null` on the grader call.)
+
+## Author-catch #7 — d10-05 never verified "newest first" (2026-07-21)
+
+Found in review, not by the grader: running the gen-vs-recognition experiment,
+GPT-5.6 Sol (and independently Opus and Sonnet) flagged that d10-05's endpoint
+sorts the query `created DESC` but then iterates `loadMultiple()`, which returns
+entities keyed by id in storage order — so the "5 **newest** titles" ordering
+can be silently discarded. The old grader only checked *membership* (are the
+published titles present), never order.
+
+Honest journey worth recording: I first called this "confirmed real," then the
+self-test made me retract it — the *reference* actually preserves order
+(loadMultiple happened to keep it for the seed), so the reference isn't buggy.
+But adding an order stage and re-grading the matrix flipped **6 real solutions**
+(2 Haiku, 4 Sol) that genuinely returned wrong order and had been passing
+spuriously — so the grader gap was real even though the reference was fine.
+**d10-05 authoring: Haiku 2/3→0/3, Sol 2/3→0/3; Fable/Opus/Sonnet stay 3/3.**
+
+Fixes: grader now (a) resets the notice table before seeding (it had
+accumulated `Notice-*` nodes that outranked the seed), (b) seeds with distinct
+future-relative created times so newest-first is unambiguous, (c) asserts the
+newer Pub-B precedes the older Pub-A (`correct_order`). Reference reindexes by
+the sorted ids as a defensive guarantee. Self-test: fixed reference PASS;
+delivery-leak variant FAIL (no_leak); wrong-order solutions FAIL (correct_order).
+Records carry `grade.regraded_order`. Meta-point: a model *reviewer* caught a
+requirement the mechanical grader never checked — the constructive flip side of
+"review inherits blind spots."

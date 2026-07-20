@@ -1,0 +1,53 @@
+<?php
+
+/**
+ * @file
+ * Record Access: per-center view access for record nodes.
+ */
+
+define('RECORDACCESS_REALM', 'recordaccess_center');
+
+/**
+ * Reads an integer field's first value from an entity.
+ */
+function _recordaccess_center($entity_type, $entity) {
+  $items = field_get_items($entity_type, $entity, $entity_type === 'user' ? 'field_user_center' : 'field_center_id');
+  return empty($items[0]['value']) ? NULL : (int) $items[0]['value'];
+}
+
+/**
+ * Implements hook_node_grants().
+ */
+function recordaccess_node_grants($account, $op) {
+  if ($op !== 'view') {
+    return array();
+  }
+  $center = _recordaccess_center('user', $account);
+  if ($center === NULL) {
+    return array();
+  }
+  return array(RECORDACCESS_REALM => array($center));
+}
+
+/**
+ * Implements hook_node_access_records().
+ */
+function recordaccess_node_access_records($node) {
+  if ($node->type !== 'record') {
+    return array();
+  }
+  $center = _recordaccess_center('node', $node);
+  if ($center === NULL) {
+    return array();
+  }
+  return array(
+    array(
+      'realm' => RECORDACCESS_REALM,
+      'gid' => $center,
+      'grant_view' => 1,
+      'grant_update' => 0,
+      'grant_delete' => 0,
+      'priority' => 0,
+    ),
+  );
+}

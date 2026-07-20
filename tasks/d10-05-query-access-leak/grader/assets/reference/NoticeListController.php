@@ -8,10 +8,15 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 /**
  * Lists the newest notices as JSON — reference solution (self-tests only).
  *
- * Two load-bearing lines, not one: accessCheck(TRUE) alone does NOT filter
- * unpublished nodes on sites without node-access modules (it checks the
- * 'access content' permission, not per-node status) — the status condition
- * is also required. The grader caught the suite author on this.
+ * Three load-bearing details, not one:
+ *  - accessCheck(TRUE) alone does NOT filter unpublished nodes on sites without
+ *    node-access modules (it checks 'access content', not per-node status) —
+ *    the status condition is also required. The grader caught the suite author
+ *    on this.
+ *  - loadMultiple() returns entities keyed by id in STORAGE order, not query
+ *    order, so iterating it loses the created-DESC sort. Re-index by $nids to
+ *    keep newest-first. (Author-catch #7: a reviewer flagged this; the grader
+ *    missed it.)
  */
 class NoticeListController extends ControllerBase {
 
@@ -19,7 +24,8 @@ class NoticeListController extends ControllerBase {
    * GET /api/notices.
    */
   public function list(): JsonResponse {
-    $nids = $this->entityTypeManager()->getStorage('node')->getQuery()
+    $storage = $this->entityTypeManager()->getStorage('node');
+    $nids = $storage->getQuery()
       ->condition('type', 'notice')
       ->condition('status', 1)
       ->accessCheck(TRUE)
@@ -27,9 +33,12 @@ class NoticeListController extends ControllerBase {
       ->range(0, 5)
       ->execute();
 
+    $nodes = $storage->loadMultiple($nids);
     $titles = [];
-    foreach ($this->entityTypeManager()->getStorage('node')->loadMultiple($nids) as $node) {
-      $titles[] = $node->label();
+    foreach ($nids as $nid) {
+      if (isset($nodes[$nid])) {
+        $titles[] = $nodes[$nid]->label();
+      }
     }
     return new JsonResponse($titles);
   }
