@@ -160,7 +160,36 @@ Two batches of receipts were voided — kept out of runs.jsonl and every table:
   four OpenAI receipts under-billed by ~10%. Re-metered from transcripts,
   records marked `remetered`.
 
+- **Per-model usage-limit poisoning (2026-07-20):** a clean-room re-run of
+  d7-01 hit a per-model cap and Claude returned `api_error_status: 429`,
+  "You've reached your Fable 5 limit" — with `is_error:true`, one turn, $0.
+  The session-limit grep only matched "hit your session limit|usage limit",
+  so three Fable runs were recorded as false fails. Voided; the abort guard
+  now also matches `reached your <Model> limit` and `api_error_status` 429/
+  401/403.
+
 Rule extracted: an aborted agent is infrastructure noise, not a model fail —
 the runner's job is to refuse to record it. And a receipt is only as honest
 as its parser — meter fields are verified against the provider's schema
 before a lab's numbers are published.
+
+## Environment-contamination audit (2026-07-20)
+
+Prompted by a spoken-answer TTS footer appearing in a *Fable* d7-01 transcript
+— a line that comes from the operator's global `~/.claude/CLAUDE.md`. Probed a
+headless `claude -p` with a direct canary:
+
+- It DOES load the operator's user `CLAUDE.md` (the footer instruction).
+- It does NOT load auto-memory: asked point-blank, it answered "I have no
+  memory files about you or a d7-01 task." So the operator's memory — which by
+  then described this exact trap — never reached the eval agents.
+
+Impact on results: none. The grader reads only `healthstats.module`, never the
+agent's prose; the only inherited content was the (coding-irrelevant) TTS
+footer; and only 1 of 4 Claude models passed d7-01, which is itself proof the
+answer didn't leak (a loaded memory would have lifted all four). Added a
+reproducible clean-room mode anyway — `CLAUDE_CLEAN_ROOM=1` passes
+`--setting-sources project,local`, dropping user `CLAUDE.md`/memory while
+keeping auth; receipts carry `clean_room:true` and `report.sh` filters them
+out of the headline scoreboard. A clean-room confirmation run is pending a
+provider usage-limit reset.

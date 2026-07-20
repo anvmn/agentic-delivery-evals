@@ -15,6 +15,13 @@ WS="$1"; MODEL="$2"; TIMEOUT_S="$3"; TRANSCRIPT="$4"
 EFFORT_FLAG=()
 [ -n "${CLAUDE_EFFORT:-}" ] && EFFORT_FLAG=(--effort "$CLAUDE_EFFORT")
 
+# Clean-room: exclude the "user" setting source so the agent does NOT inherit
+# the operator's global ~/.claude/CLAUDE.md or auto-memory. Auth still applies.
+# (Headless runs never load auto-memory, but they DO load user CLAUDE.md; this
+# makes runs reproducible across machines/operators.)
+CLEAN_FLAG=()
+[ -n "${CLAUDE_CLEAN_ROOM:-}" ] && CLEAN_FLAG=(--setting-sources "project,local")
+
 start=$(date +%s)
 out=$(cd "$WS" && timeout "${TIMEOUT_S}s" \
   claude -p "$(cat task.md)
@@ -22,6 +29,7 @@ out=$(cd "$WS" && timeout "${TIMEOUT_S}s" \
 Work only inside the current directory. Implement the task per the acceptance criteria. When done, ensure the project builds/tests cleanly with the commands named in the task." \
   --model "$MODEL" \
   "${EFFORT_FLAG[@]}" \
+  "${CLEAN_FLAG[@]}" \
   --output-format json \
   --dangerously-skip-permissions 2>"$WS/agent-stderr.log")
 agent_exit=$?
@@ -37,4 +45,6 @@ jq -cn \
   --argjson cost "${cost:-0}" --argjson turns "${turns:-0}" \
   --argjson dur "$((end - start))" --argjson ec "$agent_exit" \
   --argjson to "$timed_out" --arg eff "${CLAUDE_EFFORT:-default}" \
-  '{cost_usd:$cost, duration_s:$dur, turns:$turns, agent_exit:$ec, timed_out:$to, effort:$eff}'
+  --arg clean "${CLAUDE_CLEAN_ROOM:+true}" \
+  '{cost_usd:$cost, duration_s:$dur, turns:$turns, agent_exit:$ec, timed_out:$to,
+    effort:$eff, clean_room:($clean == "true")}'

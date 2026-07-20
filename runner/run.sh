@@ -63,9 +63,15 @@ for task_dir in "$TASKS_DIR"/*/; do
                    "$RESULTS/transcripts/$(basename "$ws").json" || true)
       [ -n "$agent_json" ] || agent_json='{"error":"adapter produced no output"}'
 
-      if grep -qiE "hit your session limit|usage limit" \
+      # Abort on any provider-side block that produces an empty/error turn:
+      # session limits, per-model usage limits ("reached your <Model> limit"),
+      # and rate/auth errors (HTTP 429/401/403 in the transcript). Recording
+      # these as model failures is the "session-limit poisoning" bug — they are
+      # infrastructure, not answers.
+      if grep -qiE "hit your session limit|usage limit|reached your [a-z0-9. ]*limit|\"api_error_status\": ?(429|401|403)" \
            "$RESULTS/transcripts/$(basename "$ws").json" 2>/dev/null; then
-        echo "SESSION LIMIT hit — aborting matrix; voiding this cell." >&2
+        echo "USAGE/SESSION LIMIT or rate/auth error — aborting matrix; voiding this cell." >&2
+        cp "$ws/agent-stderr.log" "$RESULTS/transcripts/$(basename "$ws").stderr.log" 2>/dev/null || true
         rm -rf "$ws"
         exit 3
       fi

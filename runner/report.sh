@@ -8,7 +8,7 @@ OUT="$ROOT/RESULTS.md"
 # The scoreboard covers default-effort runs only; effort experiments are
 # analyzed separately from the same receipts.
 RUNS=$(mktemp)
-jq -c 'select((.agent.effort // "default") == "default")' "$RUNS_ALL" > "$RUNS"
+jq -c 'select((.agent.effort // "default") == "default" and (.agent.clean_room // false) == false)' "$RUNS_ALL" > "$RUNS"
 trap 'rm -f "$RUNS"' EXIT
 
 {
