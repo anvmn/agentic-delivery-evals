@@ -29,19 +29,29 @@ variant 3/3 across all four tasks. The echo bug's "endorse the bug" invisibility
 did not reproduce on any of three fresh idiom bugs. So the write-it-right /
 miss-it-in-review asymmetry is **special to the echo bug**, not a general law.
 
-The failure mode inverted instead: on the subtle treatments, reviewers
-**over-reject** — they rejected the *correct* reference (d10-05: all 4; e-06:
-3 of 4; d7-06: 2 of 4), while the control d7-07 was perfect (all 4 approved the
-reference and rejected the flaw).
+The failure mode inverted instead: on the subtle treatments, *some* reviewers
+**over-reject** — rejecting the *correct* reference — while the control d7-07 is
+perfect (all 4 approve the reference and reject the flaw). But this is
+**reviewer- and task-specific, and mostly the reviewers being right, not
+trigger-happy.**
 
-**And the over-rejection is mostly the reviewers being right, not trigger-happy.**
-Reading the reasons: Opus and Sonnet independently flagged that d10-05's
-`loadMultiple()` can discard the `created DESC` sort — a real requirement the
-grader wasn't checking, now [author-catch #7](../../VALIDATION.md). Others
-raised the `empty('0')` center-id edge and the published-vs-viewable access
-debate — sophisticated, defensible concerns. One rejection was our artifact
-(the neutralizer misplaced d10-05's `@file` docblock; Haiku correctly flagged
-the coding-standards violation).
+d10-05 makes the point after a polish pass (fixing a `@file`-placement artifact
+our neutralizer introduced, and using the order-safe reference): **Sonnet and
+Haiku now correctly approve** the clean reference 3/3 — their earlier rejections
+were that artifact and a genuine ordering concern. What remains is Opus and Sol
+still rejecting it, for sophisticated, defensible reasons — Opus flags that the
+query's `accessCheck(TRUE)` doesn't invoke `hook_node_access()` and the loaded
+nodes are never re-checked with `->access('view')` (a real Drupal
+security-depth point); Sol reads "notices the user is allowed to view" as
+including unpublished-viewable content (a spec ambiguity). And the *one* concern
+that was an outright bug — Opus and Sonnet independently flagging that
+`loadMultiple()` can discard the `created DESC` sort — became
+[author-catch #7](../../VALIDATION.md): the grader wasn't checking the
+newest-first requirement, and 6 real solutions were passing spuriously.
+
+So the residual over-rejection is senior-reviewer nuance (security depth,
+spec ambiguity), not noise. (e-06's reference is still over-rejected by three
+of four — an open thread we didn't chase.)
 
 ## Reading
 

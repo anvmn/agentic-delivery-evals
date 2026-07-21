@@ -6,8 +6,7 @@ use Drupal\Core\Controller\ControllerBase;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
- * @file
- * Controller for the newest-notices JSON endpoint.
+ * Returns the newest notice titles as a JSON array.
  */
 class NoticeListController extends ControllerBase {
 
@@ -15,16 +14,20 @@ class NoticeListController extends ControllerBase {
    * GET /api/notices.
    */
   public function list(): JsonResponse {
-    $nids = $this->entityTypeManager()->getStorage('node')->getQuery()
+    $storage = $this->entityTypeManager()->getStorage('node');
+    $nids = $storage->getQuery()
       ->condition('type', 'notice')
       ->accessCheck(FALSE)
       ->sort('created', 'DESC')
       ->range(0, 5)
       ->execute();
 
+    $nodes = $storage->loadMultiple($nids);
     $titles = [];
-    foreach ($this->entityTypeManager()->getStorage('node')->loadMultiple($nids) as $node) {
-      $titles[] = $node->label();
+    foreach ($nids as $nid) {
+      if (isset($nodes[$nid])) {
+        $titles[] = $nodes[$nid]->label();
+      }
     }
     return new JsonResponse($titles);
   }

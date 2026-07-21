@@ -21,6 +21,7 @@ OUT="$HERE/reviews.jsonl"
 SOL="$HERE/solutions"
 TRIALS="${1:-3}"; MAX_COST="${2:-30}"
 REVIEWERS="${3:-claude-opus-4-8,claude-sonnet-5,claude-haiku-4-5,openai:gpt-5.6-sol}"
+TASKFILTER="${4:-}"   # optional: run only this task id (e.g. d10-05)
 
 # task<TAB>domain<TAB>kind<TAB>task.md
 TASKS=$(cat <<TSV
@@ -71,6 +72,7 @@ mapfile -t TASK_LINES <<< "$TASKS"
 for line in "${TASK_LINES[@]}"; do
   IFS=$'\t' read -r task domain kind md <<< "$line"
   [ -n "$task" ] || continue
+  [ -z "$TASKFILTER" ] || [ "$task" = "$TASKFILTER" ] || continue
   base="$SOL/${DIRMAP[$task]}"
   for reviewer in "${RVW[@]}"; do
     for solkind in reference flawed; do
