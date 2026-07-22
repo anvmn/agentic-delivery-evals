@@ -8,7 +8,12 @@ It covers two under-measured territories: **Drupal** (the CMS platform behind a 
 
 ## The scoreboard (suites 0.1–0.3 · 370 runs · 13 models, 7 vendors · 2026-07-22)
 
-Each cell shows passes/attempts. "Tier" is the intended difficulty (1 = easy, 3 = hard). The bold row is the one task that separates models.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/charts/heatmap-dark.svg">
+  <img src="docs/charts/heatmap-light.svg" alt="Pass-rate heatmap: 15 tasks by 13 models across 7 vendors. A wall of green with one orange-ringed row — d7-01 — failing across every vendor except Fable 5." width="100%">
+</picture>
+
+Each cell shows passes/attempts ("tier" = intended difficulty, 1–3; charts regenerate from receipts via `scripts/render_charts.py`). The flat table, for copy-paste and diffing:
 
 | task | lane | tier | fable-5 | opus-4-8 | sonnet-5 | haiku-4-5 | g3.1-pro | g3-flash | 5.6-sol | 5.6-luna | grok-4.5 | kimi-k3 | kimi-k2.7c | qwen3-next | ds-v3.2 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -33,6 +38,11 @@ Each cell shows passes/attempts. "Tier" is the intended difficulty (1 = easy, 3 
 ## The story the numbers tell
 
 ### One task splits the field
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/charts/staircase-dark.svg">
+  <img src="docs/charts/staircase-light.svg" alt="d7-01 blind pass rates: Fable 6/6, Gemini Pro and Opus 1 each, everything else 0." width="100%">
+</picture>
 
 Task d7-01 asks for something a Drupal 7 developer did routinely: a small web endpoint that returns data as JSON, restricted to users with the right permission. There is a way to write it that *looks* like textbook code — the pattern is all over the internet — but silently breaks the security requirement: users who should get "access denied" (HTTP 403) instead get a friendly "200 OK" whose entire content is the number `3` (the framework's internal access-denied code, helpfully converted to JSON). That line is `'delivery callback' => 'drupal_json_output'`.
 
@@ -96,6 +106,12 @@ From the cost column of the receipts: Haiku cleared 25 of 27 modern-stack trials
 
 ### Can more "thinking" fix it?
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/charts/levers-dark.svg">
+  <img src="docs/charts/levers-light.svg" alt="Per model: blind vs high-effort vs live-site pass rates on d7-01. Effort bars flat at zero; live-site bars tall." width="100%">
+</picture>
+
+
 Most systems have an effort dial — more reasoning before answering. d7-01 rerun with each system's dial at its top setting, against the default results:
 
 | model | d7-01 default | d7-01 raised effort | what changed |
@@ -116,6 +132,12 @@ The middle case: the thinly-warned access-leak subtlety (d10-05), Sol's only oth
 Two conclusions survive across three labs — and the Gemini pair replicates both from the *inside*, without any external knob: Pro self-rescued in the one trial its allocator chose to think ~2× harder, while Flash out-thought Pro's passing trial and stayed trapped. The tiered verdict: **effort rescues a model that is one step below the trap (Opus by external control, Gemini Pro by its own allocation); it cannot substitute for knowledge that isn't there** (Sonnet, Haiku, Sol — and Flash, at any thinking volume). And an allocation wrinkle: even told to think as hard as possible, Sol spent only ~1.3k reasoning tokens — thinking budgets follow *perceived* difficulty, and this trap's whole camouflage is looking easy. Below the threshold, only behavioral gates help.
 
 ### Can AI reviewers catch what AI authors miss?
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/charts/quadrant-dark.svg">
+  <img src="docs/charts/quadrant-light.svg" alt="Reviewer quadrant on the Unicode task: approval rate on correct code vs catch rate on the real bug. Fable, Opus and Sol at the ideal corner; Haiku and DeepSeek toward paranoia; Grok toward leniency." width="100%">
+</picture>
+
 
 All four Claude models blindly reviewed 24 graded d7-01 solutions (plus Gemini's), 95 reviews scored against grader ground truth ([`experiments/author-reviewer/`](experiments/author-reviewer/)):
 

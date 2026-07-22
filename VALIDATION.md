@@ -396,3 +396,18 @@ observe; agents inherit the harness's blind spots.
 Historical passes all survived the sweep (Fable's 6/6 + clean-room 3/3,
 Opus 1/6, Sonnet/Sol/Gemini live-site passes) — every one wires real
 delivery. No pre-column record changed.
+
+- **K3 429-poisoning (2026-07-22):** four kimi-k3 column runs hit codex's
+  "exceeded retry limit, last status: 429 Too Many Requests" against the
+  five-day-old model's constrained serving, dying mid-run with the turn
+  counter at 0 ($0 metered). All four had done partial work before the
+  kill (turn.failed voids the turn count, not completed items — an
+  author-error nearly voided a passing run on a false "no work" claim,
+  caught within minutes by the pass/zero-turn contradiction). Policy
+  applied: e-01 t3's PASS stands (the interruption did not prevent
+  completion — the artifact passes the grader); the three fail-state
+  interrupted runs (b-01 t3, d10-04 t3, d7-01 t3) are voided and re-run —
+  a 429 kill is not a fair fail because the turn budget was never
+  exhausted (unlike a timeout, which counts). The 429/retry pattern joins
+  the openrouter.sh refusal guard once the running batch frees the
+  adapter file.
