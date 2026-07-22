@@ -1,0 +1,1 @@
+                                       Let me try directly accessing through index.php?q=api/healthstats to see if it behaves the same. Also maybe the test path uses clean URLs and the menu router handles it, but let me trace.                                      

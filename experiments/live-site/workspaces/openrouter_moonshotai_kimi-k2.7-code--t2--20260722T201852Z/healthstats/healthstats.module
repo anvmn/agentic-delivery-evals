@@ -1,0 +1,52 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — implement per task.md.
+ *
+ * Provides a JSON endpoint at /api/healthstats returning active user
+ * and published node counts. Access is restricted to users with the
+ * "view healthstats" permission.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health stats'),
+      'description' => t('Access the JSON health statistics endpoint.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items['api/healthstats'] = array(
+    'title' => 'Health stats',
+    'page callback' => 'healthstats_page',
+    'access arguments' => array('view healthstats'),
+    'delivery callback' => 'drupal_json_output',
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Page callback for /api/healthstats.
+ *
+ * @return array
+ *   Associative array of health statistics.
+ */
+function healthstats_page() {
+  $users = db_query("SELECT COUNT(uid) FROM {users} WHERE status = 1")->fetchField();
+  $nodes = db_query("SELECT COUNT(nid) FROM {node} WHERE status = 1")->fetchField();
+
+  return array(
+    'users' => (int) $users,
+    'nodes' => (int) $nodes,
+  );
+}

@@ -1,0 +1,15 @@
+    Done! The `healthstats` module is implemented and verified live.
+
+**What changed** (`healthstats/healthstats.module`):
+- `hook_permission()` defines the new `view healthstats` permission.
+- `hook_menu()` registers `api/healthstats` with `healthstats_page()` as the page callback and a custom delivery callback.
+- `healthstats_page()` returns an array with real counts: active users (`status = 1`) and published nodes (`status = 1`). No `print`/`echo`.
+- `healthstats_deliver_json()` converts the normal array to JSON via `drupal_json_output()`, but falls back to Drupal's HTML delivery for menu status constants so access-denied requests produce a real HTTP 403.
+
+**Live verification**:
+- `php -l healthstats/healthstats.module` passes.
+- `./probe.sh` reports:
+  - Anonymous request: **HTTP 403** access-denied page.
+  - Authorized callback path: returns `array('users' => 1, 'nodes' => 13)`.
+- Temporarily granting `view healthstats` to anonymous shows `Content-Type: application/json` and body `{"users":1,"nodes":13}`. Permission was revoked afterward.
+- `overlay` module was re-enabled after debugging to keep the site state clean.

@@ -5,6 +5,7 @@
     "enable": true,
     "permission_defined": true,
     "anon_403": true,
-    "authorized_json": true
+    "authorized_json": true,
+    "authorized_http": true
   }
 }

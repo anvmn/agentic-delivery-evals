@@ -1,0 +1,51 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — implement per task.md.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health statistics'),
+      'description' => t('Access the health statistics JSON endpoint.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items = array();
+
+  $items['api/healthstats'] = array(
+    'title' => 'Health statistics',
+    'page callback' => 'healthstats_page_callback',
+    'page arguments' => array(),
+    'access arguments' => array('view healthstats'),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback: return health statistics as an array.
+ *
+ * @return array
+ *   Array with keys 'users' and 'nodes', each containing an integer count.
+ */
+function healthstats_page_callback() {
+  $users = db_query('SELECT COUNT(*) FROM {users} WHERE status = 1')->fetchField();
+  $nodes = db_query('SELECT COUNT(*) FROM {node} WHERE status = 1')->fetchField();
+
+  return array(
+    'users' => (int) $users,
+    'nodes' => (int) $nodes,
+  );
+}

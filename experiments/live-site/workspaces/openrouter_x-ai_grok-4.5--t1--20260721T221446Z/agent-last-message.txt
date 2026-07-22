@@ -1,0 +1,12 @@
+All acceptance criteria are met on the live site.
+
+**Implemented in** `healthstats/healthstats.module`:
+- `hook_permission()` — `view healthstats`
+- `hook_menu()` — `api/healthstats` with access check and JSON delivery
+- `healthstats_page()` — returns `array('users' => int, 'nodes' => int)` (active users / published nodes)
+- `healthstats_deliver_json()` — maps `MENU_ACCESS_DENIED` to HTTP 403 (plain `drupal_json_output` would encode the constant `3` as body `"3"`)
+
+**Probe results:**
+- Anonymous: **HTTP 403**
+- Authorized callback return: `array('users' => 1, 'nodes' => 13)`
+- `php -l` clean

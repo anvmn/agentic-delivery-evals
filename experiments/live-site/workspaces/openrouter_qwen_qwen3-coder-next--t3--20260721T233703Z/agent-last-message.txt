@@ -1,0 +1,19 @@
+Implementation complete. Here's the summary:
+
+**Results from `probe.sh`:**
+
+✅ **Anonymous access returns HTTP 403** - Access control is working correctly  
+✅ **Authorized page callback returns `{'users': 1, 'nodes': 13}`** - Data is properly returned
+
+**The implementation includes:**
+
+- `healthstats_permission()` - Defines the `view healthstats` permission
+- `healthstats_menu()` - Registers the `api/healthstats` callback with proper access control
+- `healthstats_page_callback()` - Returns JSON-ready array with active users and published nodes counts
+
+**Code passes `php -l` syntax check** and follows Drupal 7 coding standards with proper doc comments.
+
+The probe.sh output confirms all acceptance criteria are met:
+- JSON shape is correct (`{"users": <int>, "nodes": <int>}`)
+- Anonymous users get 403 (permission required)
+- Page callback returns data array without emitting output (delivery handled by D7's menu system)

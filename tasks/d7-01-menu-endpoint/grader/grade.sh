@@ -8,7 +8,7 @@ ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 SITE="$ROOT/.ddev-cores/d7site"
 MOD="$SITE/sites/all/modules/custom/healthstats"
 
-lint=false; enable=false; permission_defined=false; anon_403=false; authorized_json=false
+lint=false; enable=false; permission_defined=false; anon_403=false; authorized_json=false; authorized_http=false
 
 if php -l "$WS/healthstats/healthstats.module" >/dev/null 2>&1 \
    || ( cd "$SITE" && ddev exec php -l /var/www/html/sites/all/modules/custom/healthstats/healthstats.module ) >/dev/null 2>&1; then
@@ -66,14 +66,32 @@ if [ -d "$SITE" ] && [ -f "$SITE/index.php" ]; then
     if echo "$payload" | jq -e '.MARKER == "RETURNED" and .printed_len == 0 and (.ret.users | type == "number") and (.ret.nodes | type == "number")' >/dev/null 2>&1; then
       authorized_json=true
     fi
+
+    # Author-catch #9: the in-process check above is satisfiable by a module
+    # that returns the array but wires NO delivery at all — over HTTP an
+    # authorized user gets a themed HTML page, not JSON. Behavioral probe:
+    # grant the contracted permission to anonymous, observe the real response,
+    # revoke unconditionally (the shared site must never keep the grant).
+    # Asserts 200 + application/json + exactly the {users,nodes} number shape.
+    ddev drush php-eval 'user_role_grant_permissions(DRUPAL_ANONYMOUS_RID, array("view healthstats"));' >/dev/null 2>&1
+    ddev drush cc all >/dev/null 2>&1
+    stamp=$(date +%s%N)
+    hdr=$(curl -sk -o "$WS/authorized-body.log" -w '%{http_code} %{content_type}' "$url/api/healthstats?nocache=$stamp")
+    ddev drush php-eval 'user_role_revoke_permissions(DRUPAL_ANONYMOUS_RID, array("view healthstats"));' >/dev/null 2>&1
+    ddev drush cc all >/dev/null 2>&1
+    code2="${hdr%% *}"; ctype="${hdr#* }"
+    if [ "$code2" = "200" ] && [ "${ctype#application/json}" != "$ctype" ] \
+       && jq -e '(keys | sort == ["nodes","users"]) and (.users|type=="number") and (.nodes|type=="number")' "$WS/authorized-body.log" >/dev/null 2>&1; then
+      authorized_http=true
+    fi
   fi
   ddev drush -y pm-disable healthstats >/dev/null 2>&1
   rm -rf "$MOD"
 fi
 
-pass=false; $lint && $enable && $permission_defined && $anon_403 && $authorized_json && pass=true
+pass=false; $lint && $enable && $permission_defined && $anon_403 && $authorized_json && $authorized_http && pass=true
 jq -n --argjson lint $lint --argjson enable $enable --argjson perm $permission_defined \
-      --argjson anon $anon_403 --argjson auth $authorized_json --argjson pass $pass \
+      --argjson anon $anon_403 --argjson auth $authorized_json --argjson http $authorized_http --argjson pass $pass \
       '{pass:$pass, stages:{lint:$lint, enable:$enable, permission_defined:$perm,
-        anon_403:$anon, authorized_json:$auth}}' > "$WS/grade.json"
+        anon_403:$anon, authorized_json:$auth, authorized_http:$http}}' > "$WS/grade.json"
 $pass

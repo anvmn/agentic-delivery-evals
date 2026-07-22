@@ -191,8 +191,12 @@ answer didn't leak (a loaded memory would have lifted all four). Added a
 reproducible clean-room mode anyway — `CLAUDE_CLEAN_ROOM=1` passes
 `--setting-sources project,local`, dropping user `CLAUDE.md`/memory while
 keeping auth; receipts carry `clean_room:true` and `report.sh` filters them
-out of the headline scoreboard. A clean-room confirmation run is pending a
-provider usage-limit reset.
+out of the headline scoreboard.
+
+**Clean-room confirmation (2026-07-21):** once Fable's usage limit reset, ran
+d7-01 × Fable × 3 with `CLAUDE_CLEAN_ROOM=1` — **3/3 pass, every grader stage
+green**, matching the original 6/6. Fable's d7-01 result is the model, not the
+operator's config.
 
 ## Author-catch #6 — the d7-01 grader checked output, not delivery (2026-07-20)
 
@@ -253,3 +257,142 @@ delivery-leak variant FAIL (no_leak); wrong-order solutions FAIL (correct_order)
 Records carry `grade.regraded_order`. Meta-point: a model *reviewer* caught a
 requirement the mechanical grader never checked — the constructive flip side of
 "review inherits blind spots."
+
+## Author-corrected claim — the echo pattern works over HTTP (2026-07-21)
+
+The suite's prose described the d7-01 echo pattern (`drupal_json_output()`
+inside the page callback, NULL return) as producing "JSON followed by a stray
+page-not-found." **False — falsified two ways** while analyzing the
+verified-review experiment: (1) reading `drupal_deliver_html_page()` in core —
+a NULL result is neither an int (no 404/403 switch) nor `isset` (no HTML
+render), so delivery ends cleanly, and core's own comment blesses the pattern
+("NULL … likely indicates that it printed something"; `user_autocomplete` works
+this way); (2) deploying the canonical echo submission and observing the
+authorized path over real HTTP: `200` + `application/json` +
+`{"users":1,"nodes":13}`, with anonymous still 403.
+
+Grader ground truth is unaffected — criterion #3 mandates delivery via the
+return value and the native delivery architecture, and the hardened
+`authorized_json` stage (author-catch #6) enforces exactly that; the six echo
+solutions still fail it. What changes is the *framing*: the echo pattern is a
+working endpoint that violates an explicit spec clause, not a broken endpoint —
+corrected in README.md and the experiment writeups. Blind reviewers who
+approved it were extending a genuine core precedent over the spec's text; that
+distinction shapes the verified-review experiment's interpretation (a runtime
+can only arbitrate what behavior can falsify).
+
+## Author-catch #8 — criterion #3's wording permitted the echo reading (2026-07-21 → suite 0.3.1)
+
+Found BY the verified-review experiment: with a live site in hand, 9 of 12
+reviewer sessions approved the echo-pattern submission, and their stated
+reasoning was *textually sound* — "JSON is delivered as JSON … using D7's
+native delivery mechanism — not `print` + `exit`" is satisfiable by
+`drupal_json_output()` inside the page callback (a native function; nothing
+prints-and-exits), especially given core's own `user_autocomplete` precedent
+and the (verified) fact that the endpoint behaves correctly over HTTP. The
+grader has enforced the *intended* architecture since author-catch #6
+(return the array, zero printed bytes); only the spec text lagged.
+
+Fix: criterion #3 rewritten in `task.md` (and the live-site variant) to state
+the enforceable contract — the page callback **returns** the data array and
+emits no output itself; JSON conversion belongs to the delivery layer. Suite
+0.3.0 → 0.3.1. No grading logic changed and no records re-graded; all
+existing d7-01 runs and all review experiments measured against the pre-0.3.1
+wording, which is part of those experiments' findings (reviewers split on an
+ambiguity that genuinely existed). Meta-point, twin to author-catch #7: the
+verified-review harness surfaced a *spec* defect this time — each layer of
+model scrutiny has now caught a different class of author error (grader gap,
+missing check, ambiguous wording).
+
+## OpenRouter column: adapter, metering, and two receipt-hygiene events (2026-07-21/22)
+
+Added `runner/agents/openrouter.sh` — codex CLI against OpenRouter's
+Responses API (`model_provider=openrouter`; codex 0.144.5 dropped
+chat-completions support entirely). Column: x-ai/grok-4.5,
+moonshotai/kimi-k2.7-code, qwen/qwen3-coder-next, deepseek/deepseek-v3.2 on
+the 7-task Gemini-parity set, n=3.
+
+- **Metering correction (caught by the operator reconciling the provider UI):**
+  the first formula priced all input tokens at the full prompt rate; ~90% of
+  an agent loop's input is cache reads billed at 8–50% of that. All 34
+  affected records re-metered from transcripts with cache-aware pricing
+  ($3.63 → $1.76 receipts), marked `cost_remetered:true`; batch totals now
+  reconcile with the provider's server-side dollar counter. Known gap:
+  Grok's >200k-prompt price override is unmodeled.
+- **Write-while-exec abort (self-inflicted):** patching the adapter file
+  non-atomically mid-batch let one exec read a half-written file; the runner
+  correctly voided the cell and aborted (no bogus records). Rule adopted:
+  adapter mutations are atomic (write-temp + mv) or wait for the batch.
+- **stdin-drain fix, swept across the class:** codex blocks on a non-tty
+  stdin ("Reading additional input from stdin..."); `</dev/null` pinned in
+  BOTH codex-based adapters — codex.sh had been surviving on lucky plumbing.
+
+## Author-catch #9 (candidate, pending re-grade approval) — return-without-delivery (2026-07-22)
+
+qwen3-coder-next's lone d7-01 "pass" returns the correct array from the page
+callback but registers NO delivery mechanism at all — no delivery callback,
+no drupal_json_output anywhere. Over real HTTP an authorized user gets a
+themed HTML page, not JSON; criteria #1/#3 are violated but the hardened
+authorized_json stage (author-catch #6) passes it, because #6's check is
+in-process (return shape + zero printed bytes) and never observes the
+authorized path over HTTP. #6 closed print-without-return; this is its exact
+mirror. Proposed fix: behavioral authorized-HTTP probe (temporarily grant
+the permission to anonymous, curl, assert status/Content-Type/shape, revoke
+in a trap) + full d7-01 re-grade sweep. Held for operator approval since it
+changes ground truth.
+
+## Effort + live-site arms for the OpenRouter column (2026-07-22)
+
+- **Effort arm:** d7-01 × grok-4.5/kimi-k2.7-code/deepseek-v3.2 × 3 at
+  `model_reasoning_effort=high` (recorded `effort:"high"`, filtered from the
+  headline table): **0/9 — every run the delivery trap** (anon_403), identical
+  to default effort. With Sol's earlier xhigh arm: 12 high-effort runs across
+  four labs, 12 trap failures, zero cures.
+- **Live-site arm:** same adapters, tightened-0.3.1 task wording (earlier
+  cohort saw pre-0.3.1 — noted for comparability): grok 3/3 (2 probes/trial),
+  deepseek 3/3 (13–17 probes), kimi 2/3 (its miss probed once and submitted),
+  qwen 2/3 on retry (below).
+- **Receipt-hygiene: qwen tool-protocol collapse.** First qwen live-site
+  batch died at 0 turns — hallucinated tool names (`read_file`) and malformed
+  call args; codex's router rejected every call. Voided 3 records as
+  infra-class (they answer "can it speak the protocol", not "does testing
+  rescue"). Retry: 2/3 pass with residual protocol errors in stderr (flaky,
+  not deterministic); the fail is a timeout mid-iteration in the trap after
+  10 probes (truncated transcript zeroed its cost meter — known loss).
+
+## Author-catch #9 EXECUTED — behavioral authorized-HTTP probe + full re-sweep (2026-07-22)
+
+Grader change: after the in-process return check, grade.sh now grants the
+contracted permission to anonymous, curls the endpoint, asserts
+200 + application/json + exactly {"users":<number>,"nodes":<number>}, and
+revokes unconditionally. New stage `authorized_http`; pass requires it.
+
+Four-way self-test: reference PASS (all six stages) · return-without-delivery
+variant (qwen's matrix module) FAIL on exactly authorized_http · echo variant
+FAIL on exactly authorized_json (its authorized_http is TRUE — consistent
+with the 2026-07-21 falsification that the echo pattern works over HTTP) ·
+delivery-trap variant FAIL on exactly anon_403.
+
+Re-sweep: all 93 preserved d7-01 workspaces (matrix incl. clean-room and
+effort arms, both live-site cohorts); records updated with
+`grade.regraded_http:true`. **Four flips, all in the OpenRouter column:**
+
+- matrix qwen t1 (the catch's trigger) → fail. New-column blind d7-01 is a
+  clean 0/12.
+- live-site deepseek t3 and qwen t1/t3 → fail. All three modules have zero
+  delivery wiring; all failed exactly authorized_http.
+
+**Probe blind-spot finding:** the live-site probe.sh reports the anonymous
+HTTP status and the page callback's return value — both look perfect for a
+delivery-less solution — so three agents "tested their way" into the same
+hole the old grader had (deepseek probed 13× on its failing trial).
+Corrected live-site column: grok 3/3 · kimi 2/3 · deepseek 2/3 · qwen 0/3
+(7/12; the earlier Claude/Sol cohort is unchanged). The probe is left as-is
+deliberately — the blind spot is now part of what the experiment measures;
+future cohorts would need a probe that also exercises the authorized path
+over HTTP. Meta-point: verification cures exactly what the verifier can
+observe; agents inherit the harness's blind spots.
+
+Historical passes all survived the sweep (Fable's 6/6 + clean-room 3/3,
+Opus 1/6, Sonnet/Sol/Gemini live-site passes) — every one wires real
+delivery. No pre-column record changed.

@@ -1,0 +1,76 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — implement per task.md.
+ *
+ * Provides a JSON endpoint at api/healthstats returning the number of active
+ * users and published nodes in the site.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health statistics'),
+      'description' => t('Access the JSON health statistics endpoint.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items = array();
+
+  $items['api/healthstats'] = array(
+    'title' => 'Health statistics',
+    'page callback' => 'healthstats_page',
+    'access arguments' => array('view healthstats'),
+    'delivery callback' => 'healthstats_deliver',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback: return health statistics.
+ *
+ * @return array
+ *   An associative array with keys 'users' and 'nodes' containing the
+ *   number of active users and published nodes respectively.
+ */
+function healthstats_page() {
+  // Count active users (status = 1).
+  $user_count = db_query('SELECT COUNT(*) FROM {users} WHERE status = 1')->fetchField();
+
+  // Count published nodes (status = 1).
+  $node_count = db_query('SELECT COUNT(*) FROM {node} WHERE status = 1')->fetchField();
+
+  return array(
+    'users' => (int) $user_count,
+    'nodes' => (int) $node_count,
+  );
+}
+
+/**
+ * Delivery callback for the api/healthstats endpoint.
+ *
+ * Emits JSON when called by an authorized user; otherwise falls back to the
+ * standard HTML delivery so Drupal can return a 403 access denied response.
+ *
+ * @param mixed $page_callback_result
+ *   The value returned by the page callback or a menu status constant.
+ */
+function healthstats_deliver($page_callback_result) {
+  if (is_array($page_callback_result)) {
+    drupal_json_output($page_callback_result);
+  }
+  else {
+    drupal_deliver_html_page($page_callback_result);
+  }
+}

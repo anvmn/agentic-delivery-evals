@@ -1,0 +1,86 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — JSON endpoint for site statistics.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health stats'),
+      'description' => t('Access the healthstats JSON endpoint.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items = array();
+
+  $items['api/healthstats'] = array(
+    'title' => 'Health stats',
+    'page callback' => 'healthstats_page',
+    'access arguments' => array('view healthstats'),
+    'delivery callback' => 'healthstats_deliver_json',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Delivery callback: emit JSON, mapping menu status codes to HTTP errors.
+ *
+ * @param mixed $page_callback_result
+ *   The result from the page callback, or a MENU_* status constant.
+ */
+function healthstats_deliver_json($page_callback_result) {
+  if (is_int($page_callback_result)) {
+    switch ($page_callback_result) {
+      case MENU_NOT_FOUND:
+        drupal_add_http_header('Status', '404 Not Found');
+        break;
+
+      case MENU_ACCESS_DENIED:
+        drupal_add_http_header('Status', '403 Forbidden');
+        break;
+
+      case MENU_SITE_OFFLINE:
+        drupal_add_http_header('Status', '503 Service Unavailable');
+        break;
+    }
+    // Do not body-encode MENU_* integers as JSON.
+    return;
+  }
+
+  drupal_json_output($page_callback_result);
+}
+
+/**
+ * Page callback for api/healthstats.
+ *
+ * Returns counts of active users and published nodes. The delivery callback
+ * converts the return value to JSON.
+ *
+ * @return array
+ *   An associative array with keys 'users' and 'nodes'.
+ */
+function healthstats_page() {
+  $users = db_query('SELECT COUNT(*) FROM {users} WHERE status = :status', array(
+    ':status' => 1,
+  ))->fetchField();
+  $nodes = db_query('SELECT COUNT(*) FROM {node} WHERE status = :status', array(
+    ':status' => 1,
+  ))->fetchField();
+
+  return array(
+    'users' => (int) $users,
+    'nodes' => (int) $nodes,
+  );
+}

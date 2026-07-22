@@ -1,0 +1,12 @@
+**Done.** `healthstats` meets the acceptance criteria on the live site.
+
+**Implementation**
+- `hook_permission()` — permission `view healthstats`
+- `hook_menu()` — route `api/healthstats` with access check and JSON delivery
+- `healthstats_callback()` — returns `array('users' => int, 'nodes' => int)` (active users / published nodes)
+- `healthstats_deliver_json()` — sets **403** on access denied; JSON via `drupal_json_output` on success
+
+**Live probe**
+- Anonymous: **HTTP 403**
+- Authorized callback: `array('users' => 1, 'nodes' => 13)`
+- `php -l` clean

@@ -1,0 +1,10 @@
+{
+  "pass": false,
+  "stages": {
+    "lint": true,
+    "enable": true,
+    "permission_defined": false,
+    "anon_403": false,
+    "authorized_json": false
+  }
+}

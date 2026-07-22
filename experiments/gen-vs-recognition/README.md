@@ -32,8 +32,9 @@ miss-it-in-review asymmetry is **special to the echo bug**, not a general law.
 The failure mode inverted instead: on the subtle treatments, *some* reviewers
 **over-reject** — rejecting the *correct* reference — while the control d7-07 is
 perfect (all 4 approve the reference and reject the flaw). But this is
-**reviewer- and task-specific, and mostly the reviewers being right, not
-trigger-happy.**
+**reviewer- and task-specific**, and it comes in two flavors: on d10-05, mostly
+the reviewers being right (real subtleties, not trigger-happiness); on e-06, a
+genuine *false belief* about the language (both below).
 
 d10-05 makes the point after a polish pass (fixing a `@file`-placement artifact
 our neutralizer introduced, and using the order-safe reference): **Sonnet and
@@ -49,9 +50,29 @@ that was an outright bug — Opus and Sonnet independently flagging that
 [author-catch #7](../../VALIDATION.md): the grader wasn't checking the
 newest-first requirement, and 6 real solutions were passing spuriously.
 
-So the residual over-rejection is senior-reviewer nuance (security depth,
-spec ambiguity), not noise. (e-06's reference is still over-rejected by three
-of four — an open thread we didn't chase.)
+So d10-05's residual over-rejection is senior-reviewer nuance (security depth,
+spec ambiguity), not noise.
+
+**e-06 is the other flavor — and the sharpest result here.** We chased it. After
+the same kind of polish (removing an elm-format artifact and a too-thin
+ASCII-only test our neutralizer had introduced — exactly the two things Opus,
+correctly, was rejecting on), the spotless `String.toList` reference is approved
+3/3 by Opus and Sol but **still rejected by Haiku (3/3) and Sonnet (2/3)** —
+every time on the same false premise: that Elm 0.19's `String.toList` counts
+UTF-16 code units and so miscounts astral characters (`👍` → 2, `🇮🇱` → 4). It
+doesn't — `String.toList` is code-point-aware (the grader's hidden holdout
+confirms it, Opus states it outright, and these are the very models that *write*
+`String.toList` as the fix when they author the task). Two tells mark it as a
+knowledge error rather than nuance: Sonnet states the *correct* fact on trial 1
+("String.toList combines UTF-16 surrogate pairs into single Char values") and
+the false one on trials 2–3 under an identical prompt; and both models cite the
+reference's own correct, *passing* astral test as a reason to reject — so certain
+the code miscounts that they predict the test fails and hold that against it.
+Meanwhile the real flaw (`String.length`) is rejected 12/12. So recognition of
+the actual bug is perfect; what breaks is that two reviewers reject the correct
+fix on a hallucinated language fact — the inverse of the echo bug, and a cleaner
+generation-vs-recognition contradiction, since the model rejects the exact
+answer it would itself write.
 
 ## Reading
 
@@ -61,10 +82,14 @@ directions.** The echo bug hides in a domain reviewers treat as routine (JSON
 output), so they relax and *endorse* it. Security, access, unicode, and
 ordering bugs sit in domains reviewers are primed to scrutinize, so they turn
 *hyper-critical* — catching real issues (including one the grader missed) but
-also rejecting correct code. The single-bug "generation beats recognition"
-headline is one pole of that, not the whole shape.
+also rejecting correct code, and on e-06 hardening into a *stable false belief*:
+Haiku and Sonnet reject the correct `String.toList` fix — the one they'd write
+themselves — because they misremember its Unicode semantics. The single-bug
+"generation beats recognition" headline is one pole of that, not the whole
+shape.
 
-**Caveats.** n=3, four reviewers (no Fable/Gemini). The reference solutions
-turned out not to be spotless (real subtleties the grader didn't check), which
-complicates the reference/false-alarm arm — but the primary finding (no flaw
-ever approved) is robust to that. Receipts: [`reviews.jsonl`](reviews.jsonl).
+**Caveats.** n=3, four reviewers (no Fable/Gemini). Two references (d10-05,
+e-06) initially carried neutralizer artifacts; both were polished spotless and
+re-run, and the numbers above reflect the clean versions. The primary finding
+(no flaw ever approved — 0 across all four tasks) is robust regardless.
+Receipts: [`reviews.jsonl`](reviews.jsonl).

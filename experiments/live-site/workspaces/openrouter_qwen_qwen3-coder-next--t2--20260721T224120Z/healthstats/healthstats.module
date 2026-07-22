@@ -1,0 +1,8 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — implement per task.md.
+ *
+ * TODO: implement hook_menu(), hook_permission(), and the page callback.
+ */

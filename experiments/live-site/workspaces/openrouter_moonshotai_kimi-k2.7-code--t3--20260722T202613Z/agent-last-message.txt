@@ -1,0 +1,19 @@
+  All acceptance criteria are now verified on the live Drupal 7 site.
+
+**What changed** in `healthstats/healthstats.module`:
+
+- Implemented `hook_permission()` defining `view healthstats`.
+- Implemented `hook_menu()` registering `api/healthstats` with access control and a delivery callback.
+- Implemented `healthstats_page()` returning an array with active user and published node counts.
+- Added a custom delivery callback `healthstats_deliver()` that:
+  - Calls `drupal_json_output()` for successful requests.
+  - Converts Drupal 7's `MENU_ACCESS_DENIED` integer into a real HTTP 403.
+
+**Live-site verification (`./probe.sh`)**:
+
+- Anonymous request: `HTTP 403` with JSON body `{"error":"Access denied"}`.
+- Authorized page callback: returns `array('users' => 1, 'nodes' => 13)`.
+- Authenticated curl check: `Content-Type: application/json`, body `{"users":1,"nodes":13}`.
+- `php -l healthstats.module` passes.
+
+The module makes no `print`/`echo`/`exit` in the page callback; JSON conversion lives in the delivery layer as required.

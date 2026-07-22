@@ -1,0 +1,85 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — JSON endpoint for site statistics.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View healthstats'),
+      'description' => t('Access the health statistics JSON endpoint.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items = array();
+  $items['api/healthstats'] = array(
+    'title' => 'Health stats',
+    'page callback' => 'healthstats_page',
+    'access arguments' => array('view healthstats'),
+    'delivery callback' => 'healthstats_deliver_json',
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Delivery callback: send page results as JSON.
+ *
+ * Handles menu status codes (access denied / not found) so they are not
+ * mistakenly encoded as JSON. Successful page callback results are printed
+ * as a JSON object with the correct Content-Type header.
+ *
+ * @param mixed $page_callback_result
+ *   The result from the page callback, or a menu status code.
+ */
+function healthstats_deliver_json($page_callback_result) {
+  // Menu router invokes the delivery callback even when access checks fail.
+  if (is_int($page_callback_result)) {
+    if ($page_callback_result == MENU_ACCESS_DENIED) {
+      drupal_add_http_header('Status', '403 Forbidden');
+      return;
+    }
+    if ($page_callback_result == MENU_NOT_FOUND) {
+      drupal_add_http_header('Status', '404 Not Found');
+      return;
+    }
+    if ($page_callback_result == MENU_SITE_OFFLINE) {
+      drupal_add_http_header('Status', '503 Service unavailable');
+      return;
+    }
+  }
+
+  drupal_json_output($page_callback_result);
+}
+
+/**
+ * Page callback for api/healthstats.
+ *
+ * Returns counts of active users and published nodes. Conversion to JSON is
+ * handled by healthstats_deliver_json().
+ *
+ * @return array
+ *   An array with integer keys "users" and "nodes".
+ */
+function healthstats_page() {
+  $users = db_query('SELECT COUNT(*) FROM {users} WHERE status = :status', array(
+    ':status' => 1,
+  ))->fetchField();
+  $nodes = db_query('SELECT COUNT(*) FROM {node} WHERE status = :status', array(
+    ':status' => 1,
+  ))->fetchField();
+  return array(
+    'users' => (int) $users,
+    'nodes' => (int) $nodes,
+  );
+}

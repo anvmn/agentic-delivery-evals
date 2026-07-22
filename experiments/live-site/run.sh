@@ -32,6 +32,7 @@ for model in "${MODEL_ARR[@]}"; do
   adapter="$ROOT/runner/agents/claude-code.sh"; agent_model="$model"
   case "$model" in
     openai:*) adapter="$ROOT/runner/agents/codex.sh"; agent_model="${model#openai:}" ;;
+    openrouter:*) adapter="$ROOT/runner/agents/openrouter.sh"; agent_model="${model#openrouter:}" ;;
   esac
 
   for trial in $(seq 1 "$TRIALS"); do

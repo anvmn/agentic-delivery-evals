@@ -1,0 +1,12 @@
+**Done.** `healthstats` meets the acceptance criteria on the live site.
+
+**Behavior**
+- `GET /api/healthstats` → anonymous: **HTTP 403**
+- Authorized page callback returns `array('users' => 1, 'nodes' => 13)`
+- JSON via `healthstats_deliver_json` (handles `MENU_ACCESS_DENIED`); callback only returns data
+- `php -l` clean
+
+**Implementation** (`healthstats/healthstats.module`)
+- `hook_permission()` — `view healthstats`
+- `hook_menu()` — path `api/healthstats`, access + custom delivery callback
+- `healthstats_page()` — active users / published nodes counts

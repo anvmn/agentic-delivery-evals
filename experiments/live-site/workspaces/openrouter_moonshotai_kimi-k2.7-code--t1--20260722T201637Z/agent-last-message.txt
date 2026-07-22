@@ -1,0 +1,14 @@
+  Implemented and verified on the live site.
+
+**What changed in `healthstats/healthstats.module`**
+- `hook_permission()` defines the `view healthstats` permission.
+- `hook_menu()` registers `api/healthstats` as a `MENU_CALLBACK`, protected by that permission and using a custom delivery callback.
+- Page callback `healthstats_page()` returns an array `array('users' => <int>, 'nodes' => <int>)` from DB counts of active users and published nodes — no output/exit.
+- Delivery callback `healthstats_deliver()` sends JSON via `drupal_json_output()` for successful results and falls back to `drupal_deliver_html_page()` for access-denied cases.
+
+**Live probe results**
+- Anonymous request: **HTTP 403** with Drupal access-denied page.
+- Authorized callback: returns `array('users' => 1, 'nodes' => 13)`.
+- `php -l healthstats.module` passes.
+
+All acceptance criteria are satisfied.

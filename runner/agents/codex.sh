@@ -41,7 +41,7 @@ EFFORT_FLAG=()
     "$(cat task.md)
 
 Work only inside the current directory. Implement the task per the acceptance criteria. When done, ensure the project builds/tests cleanly with the commands named in the task." \
-  > "$TRANSCRIPT" 2>"$WS/agent-stderr.log")
+  </dev/null > "$TRANSCRIPT" 2>"$WS/agent-stderr.log")
 agent_exit=$?
 end=$(date +%s)
 timed_out=false; [ "$agent_exit" -eq 124 ] && timed_out=true

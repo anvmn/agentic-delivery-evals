@@ -22,8 +22,11 @@ annotations) do not exist here and will not run.
 - [ ] Access requires a new permission `view healthstats` (defined via
       `hook_permission`); anonymous users without it get Drupal's access
       denied (HTTP 403).
-- [ ] JSON is delivered as JSON (correct Content-Type), using D7's native
-      delivery mechanism — not `print` + `exit`.
+- [ ] JSON is delivered as JSON (correct Content-Type) through D7's
+      delivery architecture: the page callback **returns** the data array and
+      emits no output itself — no `print`/`echo`, no output-emitting helpers
+      called inside the callback, no `exit`. (Conversion to JSON belongs to
+      the menu item's delivery layer, not the page callback.)
 - [ ] `php -l healthstats.module` passes; code follows Drupal coding
       standards (indentation, doc comments on hooks).
 

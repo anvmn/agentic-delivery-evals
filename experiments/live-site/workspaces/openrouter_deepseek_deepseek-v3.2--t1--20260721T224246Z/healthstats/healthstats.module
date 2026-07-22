@@ -1,0 +1,66 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — implement per task.md.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health statistics'),
+      'description' => t('Access the JSON health statistics endpoint.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items = array();
+
+  $items['api/healthstats'] = array(
+    'title' => 'Health Statistics',
+    'page callback' => 'healthstats_page',
+    'access callback' => TRUE, // Allow all, check in callback
+    'type' => MENU_CALLBACK,
+    'delivery callback' => 'drupal_json_output',
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback for /api/healthstats.
+ *
+ * Returns array with counts of active users and published nodes.
+ */
+function healthstats_page() {
+  // Check permission
+  if (!user_access('view healthstats')) {
+    // We can't return 403 with drupal_json_output as delivery callback
+    // Return error array that will be JSON encoded
+    // But this will give 200 status, not 403
+    // However, task requires 403 for unauthorized
+    // So we need a different approach
+    
+    // Actually, let's try to set header manually
+    drupal_add_http_header('Status', '403 Forbidden');
+    return array('error' => 'Access denied');
+  }
+  
+  // Count active users (status = 1)
+  $user_count = db_query('SELECT COUNT(*) FROM {users} WHERE status = 1')->fetchField();
+  
+  // Count published nodes (status = 1)
+  $node_count = db_query('SELECT COUNT(*) FROM {node} WHERE status = 1')->fetchField();
+  
+  return array(
+    'users' => (int) $user_count,
+    'nodes' => (int) $node_count,
+  );
+}

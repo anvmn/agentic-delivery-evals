@@ -1,6 +1,7 @@
 module TextStats exposing (characterCount)
 
-{-| Text statistics helpers. -}
+{-| Text statistics helpers.
+-}
 
 
 characterCount : String -> Int

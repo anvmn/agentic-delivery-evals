@@ -1,0 +1,73 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — implement per task.md.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items = array();
+
+  $items['api/healthstats'] = array(
+    'title' => 'Health Statistics',
+    'page callback' => 'healthstats_page_callback',
+    'page arguments' => array(),
+    'access callback' => 'user_access',
+    'access arguments' => array('view healthstats'),
+    'type' => MENU_CALLBACK,
+    'delivery callback' => 'healthstats_delivery_callback',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health statistics'),
+      'description' => t('Access the health statistics JSON endpoint.'),
+    ),
+  );
+}
+
+/**
+ * Page callback: return health statistics as an array.
+ *
+ * @return array
+ *   An array with keys 'users' and 'nodes' containing integer counts.
+ */
+function healthstats_page_callback() {
+  $users = db_select('users', 'u')
+    ->condition('u.status', 1)
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+
+  $nodes = db_select('node', 'n')
+    ->condition('n.status', 1)
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+
+  return array(
+    'users' => (int) $users,
+    'nodes' => (int) $nodes,
+  );
+}
+
+/**
+ * Delivery callback: output the result as JSON.
+ *
+ * @param array $page_callback_result
+ *   The result from the page callback.
+ */
+function healthstats_delivery_callback($page_callback_result) {
+  drupal_add_http_header('Content-Type', 'application/json');
+  print drupal_json_encode($page_callback_result);
+}

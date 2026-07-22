@@ -1,0 +1,12 @@
+**Done.** `healthstats` implements the D7 JSON stats endpoint.
+
+**Behavior**
+- `hook_permission()` defines `view healthstats`
+- `hook_menu()` registers `api/healthstats` with that access check
+- `healthstats_page()` returns `array('users' => int, 'nodes' => int)` (active users / published nodes) with no output
+- `healthstats_deliver_json()` handles delivery: 403 on access denied, JSON via `drupal_json_output` on success
+
+**Live probe**
+- Anonymous: **HTTP 403**
+- Authorized callback: `array('users' => 1, 'nodes' => 13)`
+- `php -l` clean

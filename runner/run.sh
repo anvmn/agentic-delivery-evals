@@ -4,7 +4,7 @@
 #                      [--only e-01-decoder-roundtrip] [--max-cost-usd 15]
 set -euo pipefail
 
-SUITE_VERSION="0.3.0"
+SUITE_VERSION="0.3.1"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TASKS_DIR="$ROOT/tasks"
 RESULTS="$ROOT/results"
@@ -58,6 +58,7 @@ for task_dir in "$TASKS_DIR"/*/; do
       case "$model" in
         gemini:*) adapter="$ROOT/runner/agents/gemini.sh"; agent_model="${model#gemini:}" ;;
         openai:*) adapter="$ROOT/runner/agents/codex.sh"; agent_model="${model#openai:}" ;;
+        openrouter:*) adapter="$ROOT/runner/agents/openrouter.sh"; agent_model="${model#openrouter:}" ;;
       esac
       agent_json=$("$adapter" "$ws" "$agent_model" "$timeout_s" \
                    "$RESULTS/transcripts/$(basename "$ws").json" || true)

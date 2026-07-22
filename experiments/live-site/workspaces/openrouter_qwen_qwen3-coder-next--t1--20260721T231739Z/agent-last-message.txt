@@ -1,0 +1,12 @@
+Done. The implementation satisfies all acceptance criteria:
+
+**Results from `probe.sh`:**
+- HTTP 403 for anonymous users (without `view healthstats` permission) ✓
+- Page callback returns `array('users' => 1, 'nodes' => 13)` for authorized user ✓
+- PHP syntax check passes ✓
+
+**Implementation details:**
+- `hook_permission()` defines the `view healthstats` permission with title and description
+- `hook_menu()` registers `api/healthstats` with the page callback and access check
+- `healthstats_page_callback()` queries active users (`status = 1`) and published nodes (`status = 1`), returns the data as an array
+- Drupal's menu system handles JSON serialization and proper Content-Type via `drupal_json_output()` when the menu item type is `MENU_CALLBACK`

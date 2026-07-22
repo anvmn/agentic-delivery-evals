@@ -1,0 +1,68 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — JSON statistics endpoint.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health statistics'),
+      'description' => t('Access the JSON health statistics endpoint.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items['api/healthstats'] = array(
+    'title' => 'Health statistics',
+    'page callback' => 'healthstats_page',
+    'access arguments' => array('view healthstats'),
+    'delivery callback' => 'healthstats_deliver',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback for api/healthstats.
+ *
+ * @return array
+ *   An array with the keys "users" and "nodes", containing counts of active
+ *   users (status = 1) and published nodes (status = 1).
+ */
+function healthstats_page() {
+  $users = db_query('SELECT COUNT(*) FROM {users} WHERE status = 1')->fetchField();
+  $nodes = db_query('SELECT COUNT(*) FROM {node} WHERE status = 1')->fetchField();
+
+  return array(
+    'users' => (int) $users,
+    'nodes' => (int) $nodes,
+  );
+}
+
+/**
+ * Delivery callback for api/healthstats.
+ *
+ * Emits valid JSON for successful page output and falls back to the standard
+ * D7 page delivery for other results (e.g. access denied).
+ *
+ * @param mixed $page_callback_result
+ *   The value returned by the page callback or a D7 menu status constant.
+ */
+function healthstats_deliver($page_callback_result) {
+  if (is_array($page_callback_result)) {
+    drupal_json_output($page_callback_result);
+  }
+  else {
+    drupal_deliver_html_page($page_callback_result);
+  }
+}

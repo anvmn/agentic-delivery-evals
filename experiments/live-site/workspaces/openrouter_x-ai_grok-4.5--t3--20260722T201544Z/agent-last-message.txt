@@ -1,0 +1,7 @@
+**Done.** `healthstats` meets the acceptance criteria on the live site.
+
+**Behavior**
+- `GET /api/healthstats` — page callback returns `array('users' => int, 'nodes' => int)` (active users / published nodes)
+- Permission `view healthstats` via `hook_permission`; anonymous requests get **HTTP 403**
+- Custom `healthstats_deliver_json` delivery callback handles JSON + menu status codes (plain `drupal_json_output` was turning `MENU_ACCESS_DENIED` into body `3` with 200)
+- `php -l` clean; `./probe.sh` confirms 403 anonymous and correct authorized return value

@@ -1,0 +1,70 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — JSON endpoint for site statistics.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View healthstats'),
+      'description' => t('Access the healthstats JSON endpoint.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items = array();
+  $items['api/healthstats'] = array(
+    'title' => 'Health stats',
+    'page callback' => 'healthstats_page',
+    'access arguments' => array('view healthstats'),
+    'delivery callback' => 'healthstats_deliver_json',
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Delivery callback: output JSON, with proper HTTP status for menu errors.
+ *
+ * @param mixed $page_callback_result
+ *   Result from the page callback, or a menu status constant.
+ */
+function healthstats_deliver_json($page_callback_result) {
+  if (is_int($page_callback_result)) {
+    switch ($page_callback_result) {
+      case MENU_ACCESS_DENIED:
+        drupal_add_http_header('Status', '403 Forbidden');
+        return;
+
+      case MENU_NOT_FOUND:
+        drupal_add_http_header('Status', '404 Not Found');
+        return;
+    }
+  }
+
+  drupal_json_output($page_callback_result);
+}
+
+/**
+ * Page callback for api/healthstats.
+ *
+ * @return array
+ *   Counts of active users and published nodes.
+ */
+function healthstats_page() {
+  $users = db_query('SELECT COUNT(*) FROM {users} WHERE status = 1')->fetchField();
+  $nodes = db_query('SELECT COUNT(*) FROM {node} WHERE status = 1')->fetchField();
+  return array(
+    'users' => (int) $users,
+    'nodes' => (int) $nodes,
+  );
+}
