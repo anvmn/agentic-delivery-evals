@@ -1,0 +1,73 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — JSON endpoint for site statistics.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items = array();
+
+  $items['api/healthstats'] = array(
+    'title' => 'Health Stats',
+    'page callback' => 'healthstats_page',
+    'page arguments' => array(),
+    'access callback' => 'user_access',
+    'access arguments' => array('view healthstats'),
+    'type' => MENU_CALLBACK,
+    'delivery callback' => 'drupal_json_output',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health statistics'),
+      'description' => t('Access the health stats JSON endpoint.'),
+    ),
+  );
+}
+
+/**
+ * Delivery callback: output JSON.
+ */
+function healthstats_delivery_callback($result) {
+  watchdog('healthstats', 'delivery_callback called with: ' . var_export($result, TRUE), array(), WATCHDOG_DEBUG);
+  drupal_json_output($result);
+}
+
+/**
+ * Page callback: return site statistics as a structured array.
+ *
+ * @return array
+ *   An array with keys 'users' and 'nodes' containing counts.
+ */
+function healthstats_page() {
+  $users = db_select('users', 'u')
+    ->condition('u.status', 1)
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+
+  $nodes = db_select('node', 'n')
+    ->condition('n.status', 1)
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+
+  $result = array(
+    'users' => (int) $users,
+    'nodes' => (int) $nodes,
+  );
+
+  watchdog('healthstats', 'healthstats_page returning: ' . var_export($result, TRUE), array(), WATCHDOG_DEBUG);
+  return $result;
+}

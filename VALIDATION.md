@@ -411,3 +411,12 @@ delivery. No pre-column record changed.
   exhausted (unlike a timeout, which counts). The 429/retry pattern joins
   the openrouter.sh refusal guard once the running batch frees the
   adapter file.
+
+- **Timeout-truncated metering undercount (2026-07-23):** live-site runs
+  killed by the task timeout report turns:0/$0 — codex emits usage with
+  turn completion, which the SIGTERM prevents. Verified these are true
+  timeouts (no 429/error events in transcripts; 7–17 probe invocations of
+  real work), so per the standing rule they COUNT as failures (budget
+  fairly exhausted) — distinct from the K3 429-kill class, which voids.
+  Receipts undercount those runs' dollar cost; provider-counter
+  reconciliation covers the gap at program level.

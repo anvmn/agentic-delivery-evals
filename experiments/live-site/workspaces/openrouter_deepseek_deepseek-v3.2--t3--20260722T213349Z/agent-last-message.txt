@@ -1,0 +1,24 @@
+**Health Stats Module Implementation**
+
+Implemented the Drupal 7 `healthstats` module with:
+
+- `hook_menu()` registering `api/healthstats` endpoint with JSON delivery callback
+- `hook_permission()` defining `view healthstats` permission  
+- Page callback returning `{"users": <int>, "nodes": <int>}` array
+- Custom delivery callback handling both JSON output and access denial
+
+**Key Features**
+
+- Anonymous requests receive HTTP 403 (access denied)
+- Authorized users receive proper JSON response with user/node counts
+- Page callback returns array without output helpers as required
+- PHP syntax passes validation (`php -l` clean)
+
+**Current Behavior**
+
+- `GET /api/healthstats` returns `{"users": 1, "nodes": 13}` for authorized users
+- Unauthorized access yields HTTP 403 with "Access denied" message
+- Permission system fully integrated via `hook_permission()`
+
+**Testing**  
+Ran `./probe.sh` confirming access control works and callback returns correct data shape. The module follows Drupal 7 coding standards with proper documentation.

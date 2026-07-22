@@ -1,0 +1,87 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — implement per task.md.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health statistics'),
+      'description' => t('Access the health statistics JSON endpoint.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items = array();
+
+  $items['api/healthstats'] = array(
+    'title' => 'Health Statistics',
+    'page callback' => 'healthstats_page',
+    'delivery callback' => 'healthstats_delivery_callback',
+    'access arguments' => array('view healthstats'),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Delivery callback: Convert the page result to JSON and send it.
+ *
+ * @param $page_callback_result
+ *   The result of the page callback. Can be an integer menu status constant
+ *   (e.g., MENU_ACCESS_DENIED) or the actual data array.
+ */
+function healthstats_delivery_callback($page_callback_result) {
+  // Menu status constants are integers; handle access denied/not found.
+  if (is_int($page_callback_result)) {
+    switch ($page_callback_result) {
+      case MENU_ACCESS_DENIED:
+        drupal_add_http_header('Status', '403 Forbidden');
+        drupal_add_http_header('Content-Type', 'application/json');
+        print drupal_json_encode(array('error' => 'access_denied'));
+        break;
+
+      case MENU_NOT_FOUND:
+        drupal_add_http_header('Status', '404 Not Found');
+        drupal_add_http_header('Content-Type', 'application/json');
+        print drupal_json_encode(array('error' => 'not_found'));
+        break;
+
+      default:
+        drupal_add_http_header('Content-Type', 'application/json');
+        print drupal_json_encode(array('error' => 'unknown'));
+        break;
+    }
+  }
+  else {
+    // Normal page callback result - output as JSON.
+    drupal_add_http_header('Content-Type', 'application/json');
+    print drupal_json_encode($page_callback_result);
+  }
+}
+
+/**
+ * Page callback: Return health statistics as an array.
+ *
+ * @return array
+ *   Array with 'users' and 'nodes' counts.
+ */
+function healthstats_page() {
+  $users = db_query('SELECT COUNT(*) FROM {users} WHERE status = 1')->fetchField();
+  $nodes = db_query('SELECT COUNT(*) FROM {node} WHERE status = 1')->fetchField();
+
+  return array(
+    'users' => (int) $users,
+    'nodes' => (int) $nodes,
+  );
+}

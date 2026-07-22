@@ -60,7 +60,7 @@ timed_out=false; [ "$agent_exit" -eq 124 ] && timed_out=true
 # matrix (exit 99), never be recorded as a model fail. Checked in stderr and
 # the final message only — not the full transcript, where task content could
 # false-positive.
-refusal='insufficient credits|402|payment required|invalid_api_key|401 Unauthorized|User not found|Missing OPENROUTER_API_KEY|key limit exceeded|account.*(deactivated|suspended)'
+refusal='insufficient credits|402|payment required|invalid_api_key|401 Unauthorized|User not found|Missing OPENROUTER_API_KEY|key limit exceeded|account.*(deactivated|suspended)|exceeded retry limit, last status: 429'
 err_events=$(jq -r 'select(.type=="error") | .message // empty' "$TRANSCRIPT" 2>/dev/null || true)
 if { cat "$WS/agent-stderr.log" "$WS/agent-last-message.txt" 2>/dev/null; printf '%s' "$err_events"; } \
    | grep -qiE "$refusal"; then

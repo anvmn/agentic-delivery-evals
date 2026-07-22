@@ -63,13 +63,18 @@ hardened grader.
 
 ## OpenRouter column (2026-07-22)
 
-Same experiment, four new pipelines (0.3.1 task wording). Post
-author-catch-#9 re-grade (the probe shares the old grader's blind spot —
-see below): **grok-4.5 3/3** (2 probes each) · **kimi-k2.7-code 2/3** (its
-miss probed once, submitted anyway) · **deepseek-v3.2 2/3** ·
-**qwen3-coder-next 0/3** (plus a voided first batch — tool-protocol
-collapse at 0 turns). Blind, these models go 0/12 on d7-01; with a live
-probe: **7/12**.
+Same experiment, four new pipelines (0.3.1 task wording), thickened to
+n=6 per model. Post author-catch-#9 re-grade (the probe shares the old
+grader's blind spot — see below): **grok-4.5 6/6** · **kimi-k2.7-code
+4/6** · **deepseek-v3.2 3/6** · **qwen3-coder-next 1/6** (plus a voided
+first batch — tool-protocol collapse at 0 turns). Blind, these models go
+0/15 on d7-01; with a live probe: **14/24**. Grok is the only clean
+sweep — it probes exactly twice per trial and stops; DeepSeek probes
+8–17× per trial and still loses half, mostly to the #9 blind spot and to
+timeouts spent mid-iteration. Verification diligence has diminishing
+returns when the probe can't show the failure. (Metering note:
+timeout-truncated runs report $0 — codex emits usage on turn completion,
+which a timeout prevents; those runs' true cost is uncounted.)
 
 **The probe has a blind spot, and three "passes" fell into it.** probe.sh
 shows the anonymous status (403 ✓) and the page callback's return value

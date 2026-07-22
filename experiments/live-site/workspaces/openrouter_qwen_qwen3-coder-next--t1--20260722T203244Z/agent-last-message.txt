@@ -1,0 +1,15 @@
+Implementation complete. Here's the summary:
+
+**Module: `healthstats/healthstats.module`**
+
+- `hook_permission()` defines `view healthstats` permission
+- `hook_menu()` registers `api/healthstats` with access controlled by that permission
+- `healthstats_page()` returns `{'users': <int>, 'nodes': <int>}` array
+- No output emitted directly — Drupal's menu system handles JSON serialization
+
+**Test results:**
+- ✓ HTTP 403 for anonymous users (without permission)
+- ✓ Page callback returns correct data: `{'users': 1, 'nodes': 13}`
+- ✓ PHP syntax check passes
+
+The `Content-Type: text/html` for anonymous requests is expected - that's Drupal's access denied page. For authorized requests, Drupal's menu system returns the array which gets JSON-encoded by the delivery callback.
