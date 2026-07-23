@@ -1,6 +1,6 @@
 # Results
 
-Suite version **0.3.1** · generated 2026-07-23 · 385 runs · total agent cost $97.34
+Suite version **0.3.1** · generated 2026-07-23 · 399 runs · total agent cost $98
 
 > n=trials per cell is small — treat differences under ~2 tasks as noise, not signal.
 
@@ -11,7 +11,7 @@ Suite version **0.3.1** · generated 2026-07-23 · 385 runs · total agent cost 
 | b-01-write-e2e | behavioral | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 0/0 | 3/3 | 0/0 | 3/3 | 3/3 | 3/3 | 3/3 | 2/3 | 3/3 |
 | d10-02-cache-bug | drupal10 | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 1/3 | 3/3 |
 | d10-04-cache-context-leak | drupal10 | 3 | 3/3 | 2/3 | 3/3 | 3/3 | 0/0 | 3/3 | 0/0 | 3/3 | 3/3 | 3/3 | 3/3 | 0/3 | 3/3 |
-| d10-05-query-access-leak | drupal10 | 3 | 3/3 | 2/3 | 3/3 | 3/3 | 0/0 | 0/0 | 0/0 | 2/3 | 0/0 | 0/0 | 0/0 | 0/0 | 0/0 |
+| d10-05-query-access-leak | drupal10 | 3 | 3/3 | 2/3 | 3/3 | 3/3 | 0/0 | 0/0 | 0/0 | 2/3 | 2/3 | 2/3 | 0/2 | 1/3 | 3/3 |
 | d7-01-menu-endpoint | drupal7 | 2 | 6/6 | 0/6 | 1/6 | 0/6 | 0/3 | 1/3 | 0/3 | 0/3 | 0/6 | 0/6 | 0/6 | 0/6 | 0/6 |
 | d7-03-field-migration | drupal7 | 3 | 3/3 | 2/3 | 3/3 | 3/3 | 0/0 | 0/0 | 0/0 | 0/0 | 0/0 | 0/0 | 0/0 | 0/0 | 0/0 |
 | d7-05-save-trigger-queue | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 0/0 | 0/0 | 0/0 | 0/0 | 0/0 | 0/0 | 0/0 | 0/0 | 0/0 |
@@ -34,8 +34,8 @@ Suite version **0.3.1** · generated 2026-07-23 · 385 runs · total agent cost 
 **gemini:gemini-3.1-pro-preview** — trials passed: 19/21 · pass@k (any trial per task): 7/7 · mean duration 112s
 **openai:gpt-5.6-luna** — trials passed: 9/12 · pass@k (any trial per task): 3/4 · mean duration 30s
 **openai:gpt-5.6-sol** — trials passed: 26/30 · pass@k (any trial per task): 9/10 · mean duration 43s
-**openrouter:deepseek/deepseek-v3.2** — trials passed: 18/24 · pass@k (any trial per task): 6/7 · mean duration 264s
-**openrouter:moonshotai/kimi-k2.7-code** — trials passed: 18/24 · pass@k (any trial per task): 6/7 · mean duration 123s
-**openrouter:moonshotai/kimi-k3** — trials passed: 18/24 · pass@k (any trial per task): 6/7 · mean duration 92s
-**openrouter:qwen/qwen3-coder-next** — trials passed: 9/24 · pass@k (any trial per task): 5/7 · mean duration 159s
-**openrouter:x-ai/grok-4.5** — trials passed: 19/25 · pass@k (any trial per task): 6/7 · mean duration 31s
+**openrouter:deepseek/deepseek-v3.2** — trials passed: 20/27 · pass@k (any trial per task): 7/8 · mean duration 259s
+**openrouter:moonshotai/kimi-k2.7-code** — trials passed: 20/27 · pass@k (any trial per task): 7/8 · mean duration 120s
+**openrouter:moonshotai/kimi-k3** — trials passed: 18/26 · pass@k (any trial per task): 6/8 · mean duration 89s
+**openrouter:qwen/qwen3-coder-next** — trials passed: 10/27 · pass@k (any trial per task): 6/8 · mean duration 154s
+**openrouter:x-ai/grok-4.5** — trials passed: 22/28 · pass@k (any trial per task): 7/8 · mean duration 31s
