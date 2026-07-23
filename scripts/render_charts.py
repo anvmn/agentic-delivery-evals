@@ -167,7 +167,8 @@ def staircase(t):
 
 # ---- chart 3: levers --------------------------------------------------------
 def levers(t):
-    order = [("claude-sonnet-5", "sonnet-5"), ("claude-haiku-4-5", "haiku-4.5"),
+    order = [("claude-opus-4-8", "opus-4.8"),
+             ("claude-sonnet-5", "sonnet-5"), ("claude-haiku-4-5", "haiku-4.5"),
              ("openai:gpt-5.6-sol", "5.6-sol"), ("openrouter:x-ai/grok-4.5", "grok-4.5"),
              ("openrouter:moonshotai/kimi-k3", "kimi-k3"),
              ("openrouter:moonshotai/kimi-k2.7-code", "k2.7-code"),
