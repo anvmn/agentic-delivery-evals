@@ -196,48 +196,54 @@ def levers(t):
               "does — bounded by the probe's own blind spot (author-catch #9).", 10.5, t["ink2"])
     return s + "</svg>"
 
-# ---- chart 4: reviewer quadrant --------------------------------------------
-def quadrant(t):
+# ---- chart 4: review errors, by direction --------------------------------
+def review_errors(t):
     label_map = {"claude-fable-5": "fable-5", "claude-opus-4-8": "opus-4.8",
                  "claude-sonnet-5": "sonnet-5", "claude-haiku-4-5": "haiku-4.5",
                  "openai:gpt-5.6-sol": "5.6-sol", "x-ai/grok-4.5": "grok-4.5",
                  "moonshotai/kimi-k2.7-code": "kimi-k2.7", "deepseek/deepseek-v3.2": "ds-v3.2",
                  "qwen/qwen3-coder-next": "qwen3-next"}
-    qx0, qy0, qw, qh = 90, 20, 760, 320
-    s = svg_open(qx0 + qw + 40, qy0 + qh + 66, t)
-    s += f'<rect x="{qx0}" y="{qy0}" width="{qw}" height="{qh}" fill="none" stroke="{t["line"]}"/>'
-    for tick in (0, 0.5, 1):
-        yy = qy0 + qh - tick * qh
-        xx = qx0 + tick * qw
-        s += f'<line x1="{qx0}" y1="{yy}" x2="{qx0+qw}" y2="{yy}" stroke="{t["line"]}" stroke-dasharray="2 4"/>'
-        s += f'<line x1="{xx}" y1="{qy0}" x2="{xx}" y2="{qy0+qh}" stroke="{t["line"]}" stroke-dasharray="2 4"/>'
-        s += text(qx0 - 10, yy + 4, f"{int(tick*100)}%", 10, t["ink3"], "end")
-        s += text(xx, qy0 + qh + 18, f"{int(tick*100)}%", 10, t["ink3"], "middle")
-    s += text(qx0 + qw / 2, qy0 + qh + 40, "approves the CORRECT code →", 11.5, t["ink2"], "middle")
-    s += (f'<text x="{qx0-58}" y="{qy0+qh/2}" font-size="11.5" fill="{t["ink2"]}" text-anchor="middle" '
-          f'transform="rotate(-90 {qx0-58} {qy0+qh/2})">catches the REAL bug →</text>')
-    s += text(qx0 + qw - 8, qy0 + 16, "ideal", 10.5, t["tpass"], "end")
-    s += text(qx0 + 8, qy0 + 16, "paranoia", 10.5, t["tfail"])
-    s += text(qx0 + qw - 8, qy0 + qh - 10, "leniency", 10.5, t["tpartial"], "end")
-    seen = {}
-    for rid, d in sorted(quad.items()):
+    data = []
+    for rid, d in quad.items():
         if d["ref"][1] == 0 or d["flaw"][1] == 0:
             continue
-        fx, fy = d["ref"][0] / d["ref"][1], d["flaw"][0] / d["flaw"][1]
-        cx, cy = qx0 + fx * qw, qy0 + qh - fy * qh
-        key = (round(cx), round(cy))
-        bump = seen.get(key, 0); seen[key] = bump + 1
-        cy += bump * 15; cx -= bump * 4
-        ideal = fx == 1 and fy == 1
-        s += f'<circle cx="{cx}" cy="{cy}" r="6" fill="{t["tpass"] if ideal else t["accent"]}" opacity="0.9"/>'
-        anchor = "end" if fx > 0.75 else "start"
-        tx = cx - 11 if fx > 0.75 else cx + 11
-        note = f'{d["ref"][0]}/{d["ref"][1]} · {d["flaw"][0]}/{d["flaw"][1]}'
-        s += text(tx, cy + 4, f"{label_map.get(rid, rid)}  {note}", 10.5, t["ink"], anchor)
+        fa_n = d["ref"][1] - d["ref"][0]          # rejected the correct file
+        miss_n = d["flaw"][1] - d["flaw"][0]      # approved the buggy file
+        data.append((label_map.get(rid, rid),
+                     fa_n, d["ref"][1], miss_n, d["flaw"][1]))
+    data.sort(key=lambda d: (d[1] / d[2], d[3] / d[4]))
+    cx, half, rh, top = 470, 300, 34, 64
+    w, h = cx + half + 170, top + len(data) * rh + 56
+    s = svg_open(w, h, t)
+    s += text(cx - 14, 22, "hallucinated a bug in the CORRECT file", 11.5, t["tfail"], "end", "bold")
+    s += text(cx - 14, 37, "(rejected code that works)", 10, t["ink3"], "end")
+    s += text(cx + 14, 22, "missed the REAL bug", 11.5, t["tpartial"], "start", "bold")
+    s += text(cx + 14, 37, "(approved broken code)", 10, t["ink3"])
+    s += f'<line x1="{cx}" y1="{top-14}" x2="{cx}" y2="{h-40}" stroke="{t["line"]}"/>'
+    for tick in (0.5, 1.0):
+        for sign in (-1, 1):
+            x = cx + sign * tick * half
+            s += f'<line x1="{x}" y1="{top-8}" x2="{x}" y2="{h-40}" stroke="{t["line"]}" stroke-dasharray="2 4"/>'
+            s += text(x, h - 24, f"{int(tick*100)}%", 9.5, t["ink3"], "middle")
+    for i, (label, fa, fan, ms, msn) in enumerate(data):
+        y = top + i * rh
+        s += text(cx - half - 14, y + 17, label, 11.5, t["ink"], "end", "bold")
+        if fa == 0 and ms == 0:
+            s += text(cx, y + 17, "no errors", 10, t["tpass"], "middle")
+            s += f'<rect x="{cx-half}" y="{y+4}" width="{2*half}" height="{rh-12}" fill="{t["cpass"]}" opacity="0.35"/>'
+            continue
+        if fa:
+            bw = fa / fan * half
+            s += f'<rect x="{cx-bw}" y="{y+4}" width="{bw}" height="{rh-12}" fill="{t["tfail"]}" opacity="0.85"/>'
+            s += text(cx - bw - 7, y + 19, f"{fa}/{fan}", 10.5, t["tfail"], "end")
+        if ms:
+            bw = ms / msn * half
+            s += f'<rect x="{cx}" y="{y+4}" width="{bw}" height="{rh-12}" fill="{t["tpartial"]}" opacity="0.9"/>'
+            s += text(cx + bw + 7, y + 19, f"{ms}/{msn}", 10.5, t["tpartial"])
     return s + "</svg>"
 
 for name, fn in [("heatmap", heatmap), ("staircase", staircase),
-                 ("levers", levers), ("quadrant", quadrant)]:
+                 ("levers", levers), ("review-errors", review_errors)]:
     for theme, tokens in THEMES.items():
         path = os.path.join(OUT, f"{name}-{theme}.svg")
         with open(path, "w") as f:

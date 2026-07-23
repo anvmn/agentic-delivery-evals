@@ -134,8 +134,8 @@ Two conclusions survive across three labs — and the Gemini pair replicates bot
 ### Can AI reviewers catch what AI authors miss?
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/charts/quadrant-dark.svg">
-  <img src="docs/charts/quadrant-light.svg" alt="Reviewer quadrant on the Unicode task: approval rate on correct code vs catch rate on the real bug. Fable, Opus and Sol at the ideal corner; Haiku and DeepSeek toward paranoia; Grok toward leniency." width="100%">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/charts/review-errors-dark.svg">
+  <img src="docs/charts/review-errors-light.svg" alt="Review errors by direction on the Unicode task: bars left mean the reviewer hallucinated a bug in correct code, bars right mean it approved the real bug. Fable, Opus and Sol show no errors; most models err left; Grok is the only notable right bar." width="100%">
 </picture>
 
 
