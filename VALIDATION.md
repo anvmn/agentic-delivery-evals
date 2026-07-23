@@ -511,8 +511,9 @@ routed to the searchable inbox.
 ## Second discriminator VALIDATED cross-lab — d10-05 OpenRouter column (2026-07-23)
 
 Operator-proposed run (Sol's genuine d10-05 failures made it the candidate).
-Results at n=3 (K3 n=2, one 429-voided): grok 3/3 · deepseek 2/3 ·
-k2.7-code 2/3 · qwen 1/3 · **kimi-k3 0/2**. Failure census: deepseek t1 and
+Results at n=3 (K3 n=2 — a third top-up attempt also 429-voided despite a
+passing pong; its serving admits pings but not sustained agent sessions):
+grok 3/3 · deepseek 2/3 · k2.7-code 2/3 · qwen 1/3 · **kimi-k3 0/2**. Failure census: deepseek t1 and
 k3 t1+t2 are the **sophisticated trap** (accessCheck(TRUE) without the
 status condition; no_leak the sole failing stage) — author-catch #3's
 pattern now claims OpenAI, Anthropic-Haiku, DeepSeek, Moonshot-flagship,
