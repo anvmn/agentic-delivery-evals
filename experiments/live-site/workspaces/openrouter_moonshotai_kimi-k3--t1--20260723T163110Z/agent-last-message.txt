@@ -1,0 +1,13 @@
+Done. The `healthstats` module is implemented and verified against the live D7 site.
+
+**What was built** in `healthstats/healthstats.module`:
+- `healthstats_permission()` — defines the `view healthstats` permission.
+- `healthstats_menu()` — registers `api/healthstats` as a `MENU_CALLBACK` with `access arguments => array('view healthstats')` and a custom delivery callback.
+- `healthstats_json_deliver()` — JSON delivery layer: serializes the data array via `drupal_json_output()`, but hands menu status integers (like `MENU_ACCESS_DENIED`) off to `drupal_deliver_html_page()` so denials produce a proper HTTP 403. This was needed because `drupal_json_output(3)` would otherwise print the literal body `3` with status 200.
+- `healthstats_page()` — pure page callback: returns `array('users' => <int>, 'nodes' => <int>)` (active users, published nodes), no output/`exit`.
+
+**Live verification** (via `probe.sh` and drush):
+- Anonymous request → **HTTP 403** with Drupal's access-denied page.
+- Page callback returns `array('users' => 1, 'nodes' => 13)` — the exact required shape.
+- Full `menu_execute_active_handler()` run for an authorized user emits body `{"users":1,"nodes":13}` with `Content-Type: application/json`, confirming JSON conversion happens entirely in the delivery layer.
+- `php -l` passes; code uses D7-style arrays, 2-space indentation, and doc comments on all hooks.

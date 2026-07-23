@@ -1,0 +1,14 @@
+All acceptance criteria are met and verified against the live site.
+
+**What I implemented** — `healthstats/healthstats.module`:
+- `healthstats_permission()` — defines `view healthstats` via `hook_permission`.
+- `healthstats_menu()` — registers `api/healthstats` as a `MENU_CALLBACK` with `access arguments => array('view healthstats')`.
+- `healthstats_json()` — page callback; returns `array('users' => …, 'nodes' => …)` (active users, published nodes, cast to int). No output, no `exit`.
+- `healthstats_deliver_json()` — custom delivery callback that delegates to `drupal_json_output()`.
+
+**The interesting part**: with the plain `drupal_json_output` delivery callback, anonymous requests returned **HTTP 200** with body `3` (the string length of `drupal_json_encode(403)`) instead of a real 403. Root cause: `drupal_send_headers()` in this D7 core only sends default headers once per request — the `Content-Type: application/json` header sent by `drupal_json_output` exhausted that one shot, so the `Status: 403 Forbidden` header set inside the delivery callback was silently dropped. My delivery callback handles the `MENU_ACCESS_DENIED`/`MENU_NOT_FOUND` constants itself, setting the Status header first, before any Content-Type header.
+
+**Live verification**:
+- Anonymous: `HTTP 403`, empty body.
+- Authenticated admin over real HTTP login: `HTTP 200`, `content-type: application/json`, body `{"users":1,"nodes":13}`.
+- `php -l` passes; hooks have doc comments and D7-standard indentation.

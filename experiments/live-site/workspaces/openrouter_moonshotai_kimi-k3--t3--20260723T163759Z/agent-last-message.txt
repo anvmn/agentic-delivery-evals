@@ -1,0 +1,13 @@
+All acceptance criteria verified live. Done.
+
+**Implementation** — `healthstats/healthstats.module`:
+- `healthstats_permission()` — defines the `view healthstats` permission via `hook_permission`.
+- `healthstats_menu()` — registers `api/healthstats` with `access arguments => array('view healthstats')` and a custom delivery callback.
+- `healthstats_json()` — page callback returns `array('users' => <int>, 'nodes' => <int>)` from `db_query` counts (`status = 1` on `{users}` / `{node}`); no output, no `exit`.
+- `healthstats_json_deliver()` — the key fix: D7's `drupal_json_output()` blindly JSON-echoes integer menu status codes, so a denied user would get body `3` with **HTTP 200**. The custom delivery callback routes integers (e.g. `MENU_ACCESS_DENIED`) to `drupal_deliver_html_page()` for a proper 403, and JSON-encodes only real data.
+
+**Verified on the live site** (via `./probe.sh` plus an authenticated curl):
+- Anonymous `GET /api/healthstats` → **HTTP 403** (Drupal access-denied page).
+- Authorized request (uid 1 session) → **HTTP 200**, `Content-Type: application/json`, body exactly `{"users":1,"nodes":13}`.
+- Page callback returns `array('users' => 1, 'nodes' => 13)`.
+- `php -l healthstats/healthstats.module` passes; hooks have doc comments and D7-style indentation.

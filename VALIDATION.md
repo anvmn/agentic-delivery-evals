@@ -485,3 +485,8 @@ excluded from rates); spend is reconciled against provider counters.
   (1/6 blind). Run at n=6, clean-room: **6/6 pass, 1–3 probes per trial.**
   Completes the within-model comparison — blind 1/6, max effort 2/3, live
   probe 6/6 — the suite's cleanest observation-beats-introspection result.
+
+- **K3 live-site completion (2026-07-23):** retry after serving recovery:
+  3 passes (2–3 probes each), 2 more 429-voids. Final: 3/4 recorded across
+  both attempts, 7 voided infra trials total. Capacity-blocked status
+  lifted; n=4 noted where the column standard is n=6.

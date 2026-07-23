@@ -1,0 +1,80 @@
+<?php
+
+/**
+ * @file
+ * Provides a JSON endpoint at api/healthstats with site statistics.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View healthstats'),
+      'description' => t('View the JSON site statistics endpoint.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items['api/healthstats'] = array(
+    'title' => 'Health stats',
+    'page callback' => 'healthstats_json',
+    'access arguments' => array('view healthstats'),
+    'delivery callback' => 'healthstats_deliver_json',
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Page callback for api/healthstats.
+ *
+ * Returns the statistics array; conversion to JSON and delivery are handled
+ * by the menu item's delivery callback, healthstats_deliver_json().
+ *
+ * @return array
+ *   Array with the keys "users" (active users) and "nodes" (published nodes).
+ */
+function healthstats_json() {
+  $users = db_query('SELECT COUNT(*) FROM {users} WHERE status = 1')->fetchField();
+  $nodes = db_query('SELECT COUNT(*) FROM {node} WHERE status = 1')->fetchField();
+
+  return array(
+    'users' => (int) $users,
+    'nodes' => (int) $nodes,
+  );
+}
+
+/**
+ * Delivery callback for api/healthstats.
+ *
+ * Behaves like drupal_json_output(), but also honors the menu status
+ * constants (MENU_ACCESS_DENIED / MENU_NOT_FOUND) that the menu system
+ * passes to it when access checks fail. The Status header is set before
+ * any other header, since drupal_send_headers() only sends default headers
+ * once per request and the Content-Type header would otherwise suppress a
+ * later status change.
+ *
+ * @param mixed $result
+ *   The page callback result: an array of statistics, or a menu status
+ *   constant such as MENU_ACCESS_DENIED.
+ */
+function healthstats_deliver_json($result) {
+  if (is_int($result)) {
+    if ($result == MENU_ACCESS_DENIED) {
+      drupal_add_http_header('Status', '403 Forbidden');
+      watchdog('access denied', check_plain($_GET['q']), NULL, WATCHDOG_WARNING);
+    }
+    elseif ($result == MENU_NOT_FOUND) {
+      drupal_add_http_header('Status', '404 Not Found');
+      watchdog('page not found', check_plain($_GET['q']), NULL, WATCHDOG_WARNING);
+    }
+    $result = NULL;
+  }
+  drupal_json_output($result);
+}
