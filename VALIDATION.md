@@ -479,3 +479,9 @@ Wrong-direction PASSES are covered by the separate self-test + author-catch
 regime (that is how #6 and #9 were found); review-experiment verdicts have
 no grading-infra dependency (parse errors are recorded, visible, and
 excluded from rates); spend is reconciled against provider counters.
+
+- **Opus live-site arm (2026-07-23, operator-prompted):** the original
+  cohort omitted Opus with no recorded rationale despite it qualifying
+  (1/6 blind). Run at n=6, clean-room: **6/6 pass, 1–3 probes per trial.**
+  Completes the within-model comparison — blind 1/6, max effort 2/3, live
+  probe 6/6 — the suite's cleanest observation-beats-introspection result.

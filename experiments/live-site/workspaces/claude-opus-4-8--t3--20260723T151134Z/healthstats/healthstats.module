@@ -1,0 +1,87 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — exposes basic site statistics as a JSON endpoint.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health statistics'),
+      'description' => t('Access the site statistics JSON endpoint at api/healthstats.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items = array();
+
+  $items['api/healthstats'] = array(
+    'title' => 'Health statistics',
+    'page callback' => 'healthstats_page',
+    'access arguments' => array('view healthstats'),
+    'delivery callback' => 'healthstats_deliver_json',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback: builds the site statistics.
+ *
+ * Only the raw data is returned; encoding it as JSON and sending it to the
+ * browser is the delivery callback's job, so nothing is printed here.
+ *
+ * @return array
+ *   An associative array with two keys:
+ *   - users: the number of active (status = 1) user accounts.
+ *   - nodes: the number of published (status = 1) nodes.
+ */
+function healthstats_page() {
+  $users = db_select('users', 'u')
+    ->condition('u.status', 1)
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+
+  $nodes = db_select('node', 'n')
+    ->condition('n.status', 1)
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+
+  return array(
+    'users' => (int) $users,
+    'nodes' => (int) $nodes,
+  );
+}
+
+/**
+ * Delivery callback: delivers the page callback's return value as JSON.
+ *
+ * Menu status constants such as MENU_ACCESS_DENIED and MENU_NOT_FOUND are
+ * integers rather than page data. They are passed on to Drupal's default
+ * delivery callback, which turns them into the proper HTTP error response —
+ * without this an unauthorized request would be answered with HTTP 200 and a
+ * JSON-encoded status constant instead of a 403.
+ *
+ * @param array|int $page_callback_result
+ *   The return value of the page callback, or a menu status constant.
+ */
+function healthstats_deliver_json($page_callback_result) {
+  if (is_int($page_callback_result)) {
+    drupal_deliver_html_page($page_callback_result);
+    return;
+  }
+
+  drupal_json_output($page_callback_result);
+  drupal_page_footer();
+}

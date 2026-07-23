@@ -1,0 +1,87 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module.
+ *
+ * Exposes a small JSON endpoint at api/healthstats reporting the number of
+ * active users and published nodes on the site.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health statistics'),
+      'description' => t('Access the JSON site statistics endpoint at api/healthstats.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items = array();
+
+  $items['api/healthstats'] = array(
+    'title' => 'Health statistics',
+    'page callback' => 'healthstats_stats',
+    'access arguments' => array('view healthstats'),
+    'delivery callback' => 'healthstats_deliver_json',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback: gathers the site statistics.
+ *
+ * The data is returned as a plain array; encoding it as JSON is the job of the
+ * delivery callback registered for this menu item.
+ *
+ * @return array
+ *   An associative array with the following keys:
+ *   - users: the number of active (status = 1) user accounts.
+ *   - nodes: the number of published (status = 1) nodes.
+ *
+ * @see healthstats_menu()
+ * @see healthstats_deliver_json()
+ */
+function healthstats_stats() {
+  $users = db_query('SELECT COUNT(*) FROM {users} WHERE status = :status', array(':status' => 1))->fetchField();
+  $nodes = db_query('SELECT COUNT(*) FROM {node} WHERE status = :status', array(':status' => 1))->fetchField();
+
+  return array(
+    'users' => (int) $users,
+    'nodes' => (int) $nodes,
+  );
+}
+
+/**
+ * Delivery callback: sends the page callback result as JSON.
+ *
+ * Menu status constants are integers, and are handed over to Drupal's standard
+ * HTML delivery so that access denied (403) and not found (404) responses keep
+ * their proper status codes and pages.
+ *
+ * @param mixed $page_callback_result
+ *   The result of the page callback, either a menu status constant or the
+ *   structure to encode as JSON.
+ *
+ * @see drupal_deliver_page()
+ */
+function healthstats_deliver_json($page_callback_result) {
+  if (is_int($page_callback_result)) {
+    drupal_deliver_html_page($page_callback_result);
+    return;
+  }
+
+  drupal_json_output($page_callback_result);
+
+  // Perform end-of-request tasks, as the HTML delivery callback does.
+  drupal_page_footer();
+}

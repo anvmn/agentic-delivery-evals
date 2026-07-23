@@ -1,0 +1,85 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — exposes site statistics as a JSON endpoint.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health statistics'),
+      'description' => t('Access the JSON site statistics endpoint at api/healthstats.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items = array();
+
+  $items['api/healthstats'] = array(
+    'title' => 'Health statistics',
+    'page callback' => 'healthstats_stats',
+    'access arguments' => array('view healthstats'),
+    'delivery callback' => 'healthstats_deliver_json',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback: builds the site statistics.
+ *
+ * The array is returned unrendered; healthstats_deliver_json() turns it into a
+ * JSON response.
+ *
+ * @return array
+ *   An associative array with the keys 'users' (number of active users) and
+ *   'nodes' (number of published nodes).
+ */
+function healthstats_stats() {
+  $users = db_select('users', 'u')
+    ->condition('u.status', 1)
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+
+  $nodes = db_select('node', 'n')
+    ->condition('n.status', 1)
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+
+  return array(
+    'users' => (int) $users,
+    'nodes' => (int) $nodes,
+  );
+}
+
+/**
+ * Delivery callback: sends the page callback result as JSON.
+ *
+ * Menu status codes such as MENU_ACCESS_DENIED and MENU_NOT_FOUND are passed
+ * back to Drupal's standard delivery so that unauthorized requests keep their
+ * proper HTTP 403 status instead of being encoded as a JSON payload.
+ *
+ * @param mixed $page_callback_result
+ *   The result of the page callback, or a menu status code.
+ *
+ * @see drupal_deliver_page()
+ */
+function healthstats_deliver_json($page_callback_result) {
+  if (is_int($page_callback_result)) {
+    drupal_deliver_html_page($page_callback_result);
+    return;
+  }
+
+  drupal_json_output($page_callback_result);
+}

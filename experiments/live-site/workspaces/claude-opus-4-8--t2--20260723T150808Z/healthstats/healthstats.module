@@ -1,0 +1,87 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — exposes site statistics as JSON at api/healthstats.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health stats'),
+      'description' => t('Access the site statistics JSON endpoint at api/healthstats.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items['api/healthstats'] = array(
+    'title' => 'Health stats',
+    'page callback' => 'healthstats_stats',
+    'access arguments' => array('view healthstats'),
+    'delivery callback' => 'healthstats_deliver_json',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback: gathers the site statistics.
+ *
+ * Only builds the data; turning it into a JSON response is the delivery
+ * callback's job, so nothing is printed here.
+ *
+ * @return array
+ *   An associative array with two keys:
+ *   - users: the number of active (status = 1) user accounts.
+ *   - nodes: the number of published (status = 1) nodes.
+ */
+function healthstats_stats() {
+  $users = db_select('users', 'u')
+    ->condition('u.status', 1)
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+
+  $nodes = db_select('node', 'n')
+    ->condition('n.status', 1)
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+
+  return array(
+    'users' => (int) $users,
+    'nodes' => (int) $nodes,
+  );
+}
+
+/**
+ * Delivery callback: delivers the page callback result as JSON.
+ *
+ * Menu status constants (access denied, page not found, site offline) arrive
+ * here as plain integers instead of a payload. drupal_json_output() knows
+ * nothing about them and would happily encode one as a bare number under an
+ * HTTP 200, so hand those back to the default HTML delivery callback, which
+ * sends the matching HTTP status code and Drupal's standard error page.
+ *
+ * @param mixed $page_callback_result
+ *   The result of the page callback, as passed on by drupal_deliver_page().
+ */
+function healthstats_deliver_json($page_callback_result) {
+  if (is_int($page_callback_result)) {
+    drupal_deliver_html_page($page_callback_result);
+    return;
+  }
+
+  drupal_json_output($page_callback_result);
+
+  // Perform end-of-request tasks, just as the default delivery callback does.
+  drupal_page_footer();
+}

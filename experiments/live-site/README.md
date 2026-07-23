@@ -61,6 +61,14 @@ Receipts: [`runs.jsonl`](runs.jsonl) — `probe_invocations` = how many times th
 agent chose to test; `grade.regraded_c3` marks records re-scored under the
 hardened grader.
 
+## Opus arm (2026-07-23) — the within-model triptych
+
+Opus was the one model reasoning effort ever partially rescued, but it was
+missing from the original cohort. Its arm completes the cleanest comparison
+in the suite, all inside one model: **blind 1/6 → max effort 2/3 →
+live probe 6/6** (probing 1–3× per trial). For the same weights, on the
+same task, observation strictly dominates introspection.
+
 ## OpenRouter column (2026-07-22)
 
 Same experiment, four new pipelines (0.3.1 task wording), thickened to

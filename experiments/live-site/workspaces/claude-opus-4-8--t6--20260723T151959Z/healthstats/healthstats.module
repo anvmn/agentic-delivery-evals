@@ -1,0 +1,78 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module.
+ *
+ * Exposes a small JSON endpoint at api/healthstats reporting the number of
+ * active users and published nodes on the site.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items['api/healthstats'] = array(
+    'title' => 'Health stats',
+    'page callback' => 'healthstats_stats',
+    'access arguments' => array('view healthstats'),
+    'delivery callback' => 'healthstats_deliver_json',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health stats'),
+      'description' => t('Access the site statistics JSON endpoint at api/healthstats.'),
+    ),
+  );
+}
+
+/**
+ * Page callback: builds the site statistics.
+ *
+ * Returns the raw data only; encoding it as JSON and sending the response is
+ * the job of the delivery callback registered in healthstats_menu().
+ *
+ * @return array
+ *   An associative array with the keys 'users' (number of active users) and
+ *   'nodes' (number of published nodes).
+ */
+function healthstats_stats() {
+  $users = db_query('SELECT COUNT(*) FROM {users} WHERE status = :status', array(':status' => 1))->fetchField();
+  $nodes = db_query('SELECT COUNT(*) FROM {node} WHERE status = :status', array(':status' => 1))->fetchField();
+
+  return array(
+    'users' => (int) $users,
+    'nodes' => (int) $nodes,
+  );
+}
+
+/**
+ * Delivery callback: sends the page callback result as JSON.
+ *
+ * Menu status constants such as MENU_ACCESS_DENIED and MENU_NOT_FOUND are
+ * integers rather than page content; they are handed back to Drupal's default
+ * delivery callback so that access denied and not found requests keep their
+ * proper 403 and 404 responses.
+ *
+ * @param mixed $page_callback_result
+ *   The result of the page callback, or a menu status constant.
+ *
+ * @see drupal_deliver_page()
+ */
+function healthstats_deliver_json($page_callback_result) {
+  if (is_int($page_callback_result)) {
+    drupal_deliver_html_page($page_callback_result);
+    return;
+  }
+
+  drupal_json_output($page_callback_result);
+}
