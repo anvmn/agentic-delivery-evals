@@ -33,6 +33,12 @@ if [ -d "$SITE" ] && [ -f "$SITE/web/index.php" ] && $lint; then
       }" >/dev/null 2>&1
 
     url=$(ddev describe -j | jq -r '.raw.primary_url')
+    # Precondition: a dead site must abort loudly, never grade as failure.
+    # (2026-07-23: a site outage during the #7 re-grade sweep recorded 9
+    # cascade-failures as ground truth — caught by operator question.)
+    if ! curl -sk -o /dev/null --max-time 20 "$url"; then
+      echo "SITE DOWN — refusing to grade" >&2; exit 3
+    fi
     body=$(curl -sk "$url/api/notices?nocache=$stamp")
     printf '%s' "$body" > "$WS/response.log"
     code=$(curl -sk -o /dev/null -w '%{http_code}' "$url/api/notices?nocache=${stamp}b")

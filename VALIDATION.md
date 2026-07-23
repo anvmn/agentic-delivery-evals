@@ -431,3 +431,29 @@ delivery. No pre-column record changed.
   partially (Opus); the other eight blind-failing models are 0/24 at raised
   effort. Also: K3 live-site arm is capacity-blocked (1 recorded timeout
   fail, 5 voided 429 trials) — marked pending, not zero.
+
+## Re-grade-era artifact RETRACTED — the #7 sweep graded against a dead site (2026-07-23)
+
+Operator question ("how come Sol failed all its d10-05 attempts?") exposed
+that all six Sol and three Haiku d10-05 records carried the signature of a
+grading-time outage: route_ok false (endpoint never responded), no_leak
+passing vacuously, everything downstream cascade-failing. Live re-grades of
+all nine preserved workspaces: **Sol 4/6, Haiku 2/3** — the three genuine
+failures are all no_leak (the sophisticated-looking accessCheck-without-
+status-condition pattern; author-catch #3's trap claiming real victims).
+Six records corrected (`grade.regraded_audit`).
+
+**Author-catch #7 partial retraction:** the ordering gap was real — the
+grader didn't check newest-first, and the flawed-variant self-test proves
+the new stage catches violations — but the claim that "6 real solutions
+were passing spuriously" is RETRACTED: those six "order failures" were the
+outage cascade, and every audited solution passes correct_order live
+(they iterate over the sorted ids). The check stays; the victim count was
+zero. Origin of the outage window is unrecovered (the d7/d10 sites share
+one ddev daemon; the sweep ran amid heavy site churn). Prevention: the
+d10-05 grader now refuses to grade when the site is unreachable (exit 3,
+no grade.json) instead of recording cascade failures as ground truth.
+
+Scoreboard impact: Sol d10-05 0/3→2/3 ·2 rounds→4/6; Haiku 0/3→2/3. The
+"d10-05 authoring: Haiku 2/3→0/3, Sol 2/3→0/3" line in the #7 entry above
+is superseded by this section.

@@ -48,7 +48,10 @@ including unpublished-viewable content (a spec ambiguity). And the *one* concern
 that was an outright bug — Opus and Sonnet independently flagging that
 `loadMultiple()` can discard the `created DESC` sort — became
 [author-catch #7](../../VALIDATION.md): the grader wasn't checking the
-newest-first requirement, and 6 real solutions were passing spuriously.
+newest-first requirement (the flawed-variant self-test confirms the gap was
+exploitable — though a 2026-07-23 audit retracted the initial claim that six
+real solutions had exploited it; a site outage during that re-grade had
+fabricated the victims, and every audited solution in fact orders correctly).
 
 So d10-05's residual over-rejection is senior-reviewer nuance (security depth,
 spec ambiguity), not noise.
