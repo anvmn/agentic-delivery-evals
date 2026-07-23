@@ -111,7 +111,6 @@ From the cost column of the receipts: Haiku cleared 25 of 27 modern-stack trials
   <img src="docs/charts/levers-light.svg" alt="Per model: blind vs high-effort vs live-site pass rates on d7-01. Effort bars flat at zero; live-site bars tall." width="100%">
 </picture>
 
-
 Most systems have an effort dial — more reasoning before answering. d7-01 rerun with each system's dial at its top setting, against the default results:
 
 | model | d7-01 default | d7-01 raised effort | what changed |
@@ -137,7 +136,6 @@ Two conclusions survive across three labs — and the Gemini pair replicates bot
   <source media="(prefers-color-scheme: dark)" srcset="docs/charts/review-errors-dark.svg">
   <img src="docs/charts/review-errors-light.svg" alt="Review errors by direction on the Unicode task: bars left mean the reviewer hallucinated a bug in correct code, bars right mean it approved the real bug. Fable, Opus and Sol show no errors; most models err left; Grok is the only notable right bar." width="100%">
 </picture>
-
 
 All four Claude models blindly reviewed 24 graded d7-01 solutions (plus Gemini's), 95 reviews scored against grader ground truth ([`experiments/author-reviewer/`](experiments/author-reviewer/)):
 
