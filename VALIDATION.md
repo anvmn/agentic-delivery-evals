@@ -490,3 +490,20 @@ excluded from rates); spend is reconciled against provider counters.
   3 passes (2–3 probes each), 2 more 429-voids. Final: 3/4 recorded across
   both attempts, 7 voided infra trials total. Capacity-blocked status
   lifted; n=4 noted where the column standard is n=6.
+
+## Gemini appeal — filed for the right project (2026-07-23)
+
+Untangled during a status check: there are TWO auto-created "Default Gemini
+Project"s across the operator's Google accounts. The 2026-07-18 suspension
+email referenced gen-lang-client-0285243080 (work-account sibling); the
+suite's API key actually bills to gen-lang-client-0354798905 (personal
+account, project number 178777241152 — matching the 429 consumer id), which
+sat in warning/quota-zero state with its appeal never filed. Evidence: the
+key's error class shifted from suspended-style to RESOURCE_EXHAUSTED with a
+per-minute limit of effectively zero; the console banner still offered
+"Request an appeal".
+
+Appeal submitted by the operator 2026-07-23 (confirmation "Appeal Received"
+from google-cloud-compliance, 18:08 UTC). The ※ cells remain pending the
+verdict; status checks are a one-command API probe. Notification email
+routed to the searchable inbox.
