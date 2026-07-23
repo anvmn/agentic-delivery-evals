@@ -536,3 +536,15 @@ fail update_ran+data_normalized — the mid-tier cannot produce a working D7
 update hook, the first task where "legacy is genuinely hard" holds at the
 floor without any trap. d7-07 control failures (2) are total-implementation
 breaks, not the $sandbox omission — control intact.
+
+## OpenAI lane completion — Sol d7-03 + Luna full-set (2026-07-24)
+
+Operator-directed: Sol and Luna now hold identical 11-task sets (direct
+API, codex lane). Sol d7-03 3/3. Luna: 19/21 on its seven new tasks —
+including **3/3 on d10-05** (the floor model clears the sophisticated trap
+its flagship hit twice: trap susceptibility is per-model, not tier-ordered)
+and **3/3 on d7-03** (the open-weights mid-tier's migration collapse is
+pipeline-specific, not a universal floor property). Luna's only cracks:
+d10-04 2/3 failing per_user+invalidation — cache-context trap territory
+(module wires tags without the user context) — making Luna the d10-04
+trap's first repeat victim.
