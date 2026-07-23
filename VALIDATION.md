@@ -457,3 +457,25 @@ no grade.json) instead of recording cascade failures as ground truth.
 Scoreboard impact: Sol d10-05 0/3→2/3 ·2 rounds→4/6; Haiku 0/3→2/3. The
 "d10-05 authoring: Haiku 2/3→0/3, Sol 2/3→0/3" line in the #7 entry above
 is superseded by this section.
+
+## Full-ledger cascade audit — clean (2026-07-23)
+
+Prompted by the d10-05 retraction: swept every FAIL record in both grade
+ledgers (matrix + live-site) for the outage fingerprint. Method note: a
+naive "all stages false" scan finds nothing — negative checks like no_leak
+pass *vacuously* against a dead endpoint (exactly how the d10-05 artifact
+hid). The correct signature is **entry-stage false** (enable / route_ok /
+compile / first behavioral stage): once the entry observation fails,
+every downstream value is unreliable regardless of what was recorded.
+
+Result: two candidates in 385 runs — haiku d7-03 t1 and haiku d7-07 t1.
+Both re-graded live against a verified-up site: **both reproduce their
+failures exactly** (updb error → update_ran; a real correctness bug).
+No further outage victims. The nine d10-05 corrections stand as the full
+extent of the artifact.
+
+Scope honestly stated: this audit covers outage-fabricated FAILURES.
+Wrong-direction PASSES are covered by the separate self-test + author-catch
+regime (that is how #6 and #9 were found); review-experiment verdicts have
+no grading-infra dependency (parse errors are recorded, visible, and
+excluded from rates); spend is reconciled against provider counters.
