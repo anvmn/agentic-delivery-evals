@@ -22,15 +22,15 @@ Each cell shows passes/attempts ("tier" = intended difficulty, 1–3; charts reg
 | b-01 write-the-E2E | behavioral | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | 3/3 | — | 3/3 | 2/3 | 3/3 | 2/3 | 3/3 |
 | d10-02 cache invalidation | drupal10 | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 1/3 | 3/3 |
 | **d7-01 menu endpoint** (two independent runs) | **drupal7** | **2** | **6/6** | **1/6** | **0/6** | **0/6** | 1/3 | 0/3 | 0/3 | 0/3 | **0/3** | **0/3** | **0/3** | **0/3** | **0/3** |
-| d7-03 field migration | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | — | — | — | — | — | — | — | — | — |
+| d7-03 field migration | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | — | — | — | — | 3/3 | 3/3 | 1/3 | 0/3 | 3/3 |
 | d7-05 save-trigger queue | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — | — | — | — | — | — |
 | e-06 unicode length | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — | — | — | — | — | — |
 | d10-04 cache context (poisoning) | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | 3/3 | — | 3/3 | — | 3/3 | 2/3 | 3/3 | 0/3 | 3/3 |
 | d10-05 query access leak | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 0/3 | ※ | — | 0/3 | — | — | — | — | — | — |
 | e-07 tagged-union decode (oneOf) | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | 3/3 | — | 3/3 | 3/3 | 3/3 | 1/3 | 3/3 |
 | e-08 MUAC boundary classify | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — | — | — | — | — | — |
-| d7-06 node-access grants | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | 3/3 | — | — | — | — | — | — |
-| d7-07 batched $sandbox update | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | 3/3 | — | — | — | — | — | — |
+| d7-06 node-access grants | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | 3/3 | — | 3/3 | 2/2 | 2/3 | 1/3 | 3/3 |
+| d7-07 batched $sandbox update | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | 3/3 | — | 3/3 | — | 2/3 | 2/3 | 3/3 |
 | d7-08 multilingual field access | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — | — | — | — | — | — |
 
 *Gemini, OpenAI, and OpenRouter columns (Grok 4.5 = xAI; Kimi K3/K2.7-code = Moonshot; Qwen3-Coder-next = Alibaba; DeepSeek V3.2) cover subsets by design (— = not run; blank = not run); ※ = pending the provider's suspension appeal. Non-Claude d7-01 cells are single-run (n=3). OpenRouter rows for tasks outside the 7-task parity set are not run.*

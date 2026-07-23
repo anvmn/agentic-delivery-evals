@@ -522,3 +522,17 @@ nid-keyed JSON object instead of the required array (shape violation);
 k2.7 t2 broken controller (empty response; a no_leak-vs-empty-body stage
 oddity noted for future archaeology — pass=false stands on route_ok).
 Post-#7 grader with site-up precondition; no cascades.
+
+## d7-03/d7-06/d7-07 OpenRouter block (2026-07-24)
+
+Operator-requested extension. Flagships spotless: grok 9/9 · deepseek 9/9 ·
+k3 5/5 before its 429 wall returned (d7-03 3/3, d7-06 2/2; d7-06 t3 + all
+d7-07 voided — credits also near ceiling at $19.27/20). Mid-tier: k2.7
+5/9, qwen 3/9. Failure census: **the d7-06 engineered runtime-hook trap
+claimed ZERO victims** — all three failing d7-06 solutions implemented the
+correct grants architecture (node_access_records/node_grants present) with
+wrong scoped-access logic; difficulty, not the trap. d7-03 failures (5) all
+fail update_ran+data_normalized — the mid-tier cannot produce a working D7
+update hook, the first task where "legacy is genuinely hard" holds at the
+floor without any trap. d7-07 control failures (2) are total-implementation
+breaks, not the $sandbox omission — control intact.
