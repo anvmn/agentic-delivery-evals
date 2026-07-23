@@ -25,8 +25,8 @@ Each cell shows passes/attempts ("tier" = intended difficulty, 1–3; charts reg
 | d7-03 field migration | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | — | — | 3/3 | 3/3 | 3/3 | 3/3 | 1/3 | 0/3 | 3/3 |
 | d7-05 save-trigger queue | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — | — | — | — | — | — |
 | e-06 unicode length | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — | — | — | — | — | — |
-| d10-04 cache context (poisoning) | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | 3/3 | — | 3/3 | 1/3 | 3/3 | 2/3 | 3/3 | 0/3 | 3/3 |
-| d10-05 query access leak | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | 4/6 | 3/3 | — | — | — | — | — |
+| d10-04 cache context (poisoning) | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | 3/3 | — | 3/3 | 1/3 | 3/3 | 3/3 | 3/3 | 0/3 | 3/3 |
+| d10-05 query access leak | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | 4/6 | 3/3 | 3/3 | 0/2 | 2/3 | 1/3 | 2/3 |
 | e-07 tagged-union decode (oneOf) | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 1/3 | 3/3 |
 | e-08 MUAC boundary classify | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — | — | — | — | — | — |
 | d7-06 node-access grants | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | 3/3 | 3/3 | 3/3 | 2/2 | 2/3 | 1/3 | 3/3 |
