@@ -1,0 +1,52 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — JSON statistics endpoint for Drupal 7.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health statistics'),
+      'description' => t('View the JSON site statistics endpoint at api/healthstats.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items['api/healthstats'] = array(
+    'title' => 'Health statistics',
+    'description' => 'JSON endpoint returning site statistics.',
+    'page callback' => 'healthstats_page',
+    'access arguments' => array('view healthstats'),
+    'delivery callback' => 'drupal_json_output',
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Page callback for api/healthstats.
+ *
+ * Returns the statistics as a data array; conversion to JSON is handled by
+ * the menu item's delivery callback (drupal_json_output()).
+ *
+ * @return array
+ *   An associative array with the number of active users and published nodes.
+ */
+function healthstats_page() {
+  $users = db_query("SELECT COUNT(uid) FROM {users} WHERE status = 1")->fetchField();
+  $nodes = db_query("SELECT COUNT(nid) FROM {node} WHERE status = 1")->fetchField();
+
+  return array(
+    'users' => (int) $users,
+    'nodes' => (int) $nodes,
+  );
+}

@@ -420,3 +420,14 @@ delivery. No pre-column record changed.
   fairly exhausted) — distinct from the K3 429-kill class, which voids.
   Receipts undercount those runs' dollar cost; provider-counter
   reconciliation covers the gap at program level.
+
+- **Author-corrected over-claim (2026-07-23):** recent doc edits hardened the
+  effort finding to "never saves them / 0/21" — falsified by our own
+  receipts: pooled d7-01 effort runs are 5/27, the passes being Fable @max
+  3/3 (passes blind anyway — not a rescue) and **Opus @max 2/3, a genuine
+  partial rescue** (blind 1/6). The original wording ("usually doesn't save
+  them") was right; the hardened version was mine and wrong. Corrected
+  everywhere to: raised effort has rescued exactly one blind-failer,
+  partially (Opus); the other eight blind-failing models are 0/24 at raised
+  effort. Also: K3 live-site arm is capacity-blocked (1 recorded timeout
+  fail, 5 voided 429 trials) — marked pending, not zero.
