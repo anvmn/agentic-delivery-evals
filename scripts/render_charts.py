@@ -28,7 +28,8 @@ THEMES = {
 MONO = "ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,monospace"
 
 VENDORS = [
-    ("Anthropic", [("claude-fable-5", "fable-5"), ("claude-opus-4-8", "opus-4.8"),
+    ("Anthropic", [("claude-fable-5", "fable-5"), ("claude-opus-5", "opus-5"),
+                   ("claude-opus-4-8", "opus-4.8"),
                    ("claude-sonnet-5", "sonnet-5"), ("claude-haiku-4-5", "haiku-4.5")]),
     ("Google", [("gemini:gemini-3.1-pro-preview", "g3.1-pro"), ("gemini:gemini-3-flash", "g3-flash")]),
     ("OpenAI", [("openai:gpt-5.6-sol", "5.6-sol"), ("openai:gpt-5.6-luna", "5.6-luna")]),
@@ -161,13 +162,14 @@ def staircase(t):
         s += text(x + bw / 2, y0 + bh - hh - 7, f"{p}/{n}", 12, col, "middle", "bold")
         s += text(x + bw / 2, y0 + bh + 18, label, 10.5, t["ink2"], "middle")
     s += f'<line x1="{x0-8}" y1="{y0+bh}" x2="{w-12}" y2="{y0+bh}" stroke="{t["line"]}"/>'
-    s += text(x0 - 8, y0 + bh + 44, "d7-01 blind pass rate. Every API-engaging failure, "
-              "all 7 vendors: the same two wrong patterns. Raised effort rescued only Opus (2/3); other blind-failers 0/24.", 11.5, t["ink2"])
+    s += text(x0 - 8, y0 + bh + 44, "d7-01 blind pass rate. Opus 5 is the first non-Fable near-clear "
+              "(5/6; its one miss is the same canonical trap line). Every API-engaging failure across "
+              "7 vendors: the same two wrong patterns.", 11.5, t["ink2"])
     return s + "</svg>"
 
 # ---- chart 3: levers --------------------------------------------------------
 def levers(t):
-    order = [("claude-opus-4-8", "opus-4.8"),
+    order = [("claude-opus-5", "opus-5"), ("claude-opus-4-8", "opus-4.8"),
              ("claude-sonnet-5", "sonnet-5"), ("claude-haiku-4-5", "haiku-4.5"),
              ("openai:gpt-5.6-sol", "5.6-sol"), ("openrouter:x-ai/grok-4.5", "grok-4.5"),
              ("openrouter:moonshotai/kimi-k3", "kimi-k3"),
@@ -194,13 +196,14 @@ def levers(t):
         s += text(gx + gw / 2 - 13, y0 + lh + 18, label, 10.5, t["ink2"], "middle")
     s += f'<line x1="{x0-8}" y1="{y0+lh}" x2="{w-8}" y2="{y0+lh}" stroke="{t["line"]}"/>'
     s += text(x0 - 8, y0 + lh + 42, "grey = blind · amber = high reasoning effort · "
-              "green = live site + behavior probe. Effort rescued one model partially; observation "
-              "does — bounded by the probe's own blind spot (author-catch #9).", 10.5, t["ink2"])
+              "green = live site + behavior probe. Effort rescued only Opus-family models; observation "
+              "rescues broadly — bounded by the probe's own blind spot (author-catch #9).", 10.5, t["ink2"])
     return s + "</svg>"
 
 # ---- chart 4: review errors, by direction --------------------------------
 def review_errors(t):
-    label_map = {"claude-fable-5": "fable-5", "claude-opus-4-8": "opus-4.8",
+    label_map = {"claude-fable-5": "fable-5", "claude-opus-5": "opus-5",
+                 "claude-opus-4-8": "opus-4.8",
                  "claude-sonnet-5": "sonnet-5", "claude-haiku-4-5": "haiku-4.5",
                  "openai:gpt-5.6-sol": "5.6-sol", "x-ai/grok-4.5": "grok-4.5",
                  "moonshotai/kimi-k2.7-code": "kimi-k2.7", "deepseek/deepseek-v3.2": "ds-v3.2",

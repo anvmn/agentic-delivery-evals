@@ -4,34 +4,34 @@ A test suite that measures how well AI coding agents handle real-world work — 
 
 It covers two under-measured territories: **Drupal** (the CMS platform behind a large share of institutional websites, in both its modern version 10 and its legacy 2011-era version 7) and **Elm** (a typed functional language for web apps). The tasks are modeled on the real workflow behind a production digital-health platform. This repo is the measurement layer of the [agentic-delivery-harness](https://github.com/anvmn/agentic-delivery-harness); every claim below is regenerable from machine-readable receipts in `results/runs.jsonl`.
 
-> **The short version:** we gave 13 AI models from 7 vendors (Anthropic, Google, OpenAI, xAI, Moonshot, Alibaba, DeepSeek) 15 coding tasks — 370 graded runs. Nearly every model passed nearly everything, including tasks deliberately engineered to be treacherous. But one task splits the field dramatically, and the reason became the central finding: **models fail where the internet contains a popular wrong answer but not the warning about it.** Every vendor's models fall into the same two wrong patterns on that task (the 2026-07 five-model cross-lab column went **0/30** blind at n=6), raising reasoning effort has rescued exactly one model, partially (Opus 1/6 blind → 2/3 at max; the other eight blind-failers: 0/24 at raised effort), and AI code reviewers hallucinate in both directions on the same code AI authors write correctly.
+> **The short version:** we gave 14 AI models from 7 vendors (Anthropic, Google, OpenAI, xAI, Moonshot, Alibaba, DeepSeek) 15 coding tasks — 534 graded runs. Nearly every model passed nearly everything, including tasks deliberately engineered to be treacherous. But one task splits the field dramatically, and the reason became the central finding: **models fail where the internet contains a popular wrong answer but not the warning about it.** Every vendor's models fall into the same two wrong patterns on that task (the 2026-07 five-model cross-lab column went **0/30** blind at n=6), raising reasoning effort has rescued only the Opus family (Opus 4.8 1/6 blind → 2/3 at max; the other eight blind-failers: 0/24 at raised effort), and AI code reviewers hallucinate in both directions on the same code AI authors write correctly. Update 2026-07-28: **Opus 5 is the first model besides Fable to nearly clear the trap blind — 5/6, and its one miss is the same canonical trap line** — the strongest sign yet that the gap is a knowledge threshold, and that the threshold moves.
 
-## The scoreboard (suites 0.1–0.3 · 370 runs · 13 models, 7 vendors · 2026-07-22)
+## The scoreboard (suites 0.1–0.3 · 534 runs · 14 models, 7 vendors · 2026-07-28)
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/charts/heatmap-dark.svg">
-  <img src="docs/charts/heatmap-light.svg" alt="Pass-rate heatmap: 15 tasks by 13 models across 7 vendors. A wall of green with one orange-ringed row — d7-01 — failing across every vendor except Fable 5." width="100%">
+  <img src="docs/charts/heatmap-light.svg" alt="Pass-rate heatmap: 15 tasks by 14 models across 7 vendors. A wall of green with one orange-ringed row — d7-01 — failing across every vendor; only Fable 5 and Opus 5 clear it." width="100%">
 </picture>
 
 Each cell shows passes/attempts ("tier" = intended difficulty, 1–3; charts regenerate from receipts via `scripts/render_charts.py`). The flat table, for copy-paste and diffing:
 
-| task | lane | tier | fable-5 | opus-4-8 | sonnet-5 | haiku-4-5 | g3.1-pro | g3-flash | 5.6-sol | 5.6-luna | grok-4.5 | kimi-k3 | kimi-k2.7c | qwen3-next | ds-v3.2 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| e-01 decoder round-trip | elm | 1 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | 3/3 | 3/3 | 4/4 | 3/3 | 3/3 | 2/3 | 3/3 |
-| e-02 impossible states | elm | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 |
-| b-01 write-the-E2E | behavioral | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | 3/3 | 3/3 | 3/3 | 2/3 | 3/3 | 2/3 | 3/3 |
-| d10-02 cache invalidation | drupal10 | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 1/3 | 3/3 |
-| **d7-01 menu endpoint** (two independent runs) | **drupal7** | **2** | **6/6** | **1/6** | **0/6** | **0/6** | 1/3 | 0/3 | 0/3 | 0/3 | **0/3** | **0/3** | **0/3** | **0/3** | **0/3** |
-| d7-03 field migration | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | — | — | 3/3 | 3/3 | 3/3 | 3/3 | 1/3 | 0/3 | 3/3 |
-| d7-05 save-trigger queue | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — | — | — | — | — | — |
-| e-06 unicode length | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — | — | — | — | — | — |
-| d10-04 cache context (poisoning) | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | 3/3 | — | 3/3 | 1/3 | 3/3 | 3/3 | 3/3 | 0/3 | 3/3 |
-| d10-05 query access leak | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | 4/6 | 3/3 | 3/3 | 0/2 | 2/3 | 1/3 | 2/3 |
-| e-07 tagged-union decode (oneOf) | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 1/3 | 3/3 |
-| e-08 MUAC boundary classify | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — | — | — | — | — | — |
-| d7-06 node-access grants | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | 3/3 | 3/3 | 3/3 | 2/2 | 2/3 | 1/3 | 3/3 |
-| d7-07 batched $sandbox update | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | 3/3 | 3/3 | 3/3 | — | 2/3 | 2/3 | 3/3 |
-| d7-08 multilingual field access | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — | — | — | — | — | — |
+| task | lane | tier | fable-5 | opus-5 | opus-4-8 | sonnet-5 | haiku-4-5 | g3.1-pro | g3-flash | 5.6-sol | 5.6-luna | grok-4.5 | kimi-k3 | kimi-k2.7c | qwen3-next | ds-v3.2 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| e-01 decoder round-trip | elm | 1 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | 3/3 | 3/3 | 4/4 | 3/3 | 3/3 | 2/3 | 3/3 |
+| e-02 impossible states | elm | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 |
+| b-01 write-the-E2E | behavioral | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | 3/3 | 3/3 | 3/3 | 2/3 | 3/3 | 2/3 | 3/3 |
+| d10-02 cache invalidation | drupal10 | 2 | 3/3 | 2/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 1/3 | 3/3 |
+| **d7-01 menu endpoint** (two independent runs) | **drupal7** | **2** | **6/6** | **5/6** | **1/6** | **0/6** | **0/6** | 1/3 | 0/3 | 0/3 | 0/3 | **0/3** | **0/3** | **0/3** | **0/3** | **0/3** |
+| d7-03 field migration | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 2/3 | — | — | 3/3 | 3/3 | 3/3 | 3/3 | 1/3 | 0/3 | 3/3 |
+| d7-05 save-trigger queue | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — | — | — | — | — | — |
+| e-06 unicode length | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — | — | — | — | — | — |
+| d10-04 cache context (poisoning) | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 2/3 | 3/3 | — | 3/3 | 1/3 | 3/3 | 3/3 | 3/3 | 0/3 | 3/3 |
+| d10-05 query access leak | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | 4/6 | 3/3 | 3/3 | 0/2 | 2/3 | 1/3 | 2/3 |
+| e-07 tagged-union decode (oneOf) | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 1/3 | 3/3 |
+| e-08 MUAC boundary classify | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — | — | — | — | — | — |
+| d7-06 node-access grants | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | 3/3 | 3/3 | 3/3 | 2/2 | 2/3 | 1/3 | 3/3 |
+| d7-07 batched $sandbox update | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — | 3/3 | 3/3 | 3/3 | — | 2/3 | 2/3 | 3/3 |
+| d7-08 multilingual field access | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — | — | — | — | — | — | — | — |
 
 *Gemini, OpenAI, and OpenRouter columns (Grok 4.5 = xAI; Kimi K3/K2.7-code = Moonshot; Qwen3-Coder-next = Alibaba; DeepSeek V3.2) cover subsets by design (— = not run; blank = not run); ※ = pending the provider's suspension appeal. Non-Claude d7-01 cells are single-run (n=3). OpenRouter rows for tasks outside the 7-task parity set are not run.*
 
@@ -64,7 +64,7 @@ Every failure on d7-01 is one of two patterns — both real production hazards:
 - **The delivery trap** (all 5 Opus failures, 3 of 6 Haiku failures): the one-line configuration above — looks canonical, delivers access-denied as a 200 OK with body `3`. The same trap caught the suite's human author while writing the reference solution.
 - **The echo instinct** (all 6 Sonnet failures, 2 of 6 Haiku failures): printing the JSON directly inside the page handler and returning nothing, instead of returning the data through the delivery architecture the spec mandates. Deceptively, this one *works* over HTTP — we verified live: authorized requests get `200` + `application/json` + the exact JSON, because a NULL return tells D7's delivery phase "already printed" (core's own `user_autocomplete` does the same). It fails the task's *explicit* contract (criterion #3: deliver via the return value and the native delivery mechanism), not the runtime — which is exactly why it's the instinct the corpus teaches and why reviewers wave it through.
 - Only Fable consistently wrote what the framework actually requires: a small custom delivery handler that routes error codes through the standard path.
-- **Failure modes are stable per model:** across two runs a day apart, Sonnet *always* fails by echoing, Opus *always* by the delivery trap — ingrained instincts, not coin flips. Only Haiku, the smallest, mixes modes.
+- **Failure modes are stable per model:** across two runs a day apart, Sonnet *always* fails by echoing, Opus *always* by the delivery trap — ingrained instincts, not coin flips. Only Haiku, the smallest, mixes modes. Opus 5 (2026-07-28) keeps the lineage signature while nearly escaping it: 5/6 blind, and its single miss is that same delivery-trap line.
 
 ### A grader gap we closed
 
@@ -92,7 +92,7 @@ Google's and OpenAI's models, run through the identical pipeline (thin CLI adapt
 
 - **Google:** Pro escapes the trap at the same roughly 1-in-3 rate as Opus; Flash never does — and every failure is the *same line of code*. Beyond the trap, Pro went **18/18** on a six-task subset (including the engineered cache-poisoning trap) and Flash passed both floor-calibration tasks **6/6**.
 - **OpenAI:** GPT-5.6 Sol (the flagship) went **0/3** on d7-01 — one delivery-trap failure (same line again), two echo failures. It matched Pro's **18/18** on the same subset, then ran the three tasks Google's suspension left unmeasured: **8/9**. Luna (the small model) matched Flash's floor: 9/9 on calibration tasks, 0/3 on d7-01, with the same one-delivery-two-echo split as Sol.
-- **The census: 39 default-effort failures on d7-01 across four labs plus three open-weights pipelines (58 counting the effort experiments below) — every failure that engages D7's delivery API falls into the same two wrong patterns.** The 2026-07-22 OpenRouter column (Grok 4.5, Kimi K2.7-code, Qwen3-Coder-next, DeepSeek V3.2) went a collective **0/12** blind: Grok and DeepSeek wrote the delivery trap 3/3 each, Kimi 3/3 (once via a hand-rolled delivery callback that JSON-encodes `MENU_ACCESS_DENIED` — the *exact* mistake that caught the suite's human author). The honest exceptions, all from the cheapest model (Qwen): one hallucinated D7 function name, one blank submission, and one solution that returns the array with **no delivery wiring at all** — which exposed [author-catch #9](#a-grader-gap-we-closed) and, at n=12-going-on-58, still no *third canonical-looking* wrong pattern from any pipeline. Notably: **zero echo failures from the four new pipelines** — the echo instinct appears to be lineage-specific, while the delivery trap is universal.
+- **The census: 40 default-effort failures on d7-01 across four labs plus three open-weights pipelines (59 counting the effort experiments below; Opus 5's lone 2026-07-28 miss — the canonical trap line — is the newest entry) — every failure that engages D7's delivery API falls into the same two wrong patterns.** The 2026-07-22 OpenRouter column (Grok 4.5, Kimi K2.7-code, Qwen3-Coder-next, DeepSeek V3.2) went a collective **0/12** blind: Grok and DeepSeek wrote the delivery trap 3/3 each, Kimi 3/3 (once via a hand-rolled delivery callback that JSON-encodes `MENU_ACCESS_DENIED` — the *exact* mistake that caught the suite's human author). The honest exceptions, all from the cheapest model (Qwen): one hallucinated D7 function name, one blank submission, and one solution that returns the array with **no delivery wiring at all** — which exposed [author-catch #9](#a-grader-gap-we-closed) and, at n=12-going-on-58, still no *third canonical-looking* wrong pattern from any pipeline. Notably: **zero echo failures from the four new pipelines** — the echo instinct appears to be lineage-specific, while the delivery trap is universal.
 
 Sol's non-d7-01 drops are a finding in miniature: on the access-leak task it twice wrote the *sophisticated-looking* wrong answer — an access check that verifies permission but not published status — the exact pattern that caught the suite's human author during development ([author-catch #3 in VALIDATION.md](VALIDATION.md)) and one Haiku trial (2/6 Sol trials, 1/3 Haiku). That thinly-warned subtlety is now a **validated second discriminator**: run across the OpenRouter column (2026-07-23), it caught **DeepSeek V3.2 once and Kimi K3 twice** — the same permission-but-not-status pattern, `no_leak` the only failing stage — while Grok cleared it 3/3. Victims now span four model pipelines plus the suite's human author. (These numbers were themselves corrected once: a site outage during a re-grade sweep had recorded 9 cascade-failures as real — retracted and re-audited 2026-07-23, see VALIDATION.)
 
@@ -116,6 +116,7 @@ Most systems have an effort dial — more reasoning before answering. d7-01 reru
 | model | d7-01 default | d7-01 raised effort | what changed |
 | --- | --- | --- | --- |
 | fable-5 | **6/6** | not run | nothing to rescue |
+| opus-5 | **5/6** | **3/3** (`max`) | little left to rescue — blind is near-ceiling; the one trap miss did not recur at max, and the live-site arm went **7/7** |
 | opus-4-8 | 1/6 | **2/3** (`max`) | **rescued** — its passing runs ran ~2× longer and found the trap |
 | sonnet-5 | 0/6 | 0/3 (`max`) | no rescue; shuffles between the same wrong patterns |
 | haiku-4-5 | 0/6 | 0/3 (`max`) | no rescue |
@@ -134,7 +135,7 @@ Two conclusions survive across three labs — and the Gemini pair replicates bot
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/charts/review-errors-dark.svg">
-  <img src="docs/charts/review-errors-light.svg" alt="Review errors by direction on the Unicode task: bars left mean the reviewer hallucinated a bug in correct code, bars right mean it approved the real bug. Fable, Opus and Sol show no errors; most models err left; Grok is the only notable right bar." width="100%">
+  <img src="docs/charts/review-errors-light.svg" alt="Review errors by direction on the Unicode task: bars left mean the reviewer hallucinated a bug in correct code, bars right mean it approved the real bug. Fable, both Opus generations and Sol show no errors; most models err left; Grok is the only notable right bar." width="100%">
 </picture>
 
 All four Claude models blindly reviewed 24 graded d7-01 solutions (plus Gemini's), 95 reviews scored against grader ground truth ([`experiments/author-reviewer/`](experiments/author-reviewer/)):
@@ -154,11 +155,13 @@ Three results:
 
 Model review is a filter that inherits the reviewer's blind spots. The mechanical grader — the behavioral gate — was the floor that caught everything.
 
+Opus 5 joined the review panels on 2026-07-28 (via [`experiments/cross-lab-review/`](experiments/cross-lab-review/), now multi-lane): **12/12 clean on the Unicode probe** (no hallucinated UTF-16 bug, no missed real bug), and on the echo submission **6/6 reject under the tightened 0.3.1 wording vs 2/6 approvals under the pre-0.3.1 wording** — a fresh same-lab replication of the spec-wording A/B that validated author-catch #8.
+
 ## Honest caveats
 
 - n=3 trials per cell: error bars are wide; treat differences under ~2 tasks as noise.
-- Fourteen of fifteen tasks are (nearly) saturated for frontier models. d7-01 remains the sole strong discriminator; d10-05's access-check subtlety is a candidate weak one (one Sol and one Haiku catch — far too small to call).
-- Every number above is regenerable from `results/runs.jsonl` (per-run receipts: stages, duration, cost, transcript). Six Drupal 7 records are marked `regraded` after grader-fairness fixes — see [`VALIDATION.md`](VALIDATION.md).
+- Fourteen of fifteen tasks are (nearly) saturated for frontier models. d7-01 remains the strongest discriminator — though Opus 5's 5/6 blind (2026-07-28) shows the frontier closing on it; d10-05's access-check subtlety is a candidate weak one (one Sol and one Haiku catch — far too small to call).
+- Every number above is regenerable from `results/runs.jsonl` (per-run receipts: stages, duration, cost, transcript). Six Drupal 7 records are marked `regraded` after grader-fairness fixes, and nine 2026-07-28 records carry a `regrade` annotation from an environment break (a global elm upgrade outside the suite broke fixture compiles; verdicts corrected, fixtures now pin their own elm — suite 0.3.2) — see [`VALIDATION.md`](VALIDATION.md).
 
 ## How it works
 

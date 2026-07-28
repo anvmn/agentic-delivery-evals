@@ -554,16 +554,18 @@ trap's first repeat victim.
 Operator-approved 5-phase Opus 5 (`claude-opus-5`) program. Phase 1
 discriminators: **d7-01 blind 5/6** (first substantial blind clear outside
 Fable; every open-weights/OpenAI/legacy-Anthropic model sat at 0/6),
-d10-05 3/3, d10-04 3/3. The single d7-01 miss is a NEW failure class, not
-the delivery trap: the module was textbook (correct permission, access
-arguments, callback returns the array) but wired core `drupal_json_output`
-directly as the menu `delivery callback`. In D7 a custom delivery callback
-also receives access-denial results, and `drupal_json_output` happily
-JSON-encodes them — anonymous got HTTP 200 `application/json` body `3`
-(MENU_ACCESS_DENIED) instead of a 403. Verified live byte-for-byte;
-passing trials all wrote a wrapper that routes integer statuses to
-`drupal_deliver_html_page`. Census entry: "delivery callback swallows the
-403" — the delivery trap's mirror image.
+d10-05 3/3, d10-04 3/3. The single d7-01 miss is the **canonical delivery
+trap itself** — `'delivery callback' => 'drupal_json_output'`, anonymous
+gets HTTP 200 `application/json` body `3` (json-encoded MENU_ACCESS_DENIED)
+instead of a 403 — verified live byte-for-byte. Passing trials all wrote
+the wrapper that routes integer statuses to `drupal_deliver_html_page`. So
+the Opus lineage keeps its signature failure mode (Opus 4.8: all 5 of its
+failures were this line) at a fraction of the frequency. *Correction, same
+day: the first write-up of this entry misfiled the miss as "a NEW failure
+class / the trap's mirror image" — a taxonomy error caught while
+integrating the column into the README, whose census already lists this
+exact line as THE delivery trap (Gemini's entire failure signature, Kimi
+once, the human author). Falsified-own-claims ledger +1.*
 
 Phase 2 then produced an inverted-difficulty anomaly: 0/9 on b-01, e-02,
 e-06 — tasks every other model passes ~3/3 — from a model that had just
@@ -590,3 +592,15 @@ bit the operator during this very investigation, masking the recovery
 until absolute paths were used). Session-limit note: the runner's exit-3
 limit guard fired mid-Phase-2 ("session limit, resets 1pm") and cleanly
 voided e-07/e-08/e-01-topup cells — those re-run after reset.
+
+Post-completion label audit (2026-07-28, while drawing the charts): all 48
+Opus 5 matrix receipts carried `effort:"high"` — `CLAUDE_EFFORT=high` had
+leaked from the launching terminal's environment into every claude-code.sh
+call, so the adapter passed `--effort high` explicitly. Per the Claude Code
+docs (model-config: "The default effort is `high` on every model that
+supports effort, except Opus 4.7"), high IS the CLI default for Opus 5 —
+behavior was identical to every historical Claude-lane run, so the column
+is comparable and the receipts were relabeled `effort:"default"` with an
+`effort_note` documenting the leak. The @max arm (3 receipts) is untouched.
+Blast radius audited: only claude-opus-5 ran inside the affected session;
+historical Claude receipts predate the adapter's effort field entirely.
