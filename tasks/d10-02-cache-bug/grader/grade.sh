@@ -4,7 +4,7 @@
 # process — the new title must appear without any cache rebuild.
 # NOT VALIDATED LIVE YET — see VALIDATION.md.
 set -uo pipefail
-WS="$1"
+WS="$(cd "$1" && pwd)"   # canonicalize: graders cd around; relative args must not strand grade.json
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/../../.." && pwd)"
 SITE="$ROOT/.ddev-cores/d10site"

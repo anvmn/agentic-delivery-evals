@@ -548,3 +548,45 @@ pipeline-specific, not a universal floor property). Luna's only cracks:
 d10-04 2/3 failing per_user+invalidation — cache-context trap territory
 (module wires tags without the user context) — making Luna the d10-04
 trap's first repeat victim.
+
+## Opus 5 arrival + the global-elm environment cascade (2026-07-28)
+
+Operator-approved 5-phase Opus 5 (`claude-opus-5`) program. Phase 1
+discriminators: **d7-01 blind 5/6** (first substantial blind clear outside
+Fable; every open-weights/OpenAI/legacy-Anthropic model sat at 0/6),
+d10-05 3/3, d10-04 3/3. The single d7-01 miss is a NEW failure class, not
+the delivery trap: the module was textbook (correct permission, access
+arguments, callback returns the array) but wired core `drupal_json_output`
+directly as the menu `delivery callback`. In D7 a custom delivery callback
+also receives access-denial results, and `drupal_json_output` happily
+JSON-encodes them — anonymous got HTTP 200 `application/json` body `3`
+(MENU_ACCESS_DENIED) instead of a 403. Verified live byte-for-byte;
+passing trials all wrote a wrapper that routes integer statuses to
+`drupal_deliver_html_page`. Census entry: "delivery callback swallows the
+403" — the delivery trap's mirror image.
+
+Phase 2 then produced an inverted-difficulty anomaly: 0/9 on b-01, e-02,
+e-06 — tasks every other model passes ~3/3 — from a model that had just
+swept the hard traps. Falsification found an environment cascade, not a
+model property: **global elm had been upgraded 0.19.1 → 0.19.2-0 on
+2026-07-26 09:23**, and the Elm fixtures relied on the global binary, so
+every compile died at the elm.json version gate before the agent's code
+was judged. The Phase-0 e-01 agent had silently masked this by diagnosing
+the mismatch and installing a local elm 0.19.1 itself (the only reason
+Phase 0 passed). All nine workspaces re-graded with elm 0.19.1: **all nine
+flip to pass** (e-02 3/3 incl. the impossible_states probe, e-06 3/3,
+b-01 3/3). Receipts corrected in place with a `regrade` annotation;
+blast radius audit confirmed no other model ran the Elm lane after the
+upgrade. Remaining genuine fails: d7-01 t6 (above) and d10-02 t2
+(reproduced live: per-node cache tags added but the `node_list:notice`
+list tag omitted — new nodes never invalidate; the exact bug probed).
+
+Hardening (suite 0.3.2 — environment hermeticity only, no task-content
+change): elm ^0.19.1-6 pinned as a devDependency in all six Elm-lane
+fixtures; b-01 build.sh switched to `npx elm make` so the local pin wins;
+`WS` canonicalized in the seven graders that still took the workspace arg
+relative (a relative-path re-grade writes grade.json into the void — this
+bit the operator during this very investigation, masking the recovery
+until absolute paths were used). Session-limit note: the runner's exit-3
+limit guard fired mid-Phase-2 ("session limit, resets 1pm") and cleanly
+voided e-07/e-08/e-01-topup cells — those re-run after reset.

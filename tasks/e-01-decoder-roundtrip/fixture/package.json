@@ -2,6 +2,7 @@
   "name": "e-01-fixture",
   "private": true,
   "devDependencies": {
+    "elm": "^0.19.1-6",
     "elm-test": "^0.19.1-revision12",
     "elm-format": "^0.8.7"
   }

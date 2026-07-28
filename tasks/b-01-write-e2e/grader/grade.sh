@@ -4,7 +4,7 @@
 # FAIL on a seeded-broken variant (persistence silently dropped). Tests that
 # cannot fail do not count. The agent must not touch the app itself.
 set -uo pipefail
-WS="$1"
+WS="$(cd "$1" && pwd)"   # canonicalize: graders cd around; relative args must not strand grade.json
 HERE="$(cd "$(dirname "$0")" && pwd)"
 FIXTURE="$HERE/../fixture"
 

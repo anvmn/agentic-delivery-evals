@@ -2,7 +2,7 @@
 # Grader for e-07-tagged-union-decode. Arg: agent workspace.
 # Runs on a fresh copy; pristine holdout tests replace anything agent-authored.
 set -uo pipefail
-WS="$1"
+WS="$(cd "$1" && pwd)"   # canonicalize: graders cd around; relative args must not strand grade.json
 HERE="$(cd "$(dirname "$0")" && pwd)"
 G="$(mktemp -d)"
 trap 'rm -rf "$G"' EXIT

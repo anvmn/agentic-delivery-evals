@@ -3,7 +3,7 @@
 # Stages: compile -> unit (behavioral holdout) -> conventions ->
 #         impossible_states (InvalidUsage.elm MUST fail to compile).
 set -uo pipefail
-WS="$1"
+WS="$(cd "$1" && pwd)"   # canonicalize: graders cd around; relative args must not strand grade.json
 HERE="$(cd "$(dirname "$0")" && pwd)"
 G="$(mktemp -d)"
 trap 'rm -rf "$G"' EXIT
