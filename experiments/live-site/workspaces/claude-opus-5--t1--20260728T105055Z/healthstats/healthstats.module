@@ -1,0 +1,79 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module.
+ *
+ * Exposes a JSON endpoint at api/healthstats reporting the number of active
+ * users and published nodes on the site.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health statistics'),
+      'description' => t('Access the api/healthstats JSON endpoint.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items = array();
+
+  $items['api/healthstats'] = array(
+    'title' => 'Health statistics',
+    'page callback' => 'healthstats_page',
+    'access arguments' => array('view healthstats'),
+    'delivery callback' => 'healthstats_deliver_json',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback: returns site statistics.
+ *
+ * The returned array is turned into JSON by the menu item's delivery
+ * callback, healthstats_deliver_json(); nothing is printed here.
+ *
+ * @return array
+ *   An associative array with the keys 'users' (number of active users) and
+ *   'nodes' (number of published nodes).
+ */
+function healthstats_page() {
+  $users = db_query('SELECT COUNT(*) FROM {users} WHERE status = :status AND uid > 0', array(':status' => 1))->fetchField();
+  $nodes = db_query('SELECT COUNT(*) FROM {node} WHERE status = :status', array(':status' => 1))->fetchField();
+
+  return array(
+    'users' => (int) $users,
+    'nodes' => (int) $nodes,
+  );
+}
+
+/**
+ * Delivery callback: sends the page callback result as JSON.
+ *
+ * Menu status constants (access denied, not found, site offline) are handed
+ * back to the default HTML delivery callback so that Drupal's regular error
+ * responses — and their HTTP status codes — are preserved.
+ *
+ * @param mixed $page_callback_result
+ *   The result of the page callback: either the data to encode as JSON or one
+ *   of the MENU_* status constants.
+ */
+function healthstats_deliver_json($page_callback_result) {
+  if (is_int($page_callback_result)) {
+    drupal_deliver_html_page($page_callback_result);
+    return;
+  }
+
+  drupal_json_output($page_callback_result);
+  drupal_page_footer();
+}

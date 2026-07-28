@@ -70,6 +70,15 @@ build_prompt() {  # $1=domain $2=spec-file $3=code-body
 
 run_review() {  # $1=model $2=prompt -> "<verdict>\t<cost>\t<reasons>"
   local model="$1" prompt="$2" resp text usage pr cost blob verdict reasons
+  if [[ "$model" == claude-* ]]; then
+    # Claude lane: same blind prompt through the claude CLI (no tools used per
+    # the prompt contract); the CLI meters cost itself.
+    resp=$(timeout 300 claude -p "$prompt" --model "$model" \
+             --setting-sources "project,local" --output-format json \
+             </dev/null 2>/dev/null || true)
+    text=$(jq -r '.result // ""' <<<"$resp" 2>/dev/null | head -c 20000)
+    cost=$(jq -r '.total_cost_usd // .cost_usd // 0' <<<"$resp" 2>/dev/null | head -n1)
+  else
   resp=$(timeout 300 codex exec -c model_provider=openrouter -m "$model" --json \
            --skip-git-repo-check --sandbox read-only -C /tmp "$prompt" \
            </dev/null 2>/dev/null || true)
@@ -84,6 +93,7 @@ run_review() {  # $1=model $2=prompt -> "<verdict>\t<cost>\t<reasons>"
   read -r pi po pc <<<"$pr"
   cost=$(jq -n --argjson u "$usage" --argjson pi "$pi" --argjson po "$po" --argjson pc "$pc" \
     '((($u.in - $u.cin) * $pi) + ($u.cin * $pc) + ($u.out * $po)) | if . < 0 then 0 else . end' 2>/dev/null | head -n1)
+  fi
   # Extraction ladder (verified-review lesson: no `jq || echo` doubling).
   if printf '%s' "$text" | jq -e '.verdict' >/dev/null 2>&1; then
     blob="$text"

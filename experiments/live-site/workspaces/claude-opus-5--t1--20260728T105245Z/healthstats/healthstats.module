@@ -1,0 +1,87 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — exposes a JSON endpoint with basic site statistics.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health statistics'),
+      'description' => t('Access the JSON site statistics endpoint at api/healthstats.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items = array();
+
+  $items['api/healthstats'] = array(
+    'title' => 'Health statistics',
+    'page callback' => 'healthstats_stats',
+    'access arguments' => array('view healthstats'),
+    'delivery callback' => 'healthstats_deliver_json',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Delivery callback: sends the page callback result as JSON.
+ *
+ * Menu status constants (access denied, not found, site offline) are handed to
+ * the default HTML delivery callback instead of being encoded, so that
+ * Drupal's regular error pages and their HTTP status codes are preserved.
+ * Encoding them as JSON would answer an access-denied request with HTTP 200.
+ *
+ * @param mixed $page_callback_result
+ *   The return value of the page callback: the data to encode, or one of the
+ *   MENU_* status constants.
+ */
+function healthstats_deliver_json($page_callback_result) {
+  if (is_int($page_callback_result)) {
+    drupal_deliver_html_page($page_callback_result);
+    return;
+  }
+
+  drupal_json_output($page_callback_result);
+  drupal_page_footer();
+}
+
+/**
+ * Page callback: builds the site statistics.
+ *
+ * The returned array is handed to the menu item's delivery callback,
+ * healthstats_deliver_json(), which sets the JSON content type and renders
+ * it; nothing is printed here.
+ *
+ * @return array
+ *   An associative array with the number of active users and published nodes.
+ */
+function healthstats_stats() {
+  $users = (int) db_select('users', 'u')
+    ->condition('u.status', 1)
+    ->condition('u.uid', 0, '>')
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+
+  $nodes = (int) db_select('node', 'n')
+    ->condition('n.status', 1)
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+
+  return array(
+    'users' => $users,
+    'nodes' => $nodes,
+  );
+}
