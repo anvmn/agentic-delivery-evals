@@ -1,0 +1,85 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — exposes a JSON endpoint with basic site statistics.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health stats'),
+      'description' => t('Access the JSON site statistics endpoint at api/healthstats.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items = array();
+
+  $items['api/healthstats'] = array(
+    'title' => 'Health stats',
+    'page callback' => 'healthstats_page',
+    'access arguments' => array('view healthstats'),
+    'delivery callback' => 'healthstats_deliver_json',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback: builds the site statistics.
+ *
+ * The data is returned as a plain array; turning it into JSON and sending it
+ * to the client is the job of the delivery callback.
+ *
+ * @return array
+ *   An associative array with the number of active users and published nodes.
+ */
+function healthstats_page() {
+  $users = db_select('users', 'u')
+    ->condition('u.status', 1)
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+
+  $nodes = db_select('node', 'n')
+    ->condition('n.status', 1)
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+
+  return array(
+    'users' => (int) $users,
+    'nodes' => (int) $nodes,
+  );
+}
+
+/**
+ * Delivery callback: sends the page callback result as JSON.
+ *
+ * Menu status constants (access denied, not found, site offline) are handed
+ * back to Drupal's default delivery callback so that the proper HTTP status
+ * code and error page are produced.
+ *
+ * @param mixed $page_callback_result
+ *   The result of the page callback, or a menu status constant.
+ */
+function healthstats_deliver_json($page_callback_result) {
+  if (is_int($page_callback_result)) {
+    drupal_deliver_html_page($page_callback_result);
+    return;
+  }
+
+  drupal_add_http_header('Content-Type', 'application/json');
+  print drupal_json_encode($page_callback_result);
+
+  drupal_page_footer();
+}

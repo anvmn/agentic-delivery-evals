@@ -1,0 +1,74 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — exposes site statistics as a JSON endpoint.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health stats'),
+      'description' => t('Access the JSON site statistics endpoint at api/healthstats.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items = array();
+
+  $items['api/healthstats'] = array(
+    'title' => 'Health stats',
+    'page callback' => 'healthstats_stats',
+    'access arguments' => array('view healthstats'),
+    'delivery callback' => 'healthstats_deliver_json',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback: returns counts of active users and published nodes.
+ *
+ * The returned array is handed to healthstats_deliver_json(), which is
+ * responsible for encoding it and sending the response.
+ *
+ * @return array
+ *   An associative array with the keys 'users' and 'nodes'.
+ */
+function healthstats_stats() {
+  $users = db_query('SELECT COUNT(*) FROM {users} WHERE status = :status', array(':status' => 1))->fetchField();
+  $nodes = db_query('SELECT COUNT(*) FROM {node} WHERE status = :status', array(':status' => 1))->fetchField();
+
+  return array(
+    'users' => (int) $users,
+    'nodes' => (int) $nodes,
+  );
+}
+
+/**
+ * Delivery callback: sends the page callback result as JSON.
+ *
+ * Menu status constants such as MENU_ACCESS_DENIED and MENU_NOT_FOUND are
+ * delivered by the standard HTML deliverer so that unauthorized requests still
+ * get a proper 403 response instead of a JSON-encoded integer.
+ *
+ * @param mixed $page_callback_result
+ *   The result of the page callback, or a menu status constant.
+ */
+function healthstats_deliver_json($page_callback_result) {
+  if (is_int($page_callback_result)) {
+    drupal_deliver_html_page($page_callback_result);
+    return;
+  }
+
+  drupal_json_output($page_callback_result);
+  drupal_page_footer();
+}

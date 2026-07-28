@@ -1,0 +1,4 @@
+name = Health Stats
+description = JSON statistics endpoint (eval task).
+core = 7.x
+package = Eval

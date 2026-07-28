@@ -1,0 +1,102 @@
+<?php
+
+/**
+ * @file
+ * Health Stats module — exposes site statistics as a JSON endpoint.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function healthstats_permission() {
+  return array(
+    'view healthstats' => array(
+      'title' => t('View health statistics'),
+      'description' => t('Access the JSON site statistics endpoint at api/healthstats.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function healthstats_menu() {
+  $items = array();
+
+  $items['api/healthstats'] = array(
+    'title' => 'Health statistics',
+    'page callback' => 'healthstats_stats',
+    'access arguments' => array('view healthstats'),
+    'delivery callback' => 'healthstats_deliver_json',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback: builds the site statistics.
+ *
+ * The array is returned as-is; turning it into a JSON response is the job of
+ * the delivery callback registered for this menu item.
+ *
+ * @return array
+ *   An associative array with the keys 'users' (number of active users) and
+ *   'nodes' (number of published nodes).
+ */
+function healthstats_stats() {
+  $users = db_select('users', 'u')
+    ->condition('u.status', 1)
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+
+  $nodes = db_select('node', 'n')
+    ->condition('n.status', 1)
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+
+  return array(
+    'users' => (int) $users,
+    'nodes' => (int) $nodes,
+  );
+}
+
+/**
+ * Delivery callback: sends the page callback result as a JSON response.
+ *
+ * Mirrors drupal_deliver_html_page(), but emits JSON instead of a themed page
+ * so that menu status constants still translate into the correct HTTP codes.
+ *
+ * @param mixed $page_callback_result
+ *   The result of the page callback: either the data to encode, or one of the
+ *   MENU_* status constants.
+ *
+ * @see drupal_deliver_html_page()
+ */
+function healthstats_deliver_json($page_callback_result) {
+  if (is_int($page_callback_result)) {
+    switch ($page_callback_result) {
+      case MENU_NOT_FOUND:
+        drupal_add_http_header('Status', '404 Not Found');
+        watchdog('page not found', check_plain(current_path()), NULL, WATCHDOG_WARNING);
+        $page_callback_result = array('error' => 'Not found');
+        break;
+
+      case MENU_ACCESS_DENIED:
+        drupal_add_http_header('Status', '403 Forbidden');
+        watchdog('access denied', check_plain(current_path()), NULL, WATCHDOG_WARNING);
+        $page_callback_result = array('error' => 'Access denied');
+        break;
+
+      case MENU_SITE_OFFLINE:
+        drupal_add_http_header('Status', '503 Service unavailable');
+        $page_callback_result = array('error' => 'Site under maintenance');
+        break;
+    }
+  }
+
+  drupal_json_output($page_callback_result);
+  drupal_page_footer();
+}
