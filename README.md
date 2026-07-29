@@ -15,7 +15,7 @@ It covers two under-measured territories: **Drupal** (the CMS platform behind a 
 
 Each cell shows passes/attempts ("tier" = intended difficulty, 1–3; charts regenerate from receipts via `scripts/render_charts.py`). The flat table, for copy-paste and diffing:
 
-#### Anthropic · Google
+### Anthropic · Google
 
 | task | lane | tier | fable-5 | opus-5 | opus-4-8 | sonnet-5 | haiku-4-5 | g3.1-pro | g3-flash |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -35,7 +35,7 @@ Each cell shows passes/attempts ("tier" = intended difficulty, 1–3; charts reg
 | d7-07 batched $sandbox update | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — |
 | d7-08 multilingual field access | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — |
 
-#### OpenAI · xAI · Moonshot · Alibaba · DeepSeek
+### OpenAI · xAI · Moonshot · Alibaba · DeepSeek
 
 | task | lane | tier | 5.6-sol | 5.6-luna | grok-4.5 | kimi-k3 | kimi-k2.7c | qwen3-next | ds-v3.2 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
