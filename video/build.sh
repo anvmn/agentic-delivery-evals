@@ -19,7 +19,7 @@ python3 - "$HERE/narration.md" "$WORK" <<'EOF'
 import re, sys, os, json
 src, work = sys.argv[1], sys.argv[2]
 body = open(src).read()
-scenes = re.findall(r'^## Scene (\d+)[^\n]*\n\n(.+?)(?=\n## |\Z)', body, re.S | re.M)
+scenes = re.findall(r'^## Scene (\d+)[^\n]*\n\n(.+?)(?=\n## |\n---|\Z)', body, re.S | re.M)
 for num, text in scenes:
     open(os.path.join(work, f'audio/scene-{num}.txt'), 'w').write(' '.join(text.split()))
 print(f"{len(scenes)} scene paragraphs")

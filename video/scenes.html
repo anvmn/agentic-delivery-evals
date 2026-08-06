@@ -18,6 +18,24 @@ html,body { width:1920px; height:1080px; overflow:hidden; background:var(--bg); 
 .scene { position:absolute; inset:0; display:none; }
 .scene.active { display:block; }
 
+/* ---- scene 0: motivation ---- */
+#s0 { display:none; }
+#s0.active { display:flex; }
+#s0 { flex-direction:column; align-items:center; justify-content:center; gap:44px; }
+#s0 .line { opacity:0; text-align:center; }
+#s0 .l1 { font-size:38px; color:var(--ink); }
+#s0 .l1 span { display:block; font-size:24px; color:var(--ink-3); margin-top:10px;
+  font-family:ui-monospace,Menlo,Consolas,monospace; letter-spacing:0.08em; }
+#s0 .l2 { font-size:58px; font-weight:600; max-width:1300px;
+  font-family:ui-monospace,Menlo,Consolas,monospace; }
+#s0 .l2 em { color:var(--accent); font-style:normal; }
+#s0 .l3 .chip { display:inline-block; margin:0 14px; padding:10px 26px; border:1px solid var(--line);
+  background:var(--panel); color:var(--ink-2); font-size:28px;
+  font-family:ui-monospace,Menlo,Consolas,monospace; }
+#s0 .l4 { font-size:26px; color:var(--ink-3); }
+#s0 .l5 { font-size:40px; color:var(--accent); font-weight:600;
+  font-family:ui-monospace,Menlo,Consolas,monospace; }
+
 /* ---- scene 1: hook ---- */
 #s1 { display:none; }
 #s1.active { display:flex; }
@@ -62,6 +80,14 @@ tr.trap.lit { outline:2px solid var(--accent); }
 </style>
 </head>
 <body>
+
+<section class="scene" id="s0">
+  <div class="line l1">a production health platform<span>legacy Drupal · Elm frontend</span></div>
+  <div class="line l2">Which model can I <em>trust</em> with this codebase?</div>
+  <div class="line l3"><span class="chip">quality code?</span><span class="chip">honest reviews?</span></div>
+  <div class="line l4">public benchmarks don't measure stacks like this</div>
+  <div class="line l5">So I measured it.</div>
+</section>
 
 <section class="scene" id="s1">
   <div class="eyebrow">agentic-delivery-evals</div>
@@ -191,7 +217,15 @@ function seekS2(t, dur) {
   document.querySelectorAll('tr.trap').forEach(r => r.classList.toggle('lit', lit));
 }
 
+function seekS0(t, dur) {
+  const at = { l1: 0.4, l2: 3.6, l3: 8.8, l4: 15.2, l5: 19.2 };
+  Object.entries(at).forEach(([cls, t0]) => {
+    document.querySelector(`#s0 .${cls}`).style.opacity = ease((t - t0) / 0.9);
+  });
+}
+
 const SCENES = [
+  { el: 's0', fn: seekS0 },
   { el: 's1', fn: seekS1 },
   { el: 's2', fn: seekS2 },
 ];
@@ -200,7 +234,7 @@ window.seek = (idx, t, dur) => {
   SCENES[idx].fn(t, dur);
   return true;
 };
-window.seek(0, 0, 15);
+window.seek(0, 0, 31);
 </script>
 </body>
 </html>
