@@ -1,0 +1,323 @@
+<title>agentic-delivery-evals — results board</title>
+<style>
+:root {
+  --bg:#F2F4F6; --panel:#FBFCFD; --ink:#1A1E24; --ink-2:#4A5460; --ink-3:#8B95A1;
+  --line:#D7DDE3; --accent:#C96A32; --accent-soft:#F4E3D7;
+  --pass:#2F7D55; --partial:#B98A2E; --fail:#B34A41; --ghost:#C9D0D7;
+  --cell-pass:#DCEFE4; --cell-partial:#F3E8CC; --cell-fail:#F2DCD9;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg:#0E1116; --panel:#151A21; --ink:#E6E9ED; --ink-2:#9AA5B1; --ink-3:#5F6B78;
+  --line:#252C35; --accent:#E07A3F; --accent-soft:#3A2416;
+  --pass:#4CAF7D; --partial:#D9A13B; --fail:#D0655A; --ghost:#333B45;
+  --cell-pass:#16311F; --cell-partial:#33290F; --cell-fail:#381B17;
+}}
+:root[data-theme="dark"] {
+  --bg:#0E1116; --panel:#151A21; --ink:#E6E9ED; --ink-2:#9AA5B1; --ink-3:#5F6B78;
+  --line:#252C35; --accent:#E07A3F; --accent-soft:#3A2416;
+  --pass:#4CAF7D; --partial:#D9A13B; --fail:#D0655A; --ghost:#333B45;
+  --cell-pass:#16311F; --cell-partial:#33290F; --cell-fail:#381B17;
+}
+:root[data-theme="light"] {
+  --bg:#F2F4F6; --panel:#FBFCFD; --ink:#1A1E24; --ink-2:#4A5460; --ink-3:#8B95A1;
+  --line:#D7DDE3; --accent:#C96A32; --accent-soft:#F4E3D7;
+  --pass:#2F7D55; --partial:#B98A2E; --fail:#B34A41; --ghost:#C9D0D7;
+  --cell-pass:#DCEFE4; --cell-partial:#F3E8CC; --cell-fail:#F2DCD9;
+}
+* { box-sizing:border-box; }
+body { background:var(--bg); color:var(--ink); margin:0;
+  font:15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+.mono, h1, h2, .eyebrow, .cell, .stat b, svg text, .legend, .tag {
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace; }
+main { max-width:1120px; margin:0 auto; padding:40px 24px 80px; }
+header { border-bottom:1px solid var(--line); padding-bottom:20px; margin-bottom:8px; }
+h1 { font-size:21px; font-weight:600; letter-spacing:-0.01em; margin:0 0 6px; text-wrap:balance; }
+.sub { color:var(--ink-2); max-width:68ch; margin:0; }
+.stats { display:flex; flex-wrap:wrap; gap:26px; margin:18px 0 0; padding:0; list-style:none; }
+.stats li { font-size:13px; color:var(--ink-2); }
+.stats b { display:block; font-size:20px; color:var(--ink); font-variant-numeric:tabular-nums; font-weight:600; }
+section { margin-top:44px; }
+.eyebrow { font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--accent);
+  display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+.eyebrow::before { content:""; width:14px; height:2px; background:var(--accent); }
+h2 { font-size:16px; font-weight:600; margin:0 0 4px; }
+.note { color:var(--ink-2); font-size:13.5px; max-width:72ch; margin:0 0 16px; }
+.panel { background:var(--panel); border:1px solid var(--line); padding:14px; overflow-x:auto; }
+.legend { display:flex; flex-wrap:wrap; gap:16px; font-size:11.5px; color:var(--ink-2); margin-top:10px; }
+.legend i { display:inline-block; width:11px; height:11px; margin-right:5px; vertical-align:-1px; }
+/* heatmap */
+table.heat { border-collapse:collapse; font-variant-numeric:tabular-nums; min-width:560px; }
+.heat th, .heat td { padding:0; }
+.heat thead th { font-size:12.5px; color:var(--ink-2); font-weight:500; padding:4px 3px 8px;
+  vertical-align:bottom; text-align:center; }
+.heat thead th span { writing-mode:vertical-rl; transform:rotate(200grad); display:inline-block;
+  letter-spacing:0.02em; }
+.heat thead th.vendor { font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase;
+  color:var(--ink-3); border-bottom:1px solid var(--line); padding-bottom:4px; }
+.heat td.task { font-size:14px; padding:0 16px 0 8px; white-space:nowrap; color:var(--ink);
+  position:sticky; left:0; background:var(--panel); text-align:left; }
+.heat td.task small { color:var(--ink-3); margin-left:7px; font-size:11px; letter-spacing:0.08em; }
+.cell { display:flex; align-items:center; justify-content:center; width:92px; height:38px;
+  margin:2px; font-size:13.5px; }
+.c-pass { background:var(--cell-pass); color:var(--pass); }
+.c-partial { background:var(--cell-partial); color:var(--partial); }
+.c-fail { background:var(--cell-fail); color:var(--fail); font-weight:600; }
+.c-ghost { color:var(--ghost); }
+tr.trap td.task { color:var(--accent); font-weight:600; }
+tr.trap { outline:1.5px solid var(--accent); }
+.tag { font-size:9.5px; background:var(--accent-soft); color:var(--accent); padding:1px 6px;
+  margin-left:8px; letter-spacing:0.1em; }
+svg { display:block; }
+svg text { fill:var(--ink-2); }
+.foot { margin-top:56px; border-top:1px solid var(--line); padding-top:14px;
+  color:var(--ink-3); font-size:12px; max-width:80ch; }
+@media (prefers-reduced-motion: no-preference) {
+  section { animation:rise .45s ease both; }
+  section:nth-of-type(2){animation-delay:.06s} section:nth-of-type(3){animation-delay:.12s}
+  section:nth-of-type(4){animation-delay:.18s}
+  @keyframes rise { from{opacity:0; transform:translateY(6px)} to{opacity:1} }
+}
+a { color:var(--accent); }
+</style>
+
+<main>
+<header>
+  <h1>agentic-delivery-evals — results board</h1>
+  <p class="sub">Every number regenerable from <span class="mono">results/runs.jsonl</span> and the
+  experiment ledgers. All graded receipts counted, incl. effort and clean-room arms (matrix charts
+  below use default-effort, non-clean-room runs); voided infra runs excluded.</p>
+  <ul class="stats">
+    <li><b>545</b>graded runs</li>
+    <li><b>14</b>models</li>
+    <li><b>7</b>vendors</li>
+    <li><b>15</b>tasks · 4 lanes</li>
+    <li><b>9</b>author-catches logged</li>
+    <li><b>0.3.2</b>suite · 2026-07-28</li>
+  </ul>
+</header>
+
+<section>
+  <div class="eyebrow">Ledger</div>
+  <h2>Pass rate per task × model</h2>
+  <p class="note">Nearly everything is green — including tasks engineered to be treacherous.
+  The suite's information lives in the one orange-ringed row: the task whose canonical-looking
+  answer is wrong.</p>
+  <div class="panel"><table class="heat" id="heat1"></table></div>
+  <div class="panel" style="margin-top:10px"><table class="heat" id="heat2"></table>
+  <div class="legend">
+    <span><i style="background:var(--cell-pass)"></i>all trials pass</span>
+    <span><i style="background:var(--cell-partial)"></i>some pass</span>
+    <span><i style="background:var(--cell-fail)"></i>all fail</span>
+    <span><i style="background:var(--ghost);border-radius:50%;width:5px;height:5px;margin:0 8px 0 3px"></i>not run</span>
+  </div></div>
+</section>
+
+<section>
+  <div class="eyebrow">The trap</div>
+  <h2>d7-01: one task, one staircase, two wrong answers</h2>
+  <p class="note">A JSON endpoint behind a permission — Drupal 7 idiom. The internet's
+  favorite one-liner serves <em>access-denied as HTTP 200, body <span class="mono">3</span></em>.
+  Blind pass rates below (Opus 5, added 2026-07-28, is the first non-Fable near-clear); every API-engaging failure across all seven vendors is one of the
+  same two patterns (the delivery trap, the echo instinct) — no third canonical wrong answer
+  exists in any pipeline we can reach. Blind, the five-model cross-lab column is <b>0/30</b> at n=6; raised effort has rescued only the Opus family (4.8: 2/3 @max; Opus 5 needs little rescuing) — non-Opus blind-failers are 0/24.</p>
+  <div class="panel"><svg id="stair1" width="1060" height="310" viewBox="0 0 1060 310"></svg></div>
+  <div class="panel" style="margin-top:10px"><svg id="stair2" width="1060" height="330" viewBox="0 0 1060 330"></svg></div>
+</section>
+
+<section>
+  <div class="eyebrow">Levers</div>
+  <h2>What actually rescues an agent from the trap</h2>
+  <p class="note">Same task, three conditions: blind · high reasoning effort · a live site with a
+  behavior probe. Thinking harder rescued only the Opus family; <em>seeing the wrong behavior</em>
+  usually does — bounded by what the probe can show
+  (three "rescued" runs later fell to a blind spot the probe shares; counted as failures here).</p>
+  <div class="panel"><svg id="levers1" width="1060" height="300" viewBox="0 0 1060 300"></svg></div>
+  <div class="panel" style="margin-top:10px"><svg id="levers2" width="1060" height="320" viewBox="0 0 1060 320"></svg>
+  <div class="legend">
+    <span><i style="background:var(--ghost)"></i>blind</span>
+    <span><i style="background:var(--partial)"></i>high effort</span>
+    <span><i style="background:var(--pass)"></i>live site + probe</span>
+    <span>· live-site n=6 final for the cross-lab column</span>
+  </div></div>
+</section>
+
+<section>
+  <div class="eyebrow">Reviewers</div>
+  <h2>When a code reviewer errs, which way does it fall?</h2>
+  <p class="note">Ten models blind-review two files: one correct
+  (<span class="mono">String.toList</span>), one genuinely buggy
+  (<span class="mono">String.length</span>). Bars left = the reviewer <em>invented</em> a bug in
+  the correct file. Bars right = it <em>missed</em> the real bug. No bars = judged both
+  correctly every trial. The field leans hard left — hallucinated rejections dominate — and
+  Grok, marketed on non-hallucination, is the only model that leans right. Within Moonshot: K2.7-code hallucinates 4/6, flagship K3 never — the error is a tier property, not a vendor property.</p>
+  <div class="panel"><svg id="quad" width="1060" height="410" viewBox="0 0 1060 410"></svg></div>
+</section>
+
+<p class="foot">Receipts: results/runs.jsonl · experiments/{author-reviewer, gen-vs-recognition,
+verified-review, cross-lab-review, live-site}/ · VALIDATION.md (author-catches #1–#9, voided-run
+ledger, falsification log). Non-Claude d7-01 cells n=3; Claude cells n=6. Gemini ※ cells pending
+a provider appeal. Metering reconciled against provider dollar counters.</p>
+</main>
+
+<script>
+const VENDORS = [
+  ["Anthropic", [["claude-fable-5","fable-5"],["claude-opus-5","opus-5"],["claude-opus-4-8","opus-4.8"],["claude-sonnet-5","sonnet-5"],["claude-haiku-4-5","haiku-4.5"]]],
+  ["Google", [["gemini:gemini-3.1-pro-preview","g3.1-pro"],["gemini:gemini-3-flash","g3-flash"]]],
+  ["OpenAI", [["openai:gpt-5.6-sol","5.6-sol"],["openai:gpt-5.6-luna","5.6-luna"]]],
+  ["xAI", [["openrouter:x-ai/grok-4.5","grok-4.5"]]],
+  ["Moonshot", [["openrouter:moonshotai/kimi-k3","kimi-k3"],["openrouter:moonshotai/kimi-k2.7-code","k2.7-code"]]],
+  ["Alibaba", [["openrouter:qwen/qwen3-coder-next","qwen3-next"]]],
+  ["DeepSeek", [["openrouter:deepseek/deepseek-v3.2","ds-v3.2"]]],
+];
+const TASKS = [
+  ["e-01-decoder-roundtrip","e-01 decoder round-trip","elm"],
+  ["e-02-impossible-states","e-02 impossible states","elm"],
+  ["e-06-unicode-length","e-06 unicode length","elm"],
+  ["e-07-tagged-union-decode","e-07 tagged-union decode","elm"],
+  ["e-08-muac-classify","e-08 MUAC classify","elm"],
+  ["b-01-write-e2e","b-01 write-the-E2E","behavioral"],
+  ["d10-02-cache-bug","d10-02 cache invalidation","d10"],
+  ["d10-04-cache-context-leak","d10-04 cache context","d10"],
+  ["d10-05-query-access-leak","d10-05 query access leak","d10"],
+  ["d7-01-menu-endpoint","d7-01 menu endpoint","d7"],
+  ["d7-03-field-migration","d7-03 field migration","d7"],
+  ["d7-05-save-trigger-queue","d7-05 save-trigger queue","d7"],
+  ["d7-06-node-access-grants","d7-06 node-access grants","d7"],
+  ["d7-07-batched-update","d7-07 batched update","d7"],
+  ["d7-08-multilingual-field","d7-08 multilingual field","d7"],
+];
+// cells[task][model] = [pass, n]  — from results/runs.jsonl (default effort, non-clean-room)
+const CELLS = {
+"e-01-decoder-roundtrip":{"claude-fable-5":[3,3],"claude-opus-5":[3,3],"claude-opus-4-8":[3,3],"claude-sonnet-5":[3,3],"claude-haiku-4-5":[3,3],"gemini:gemini-3.1-pro-preview":[3,3],"openai:gpt-5.6-sol":[3,3],"openai:gpt-5.6-luna":[3,3],"openrouter:x-ai/grok-4.5":[4,4],"openrouter:moonshotai/kimi-k3":[3,3],"openrouter:moonshotai/kimi-k2.7-code":[3,3],"openrouter:qwen/qwen3-coder-next":[2,3],"openrouter:deepseek/deepseek-v3.2":[3,3]},
+"e-02-impossible-states":{"claude-fable-5":[3,3],"claude-opus-5":[3,3],"claude-opus-4-8":[3,3],"claude-sonnet-5":[3,3],"claude-haiku-4-5":[3,3],"gemini:gemini-3.1-pro-preview":[3,3],"gemini:gemini-3-flash":[3,3],"openai:gpt-5.6-sol":[3,3],"openai:gpt-5.6-luna":[3,3],"openrouter:x-ai/grok-4.5":[3,3],"openrouter:moonshotai/kimi-k3":[3,3],"openrouter:moonshotai/kimi-k2.7-code":[3,3],"openrouter:qwen/qwen3-coder-next":[3,3],"openrouter:deepseek/deepseek-v3.2":[3,3]},
+"e-06-unicode-length":{"claude-fable-5":[3,3],"claude-opus-5":[3,3],"claude-opus-4-8":[3,3],"claude-sonnet-5":[3,3],"claude-haiku-4-5":[3,3]},
+"e-07-tagged-union-decode":{"claude-fable-5":[3,3],"claude-opus-5":[3,3],"claude-opus-4-8":[3,3],"claude-sonnet-5":[3,3],"claude-haiku-4-5":[3,3],"gemini:gemini-3.1-pro-preview":[3,3],"openai:gpt-5.6-sol":[3,3],"openai:gpt-5.6-luna":[3,3],"openrouter:x-ai/grok-4.5":[3,3],"openrouter:moonshotai/kimi-k3":[3,3],"openrouter:moonshotai/kimi-k2.7-code":[3,3],"openrouter:qwen/qwen3-coder-next":[1,3],"openrouter:deepseek/deepseek-v3.2":[3,3]},
+"e-08-muac-classify":{"claude-fable-5":[3,3],"claude-opus-5":[3,3],"claude-opus-4-8":[3,3],"claude-sonnet-5":[3,3],"claude-haiku-4-5":[3,3]},
+"b-01-write-e2e":{"claude-fable-5":[3,3],"claude-opus-5":[3,3],"claude-opus-4-8":[3,3],"claude-sonnet-5":[3,3],"claude-haiku-4-5":[3,3],"gemini:gemini-3.1-pro-preview":[3,3],"openai:gpt-5.6-sol":[3,3],"openai:gpt-5.6-luna":[3,3],"openrouter:x-ai/grok-4.5":[3,3],"openrouter:moonshotai/kimi-k3":[3,3],"openrouter:moonshotai/kimi-k2.7-code":[3,3],"openrouter:qwen/qwen3-coder-next":[2,3],"openrouter:deepseek/deepseek-v3.2":[3,3]},
+"d10-02-cache-bug":{"claude-fable-5":[3,3],"claude-opus-5":[2,3],"claude-opus-4-8":[3,3],"claude-sonnet-5":[3,3],"claude-haiku-4-5":[3,3],"gemini:gemini-3.1-pro-preview":[3,3],"gemini:gemini-3-flash":[3,3],"openai:gpt-5.6-sol":[3,3],"openai:gpt-5.6-luna":[3,3],"openrouter:x-ai/grok-4.5":[3,3],"openrouter:moonshotai/kimi-k3":[3,3],"openrouter:moonshotai/kimi-k2.7-code":[3,3],"openrouter:qwen/qwen3-coder-next":[1,3],"openrouter:deepseek/deepseek-v3.2":[3,3]},
+"d10-04-cache-context-leak":{"claude-fable-5":[3,3],"claude-opus-5":[3,3],"claude-opus-4-8":[3,3],"claude-sonnet-5":[3,3],"claude-haiku-4-5":[2,3],"gemini:gemini-3.1-pro-preview":[3,3],"openai:gpt-5.6-sol":[3,3],"openai:gpt-5.6-luna":[1,3],"openrouter:x-ai/grok-4.5":[3,3],"openrouter:moonshotai/kimi-k3":[3,3],"openrouter:moonshotai/kimi-k2.7-code":[3,3],"openrouter:qwen/qwen3-coder-next":[0,3],"openrouter:deepseek/deepseek-v3.2":[3,3]},
+"d10-05-query-access-leak":{"claude-fable-5":[3,3],"claude-opus-5":[3,3],"claude-opus-4-8":[3,3],"claude-sonnet-5":[3,3],"claude-haiku-4-5":[2,3],"openai:gpt-5.6-sol":[2,3],"openai:gpt-5.6-luna":[3,3],"openrouter:x-ai/grok-4.5":[3,3],"openrouter:moonshotai/kimi-k3":[0,2],"openrouter:moonshotai/kimi-k2.7-code":[2,3],"openrouter:qwen/qwen3-coder-next":[1,3],"openrouter:deepseek/deepseek-v3.2":[2,3]},
+"d7-01-menu-endpoint":{"claude-fable-5":[6,6],"claude-opus-5":[5,6],"claude-opus-4-8":[1,6],"claude-sonnet-5":[0,6],"claude-haiku-4-5":[0,6],"gemini:gemini-3.1-pro-preview":[1,3],"gemini:gemini-3-flash":[0,3],"openai:gpt-5.6-sol":[0,3],"openai:gpt-5.6-luna":[0,3],"openrouter:x-ai/grok-4.5":[0,6],"openrouter:moonshotai/kimi-k3":[0,6],"openrouter:moonshotai/kimi-k2.7-code":[0,6],"openrouter:qwen/qwen3-coder-next":[0,6],"openrouter:deepseek/deepseek-v3.2":[0,6]},
+"d7-03-field-migration":{"claude-fable-5":[3,3],"claude-opus-5":[3,3],"claude-opus-4-8":[3,3],"claude-sonnet-5":[3,3],"claude-haiku-4-5":[2,3],"openai:gpt-5.6-sol":[3,3],"openai:gpt-5.6-luna":[3,3],"openrouter:x-ai/grok-4.5":[3,3],"openrouter:moonshotai/kimi-k3":[3,3],"openrouter:moonshotai/kimi-k2.7-code":[1,3],"openrouter:qwen/qwen3-coder-next":[0,3],"openrouter:deepseek/deepseek-v3.2":[3,3]},
+"d7-05-save-trigger-queue":{"claude-fable-5":[3,3],"claude-opus-5":[3,3],"claude-opus-4-8":[3,3],"claude-sonnet-5":[3,3],"claude-haiku-4-5":[3,3]},
+"d7-06-node-access-grants":{"claude-fable-5":[3,3],"claude-opus-5":[3,3],"claude-opus-4-8":[3,3],"claude-sonnet-5":[3,3],"claude-haiku-4-5":[2,3],"openai:gpt-5.6-sol":[3,3],"openai:gpt-5.6-luna":[3,3],"openrouter:x-ai/grok-4.5":[3,3],"openrouter:moonshotai/kimi-k3":[2,2],"openrouter:moonshotai/kimi-k2.7-code":[2,3],"openrouter:qwen/qwen3-coder-next":[1,3],"openrouter:deepseek/deepseek-v3.2":[3,3]},
+"d7-07-batched-update":{"claude-fable-5":[3,3],"claude-opus-5":[3,3],"claude-opus-4-8":[3,3],"claude-sonnet-5":[3,3],"claude-haiku-4-5":[2,3],"openai:gpt-5.6-sol":[3,3],"openai:gpt-5.6-luna":[3,3],"openrouter:x-ai/grok-4.5":[3,3],"openrouter:moonshotai/kimi-k2.7-code":[2,3],"openrouter:qwen/qwen3-coder-next":[2,3],"openrouter:deepseek/deepseek-v3.2":[3,3]},
+"d7-08-multilingual-field":{"claude-fable-5":[3,3],"claude-opus-5":[3,3],"claude-opus-4-8":[3,3],"claude-sonnet-5":[3,3],"claude-haiku-4-5":[3,3]},
+};
+// build heatmap — split into two stacked tables so each fits without scrolling
+function buildHeat(el, vendors) {
+  let thead = '<thead><tr><th></th>';
+  vendors.forEach(([v, ms]) => thead += `<th class="vendor" colspan="${ms.length}">${v}</th>`);
+  thead += '</tr><tr><th></th>';
+  vendors.forEach(([_, ms]) => ms.forEach(([id, label]) => thead += `<th><span>${label}</span></th>`));
+  thead += '</tr></thead>';
+  let tbody = '<tbody>';
+  TASKS.forEach(([tid, tname, lane]) => {
+    const trap = tid === 'd7-01-menu-endpoint';
+    tbody += `<tr${trap ? ' class="trap"' : ''}><td class="task">${tname}<small>${lane}</small>${trap ? '<span class="tag">THE TRAP</span>' : ''}</td>`;
+    vendors.forEach(([_, ms]) => ms.forEach(([id]) => {
+      const c = (CELLS[tid] || {})[id];
+      if (!c) { tbody += '<td><div class="cell c-ghost">·</div></td>'; return; }
+      const cls = c[0] === c[1] ? 'c-pass' : (c[0] === 0 ? 'c-fail' : 'c-partial');
+      tbody += `<td><div class="cell ${cls}">${c[0]}/${c[1]}</div></td>`;
+    }));
+    tbody += '</tr>';
+  });
+  el.innerHTML = thead + tbody + '</tbody>';
+}
+buildHeat(document.getElementById('heat1'), VENDORS.slice(0, 2));   // Anthropic · Google
+buildHeat(document.getElementById('heat2'), VENDORS.slice(2));      // OpenAI · xAI · Moonshot · Alibaba · DeepSeek
+
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function draw() {
+// staircase — split: Anthropic+Google / the rest, larger type
+const sd1 = [["fable-5",6,6],["opus-5",5,6],["g3.1-pro",1,3],["opus-4.8",1,6],["sonnet-5",0,6],
+  ["haiku-4.5",0,6],["g3-flash",0,3]];
+const sd2 = [["5.6-sol",0,3],["5.6-luna",0,3],["grok-4.5",0,6],["kimi-k3",0,6],
+  ["k2.7-code",0,6],["qwen3-next",0,6],["ds-v3.2",0,6]];
+function drawStair(el, data, caption) {
+  let s = '';
+  const bw=118, gap=20, x0=50, y0=26, h=200;
+  data.forEach((d,i) => {
+    const frac = d[1]/d[2], bh = Math.max(3, frac*h), x = x0+i*(bw+gap);
+    const col = frac===1 ? css('--pass') : (frac===0 ? css('--fail') : css('--partial'));
+    s += `<rect x="${x}" y="${y0+h-bh}" width="${bw}" height="${bh}" fill="${col}" opacity="0.9"/>`;
+    s += `<text x="${x+bw/2}" y="${y0+h-bh-8}" text-anchor="middle" font-size="15" style="fill:${col};font-weight:600">${d[1]}/${d[2]}</text>`;
+    s += `<text x="${x+bw/2}" y="${y0+h+22}" text-anchor="middle" font-size="13">${d[0]}</text>`;
+  });
+  s += `<line x1="${x0-8}" y1="${y0+h}" x2="${x0+data.length*(bw+gap)}" y2="${y0+h}" stroke="${css('--line')}"/>`;
+  if (caption) s += `<text x="${x0-8}" y="${y0+h+52}" font-size="12.5" style="fill:${css('--ink-2')}">${caption}</text>`;
+  el.innerHTML = s;
+}
+drawStair(document.getElementById('stair1'), sd1, '');
+drawStair(document.getElementById('stair2'), sd2,
+  'Two models now clear it blind: Fable 6/6 and Opus 5 5/6 (its one miss is the same canonical trap line). Census: delivery trap in every vendor · echo only in Anthropic+Google · zero third patterns.');
+
+// levers — split: Anthropic / the rest (no Gemini arms exist), larger type
+const ld1 = [ ["opus-5",[5,6],[3,3],[7,7]], ["opus-4.8",[1,6],[2,3],[6,6]],
+  ["sonnet-5",[0,6],[0,3],[2,3]], ["haiku-4.5",[0,6],[0,3],[1,3]] ];
+const ld2 = [ ["5.6-sol",[0,3],[0,3],[3,3]], ["grok-4.5",[0,6],[0,3],[6,6]],
+  ["kimi-k3",[0,6],[0,3],[3,4]], ["k2.7-code",[0,6],[0,3],[4,6]],
+  ["qwen3-next",[0,6],null,[1,6]], ["ds-v3.2",[0,6],[0,3],[3,6]] ];
+function drawLevers(el, data, caption) {
+  let l = '';
+  const lw=40, lg=8, groupW=3*(lw+lg)+46, lx0=56, ly0=20, lh=190;
+  const lcols = [css('--ghost'), css('--partial'), css('--pass')];
+  data.forEach((d,i) => {
+    const gx = lx0 + i*groupW;
+    [d[1],d[2],d[3]].forEach((v,j) => {
+      const x = gx + j*(lw+lg);
+      if (!v) { l += `<text x="${x+lw/2}" y="${ly0+lh-4}" text-anchor="middle" font-size="11" style="fill:${css('--ink-3')}">–</text>`; return; }
+      const frac=v[0]/v[1], bh=Math.max(3, frac*lh);
+      l += `<rect x="${x}" y="${ly0+lh-bh}" width="${lw}" height="${bh}" fill="${lcols[j]}" opacity="0.92"/>`;
+      l += `<text x="${x+lw/2}" y="${ly0+lh-bh-6}" text-anchor="middle" font-size="12" style="fill:${css('--ink-2')}">${v[0]}/${v[1]}</text>`;
+    });
+    l += `<text x="${gx+(3*(lw+lg)-lg)/2}" y="${ly0+lh+22}" text-anchor="middle" font-size="13">${d[0]}</text>`;
+  });
+  l += `<line x1="${lx0-8}" y1="${ly0+lh}" x2="${lx0+data.length*groupW}" y2="${ly0+lh}" stroke="${css('--line')}"/>`;
+  if (caption) l += `<text x="${lx0-8}" y="${ly0+lh+50}" font-size="12.5" style="fill:${css('--ink-2')}">${caption}</text>`;
+  el.innerHTML = l;
+}
+drawLevers(document.getElementById('levers1'), ld1, '');
+drawLevers(document.getElementById('levers2'), ld2,
+  "Effort: rescued only the Opus family (4.8: 1/6 blind → 2/3 @max; Opus 5: 5/6 → 3/3); non-Opus blind-failers 0/24. Live probe: rescues flagships that iterate; bounded by the probe's own blind spot (author-catch #9).");
+
+// review errors, by direction (diverging bars)
+const Q = document.getElementById('quad');
+const qd = [ // reviewer, false-alarms[k,n] (rejected correct), misses[k,n] (approved bug)
+  ["fable-5",[0,3],[0,3]], ["opus-5",[0,6],[0,6]], ["opus-4.8",[0,3],[0,3]], ["5.6-sol",[0,3],[0,3]], ["kimi-k3",[0,6],[0,6]],
+  ["grok-4.5",[1,6],[2,6]], ["qwen3-next",[2,4],[0,4]], ["sonnet-5",[2,3],[0,3]],
+  ["kimi-k2.7",[4,6],[1,6]], ["ds-v3.2",[5,6],[0,6]], ["haiku-4.5",[3,3],[0,3]] ];
+const qcx=520, qhalf=300, qrh=34, qtop=64;
+let q = '';
+q += `<text x="${qcx-14}" y="22" text-anchor="end" font-size="11.5" style="fill:${css('--fail')};font-weight:600">hallucinated a bug in the CORRECT file</text>`;
+q += `<text x="${qcx-14}" y="37" text-anchor="end" font-size="10" style="fill:${css('--ink-3')}">(rejected code that works)</text>`;
+q += `<text x="${qcx+14}" y="22" font-size="11.5" style="fill:${css('--partial')};font-weight:600">missed the REAL bug</text>`;
+q += `<text x="${qcx+14}" y="37" font-size="10" style="fill:${css('--ink-3')}">(approved broken code)</text>`;
+q += `<line x1="${qcx}" y1="${qtop-14}" x2="${qcx}" y2="${qtop+qd.length*qrh+2}" stroke="${css('--line')}"/>`;
+[0.5,1].forEach(tk => [-1,1].forEach(sg => {
+  const x = qcx + sg*tk*qhalf;
+  q += `<line x1="${x}" y1="${qtop-8}" x2="${x}" y2="${qtop+qd.length*qrh+2}" stroke="${css('--line')}" stroke-dasharray="2 4"/>`;
+  q += `<text x="${x}" y="${qtop+qd.length*qrh+20}" text-anchor="middle" font-size="9.5" style="fill:${css('--ink-3')}">${tk*100}%</text>`;
+}));
+qd.forEach((d,i) => {
+  const y = qtop + i*qrh;
+  q += `<text x="${qcx-qhalf-14}" y="${y+17}" text-anchor="end" font-size="11.5" style="fill:${css('--ink')};font-weight:600">${d[0]}</text>`;
+  const [fa,fan] = d[1], [ms,msn] = d[2];
+  if (!fa && !ms) {
+    q += `<rect x="${qcx-qhalf}" y="${y+4}" width="${2*qhalf}" height="${qrh-12}" fill="${css('--cell-pass')}" opacity="0.5"/>`;
+    q += `<text x="${qcx}" y="${y+17}" text-anchor="middle" font-size="10" style="fill:${css('--pass')}">no errors</text>`;
+    return;
+  }
+  if (fa) { const bw = fa/fan*qhalf;
+    q += `<rect x="${qcx-bw}" y="${y+4}" width="${bw}" height="${qrh-12}" fill="${css('--fail')}" opacity="0.85"/>`;
+    q += `<text x="${qcx-bw-7}" y="${y+19}" text-anchor="end" font-size="10.5" style="fill:${css('--fail')}">${fa}/${fan}</text>`; }
+  if (ms) { const bw = ms/msn*qhalf;
+    q += `<rect x="${qcx}" y="${y+4}" width="${bw}" height="${qrh-12}" fill="${css('--partial')}" opacity="0.9"/>`;
+    q += `<text x="${qcx+bw+7}" y="${y+19}" font-size="10.5" style="fill:${css('--partial')}">${ms}/${msn}</text>`; }
+});
+Q.innerHTML = q;
+}
+draw();
+new MutationObserver(draw).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
+</script>
