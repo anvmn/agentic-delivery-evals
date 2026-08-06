@@ -150,7 +150,7 @@ a { color:var(--accent); }
   the correct file. Bars right = it <em>missed</em> the real bug. No bars = judged both
   correctly every trial. The field leans hard left — hallucinated rejections dominate — and
   Grok, marketed on non-hallucination, is the only model that leans right. Within Moonshot: K2.7-code hallucinates 4/6, flagship K3 never — the error is a tier property, not a vendor property.</p>
-  <div class="panel"><svg id="quad" width="1060" height="410" viewBox="0 0 1060 410"></svg></div>
+  <div class="panel"><svg id="quad" width="1060" height="475" viewBox="0 0 1060 475"></svg></div>
 </section>
 
 <p class="foot">Receipts: results/runs.jsonl · experiments/{author-reviewer, gen-vs-recognition,
@@ -246,12 +246,15 @@ function drawStair(el, data, caption) {
     s += `<text x="${x+bw/2}" y="${y0+h+22}" text-anchor="middle" font-size="13">${d[0]}</text>`;
   });
   s += `<line x1="${x0-8}" y1="${y0+h}" x2="${x0+data.length*(bw+gap)}" y2="${y0+h}" stroke="${css('--line')}"/>`;
-  if (caption) s += `<text x="${x0-8}" y="${y0+h+52}" font-size="12.5" style="fill:${css('--ink-2')}">${caption}</text>`;
+  (Array.isArray(caption)?caption:(caption?[caption]:[])).forEach((line,li) => {
+    s += `<text x="${x0-8}" y="${y0+h+52+li*18}" font-size="12.5" style="fill:${css('--ink-2')}">${line}</text>`;
+  });
   el.innerHTML = s;
 }
 drawStair(document.getElementById('stair1'), sd1, '');
 drawStair(document.getElementById('stair2'), sd2,
-  'Two models now clear it blind: Fable 6/6 and Opus 5 5/6 (its one miss is the same canonical trap line). Census: delivery trap in every vendor · echo only in Anthropic+Google · zero third patterns.');
+  ['Two models now clear it blind: Fable 6/6 and Opus 5 5/6 (its one miss is the same canonical trap line).',
+   'Census: delivery trap in every vendor · echo only in Anthropic+Google · zero third patterns.']);
 
 // levers — split: Anthropic / the rest (no Gemini arms exist), larger type
 const ld1 = [ ["opus-5",[5,6],[3,3],[7,7]], ["opus-4.8",[1,6],[2,3],[6,6]],
@@ -261,7 +264,7 @@ const ld2 = [ ["5.6-sol",[0,3],[0,3],[3,3]], ["grok-4.5",[0,6],[0,3],[6,6]],
   ["qwen3-next",[0,6],null,[1,6]], ["ds-v3.2",[0,6],[0,3],[3,6]] ];
 function drawLevers(el, data, caption) {
   let l = '';
-  const lw=40, lg=8, groupW=3*(lw+lg)+46, lx0=56, ly0=20, lh=190;
+  const lw=34, lg=6, groupW=3*(lw+lg)+46, lx0=56, ly0=20, lh=190;
   const lcols = [css('--ghost'), css('--partial'), css('--pass')];
   data.forEach((d,i) => {
     const gx = lx0 + i*groupW;
@@ -275,12 +278,15 @@ function drawLevers(el, data, caption) {
     l += `<text x="${gx+(3*(lw+lg)-lg)/2}" y="${ly0+lh+22}" text-anchor="middle" font-size="13">${d[0]}</text>`;
   });
   l += `<line x1="${lx0-8}" y1="${ly0+lh}" x2="${lx0+data.length*groupW}" y2="${ly0+lh}" stroke="${css('--line')}"/>`;
-  if (caption) l += `<text x="${lx0-8}" y="${ly0+lh+50}" font-size="12.5" style="fill:${css('--ink-2')}">${caption}</text>`;
+  (Array.isArray(caption)?caption:(caption?[caption]:[])).forEach((line,li) => {
+    l += `<text x="${lx0-8}" y="${ly0+lh+50+li*18}" font-size="12.5" style="fill:${css('--ink-2')}">${line}</text>`;
+  });
   el.innerHTML = l;
 }
 drawLevers(document.getElementById('levers1'), ld1, '');
 drawLevers(document.getElementById('levers2'), ld2,
-  "Effort: rescued only the Opus family (4.8: 1/6 blind → 2/3 @max; Opus 5: 5/6 → 3/3); non-Opus blind-failers 0/24. Live probe: rescues flagships that iterate; bounded by the probe's own blind spot (author-catch #9).");
+  ["Effort: rescued only the Opus family (4.8: 1/6 blind → 2/3 @max; Opus 5: 5/6 → 3/3); non-Opus blind-failers 0/24.",
+   "Live probe: rescues flagships that iterate; bounded by the probe's own blind spot (author-catch #9)."]);
 
 // review errors, by direction (diverging bars)
 const Q = document.getElementById('quad');
@@ -309,9 +315,9 @@ qd.forEach((d,i) => {
     q += `<text x="${qcx}" y="${y+17}" text-anchor="middle" font-size="10" style="fill:${css('--pass')}">no errors</text>`;
     return;
   }
-  if (fa) { const bw = fa/fan*qhalf;
+  if (fa) { const bw = fa/fan*qhalf, full = bw > qhalf-56;
     q += `<rect x="${qcx-bw}" y="${y+4}" width="${bw}" height="${qrh-12}" fill="${css('--fail')}" opacity="0.85"/>`;
-    q += `<text x="${qcx-bw-7}" y="${y+19}" text-anchor="end" font-size="10.5" style="fill:${css('--fail')}">${fa}/${fan}</text>`; }
+    q += `<text x="${full ? qcx-bw+8 : qcx-bw-7}" y="${y+19}" text-anchor="${full ? 'start' : 'end'}" font-size="10.5" style="fill:${full ? css('--panel') : css('--fail')}">${fa}/${fan}</text>`; }
   if (ms) { const bw = ms/msn*qhalf;
     q += `<rect x="${qcx}" y="${y+4}" width="${bw}" height="${qrh-12}" fill="${css('--partial')}" opacity="0.9"/>`;
     q += `<text x="${qcx+bw+7}" y="${y+19}" font-size="10.5" style="fill:${css('--partial')}">${ms}/${msn}</text>`; }

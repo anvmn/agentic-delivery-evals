@@ -25,13 +25,18 @@ Cells are passes/attempts; a dot = not run — non-Claude columns cover subsets 
 ### One task splits the field
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/charts/staircase-dark.svg">
-  <img src="docs/charts/staircase-light.svg" alt="d7-01 blind pass rates: Fable 6/6, Gemini Pro and Opus 1 each, everything else 0." width="100%">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/charts/stair-1-dark.png">
+  <img src="docs/charts/stair-1-light.png" alt="d7-01 blind pass rates, Anthropic and Google: Fable 5 6/6, Opus 5 5/6, Gemini 3.1 Pro 1/3, Opus 4.8 1/6; Sonnet 5, Haiku 4.5 and Gemini Flash at zero." width="100%">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/charts/stair-2-dark.png">
+  <img src="docs/charts/stair-2-light.png" alt="d7-01 blind pass rates, other vendors: GPT-5.6 Sol and Luna, Grok 4.5, Kimi K3 and K2.7-code, Qwen3-next and DeepSeek V3.2 — every bar at zero." width="100%">
 </picture>
 
 Task d7-01 asks for something a Drupal 7 developer did routinely: a small web endpoint that returns data as JSON, restricted to users with the right permission. There is a way to write it that *looks* like textbook code — the pattern is all over the internet — but silently breaks the security requirement: users who should get "access denied" (HTTP 403) instead get a friendly "200 OK" whose entire content is the number `3` (the framework's internal access-denied code, helpfully converted to JSON). That line is `'delivery callback' => 'drupal_json_output'`.
 
-On this task, four Claude models spanning the capability range separate into a clean staircase — **Fable 5: 6/6 · Opus 4.8: 1/6 · Sonnet 5: 0/6 · Haiku 4.5: 0/6** — measured across two independent runs a day apart. Meanwhile every modern-stack task is 12/12 across those same four models. (Haiku's score was 1/6 until a grader-hardening pass: its one "pass" gamed a gap in the old check — see *A grader gap we closed* below.)
+On this task, five Claude models spanning the capability range separate into a clean staircase — **Fable 5: 6/6 · Opus 5: 5/6 · Opus 4.8: 1/6 · Sonnet 5: 0/6 · Haiku 4.5: 0/6** — the original four measured across two independent runs a day apart, Opus 5 added 2026-07-28. Meanwhile every modern-stack task is 12/12 across the original four models (Opus 5’s lone modern-stack drop is a single d10-02 trial). (Haiku's score was 1/6 until a grader-hardening pass: its one "pass" gamed a gap in the old check — see *A grader gap we closed* below.)
 
 ### It is not because old code is hard
 
@@ -46,9 +51,9 @@ Old and obscure APIs alone trip nobody. What's special about d7-01 is sharper: *
 
 Every failure on d7-01 is one of two patterns — both real production hazards:
 
-- **The delivery trap** (all 5 Opus failures, 3 of 6 Haiku failures): the one-line configuration above — looks canonical, delivers access-denied as a 200 OK with body `3`. The same trap caught the suite's human author while writing the reference solution.
+- **The delivery trap** (all 5 Opus 4.8 failures, Opus 5’s single miss, 3 of 6 Haiku failures): the one-line configuration above — looks canonical, delivers access-denied as a 200 OK with body `3`. The same trap caught the suite's human author while writing the reference solution.
 - **The echo instinct** (all 6 Sonnet failures, 2 of 6 Haiku failures): printing the JSON directly inside the page handler and returning nothing, instead of returning the data through the delivery architecture the spec mandates. Deceptively, this one *works* over HTTP — we verified live: authorized requests get `200` + `application/json` + the exact JSON, because a NULL return tells D7's delivery phase "already printed" (core's own `user_autocomplete` does the same). It fails the task's *explicit* contract (criterion #3: deliver via the return value and the native delivery mechanism), not the runtime — which is exactly why it's the instinct the corpus teaches and why reviewers wave it through.
-- Only Fable consistently wrote what the framework actually requires: a small custom delivery handler that routes error codes through the standard path.
+- Only Fable consistently — and Opus 5 in five of six trials — wrote what the framework actually requires: a small custom delivery handler that routes error codes through the standard path.
 - **Failure modes are stable per model:** across two runs a day apart, Sonnet *always* fails by echoing, Opus *always* by the delivery trap — ingrained instincts, not coin flips. Only Haiku, the smallest, mixes modes. Opus 5 (2026-07-28) keeps the lineage signature while nearly escaping it: 5/6 blind, and its single miss is that same delivery-trap line.
 
 ### A grader gap we closed
@@ -81,7 +86,7 @@ Google's and OpenAI's models, run through the identical pipeline (thin CLI adapt
 
 Sol's non-d7-01 drops are a finding in miniature: on the access-leak task it twice wrote the *sophisticated-looking* wrong answer — an access check that verifies permission but not published status — the exact pattern that caught the suite's human author during development ([author-catch #3 in VALIDATION.md](VALIDATION.md)) and one Haiku trial (2/6 Sol trials, 1/3 Haiku). That thinly-warned subtlety is now a **validated second discriminator**: run across the OpenRouter column (2026-07-23), it caught **DeepSeek V3.2 once and Kimi K3 twice** — the same permission-but-not-status pattern, `no_leak` the only failing stage — while Grok cleared it 3/3. Victims now span four model pipelines plus the suite's human author. (These numbers were themselves corrected once: a site outage during a re-grade sweep had recorded 9 cascade-failures as real — retracted and re-audited 2026-07-23, see VALIDATION.)
 
-Honesty notes: at n=3, Sol's 0/3 and Pro's 1/3 are statistically indistinguishable — no ranking claims. Codex-CLI runs were single-shot (~35 seconds, no live-site testing), a different agent style than the Claude runs — these are model+harness systems, compared as such. Three Gemini cells (※) are not run: the provider first hit its 250-requests/day cap (nine poisoned records voided; the runner now aborts on quota signals), then suspended the project pending an Acceptable Use appeal — plausibly triggered by this suite's own overnight quota-retry loop, a bot-shaped mistake we've documented and stopped. Cross-vendor benchmarking means inheriting every vendor's failure modes; the receipts include theirs and ours.
+Honesty notes: at n=3, Sol's 0/3 and Pro's 1/3 are statistically indistinguishable — no ranking claims. Codex-CLI runs were single-shot (~35 seconds, no live-site testing), a different agent style than the Claude runs — these are model+harness systems, compared as such. Three Gemini cells are not run: the provider first hit its 250-requests/day cap (nine poisoned records voided; the runner now aborts on quota signals), then suspended the project pending an Acceptable Use appeal — plausibly triggered by this suite's own overnight quota-retry loop, a bot-shaped mistake we've documented and stopped. Cross-vendor benchmarking means inheriting every vendor's failure modes; the receipts include theirs and ours.
 
 ### Cheap models are fine — until the traps
 
@@ -92,8 +97,13 @@ From the cost column of the receipts: Haiku cleared 25 of 27 modern-stack trials
 ### Can more "thinking" fix it?
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/charts/levers-dark.svg">
-  <img src="docs/charts/levers-light.svg" alt="Per model: blind vs high-effort vs live-site pass rates on d7-01. Effort bars flat at zero; live-site bars tall." width="100%">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/charts/levers-1-dark.png">
+  <img src="docs/charts/levers-1-light.png" alt="d7-01 blind vs high-effort vs live-site bars, Anthropic models: max effort lifts Opus 5 to 3/3 and Opus 4.8 to 2/3 but leaves Sonnet and Haiku at zero; the live-site probe lifts every model." width="100%">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/charts/levers-2-dark.png">
+  <img src="docs/charts/levers-2-light.png" alt="d7-01 blind vs high-effort vs live-site bars, other vendors: raised effort rescues nobody; the live probe lifts every flagship that iterates." width="100%">
 </picture>
 
 Most systems have an effort dial — more reasoning before answering. d7-01 rerun with each system's dial at its top setting, against the default results:
@@ -119,8 +129,8 @@ Two conclusions survive across three labs — and the Gemini pair replicates bot
 ### Can AI reviewers catch what AI authors miss?
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/charts/review-errors-dark.svg">
-  <img src="docs/charts/review-errors-light.svg" alt="Review errors by direction on the Unicode task: bars left mean the reviewer hallucinated a bug in correct code, bars right mean it approved the real bug. Fable, both Opus generations and Sol show no errors; most models err left; Grok is the only notable right bar." width="100%">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/charts/review-quad-dark.png">
+  <img src="docs/charts/review-quad-light.png" alt="Review errors by direction on the Unicode task: bars left mean the reviewer hallucinated a bug in correct code, bars right mean it approved the real bug. Fable, Opus 5, Opus 4.8, Sol and Kimi K3 show no errors; most models err left; Grok is the only one leaning right." width="100%">
 </picture>
 
 All four Claude models blindly reviewed 24 graded d7-01 solutions (plus Gemini's), 95 reviews scored against grader ground truth ([`experiments/author-reviewer/`](experiments/author-reviewer/)):
@@ -145,7 +155,7 @@ Opus 5 joined the review panels on 2026-07-28 (via [`experiments/cross-lab-revie
 ## Honest caveats
 
 - n=3 trials per cell: error bars are wide; treat differences under ~2 tasks as noise.
-- Fourteen of fifteen tasks are (nearly) saturated for frontier models. d7-01 remains the strongest discriminator — though Opus 5's 5/6 blind (2026-07-28) shows the frontier closing on it; d10-05's access-check subtlety is a candidate weak one (one Sol and one Haiku catch — far too small to call).
+- Fourteen of fifteen tasks are (nearly) saturated for frontier models. d7-01 remains the strongest discriminator — though Opus 5's 5/6 blind (2026-07-28) shows the frontier closing on it; d10-05's access-check subtlety is a validated (weaker) second discriminator — victims span Sol, Haiku, DeepSeek and Kimi K3, plus the suite's human author.
 - Every number above is regenerable from `results/runs.jsonl` (per-run receipts: stages, duration, cost, transcript). Six Drupal 7 records are marked `regraded` after grader-fairness fixes, and nine 2026-07-28 records carry a `regrade` annotation from an environment break (a global elm upgrade outside the suite broke fixture compiles; verdicts corrected, fixtures now pin their own elm — suite 0.3.2) — see [`VALIDATION.md`](VALIDATION.md).
 
 ## How it works
@@ -155,8 +165,8 @@ tasks/<id>/         task.md (agent-visible spec) · fixture/ (starting state)
                     grader/ (answer key — never enters the agent workspace)
                     meta.json (lane, tier, timeout, required stages)
 runner/run.sh       task × model × trial matrix over headless agents
-                    (Claude Code; `gemini:`/`openai:`-prefixed models route
-                    to the Gemini CLI / Codex CLI adapters in runner/agents/)
+                    (Claude Code; `gemini:`/`openai:`/`openrouter:`-prefixed
+                    models route to the adapters in runner/agents/)
 runner/report.sh    results/runs.jsonl -> RESULTS.md scoreboard
 ```
 
@@ -183,19 +193,20 @@ runner/report.sh
 # cross-lab columns (adapter routing by prefix; need GEMINI_API_KEY / a Codex CLI login)
 runner/run.sh --models "gemini:gemini-3.1-pro-preview" --only d7-01-menu-endpoint
 runner/run.sh --models "openai:gpt-5.6-sol" --only d7-01-menu-endpoint
+runner/run.sh --models "openrouter:x-ai/grok-4.5" --only d7-01-menu-endpoint
 ```
 
-Requirements: ddev, node ≥ 20, elm 0.19, jq, and the Claude Code CLI authenticated (plus the Gemini CLI for `gemini:` models, the Codex CLI for `openai:` models). The runner's `--max-cost-usd` is a hard cap checked before every session.
+Requirements: ddev, node ≥ 20, elm 0.19, jq, and the Claude Code CLI authenticated (plus the Gemini CLI for `gemini:` models, the Codex CLI for `openai:` models, and an `OPENROUTER_API_KEY` for `openrouter:` models). The runner's `--max-cost-usd` is a hard cap checked before every session.
 
 ## Roadmap
 
-Shipped so far: 15 tasks across four lanes; a 4-model Claude matrix with a test-retest replication; cross-lab columns (Gemini Pro/Flash, GPT-5.6 Sol/Luna, and via OpenRouter: Grok 4.5, Kimi K3 + K2.7-code, Qwen3-Coder-next, DeepSeek V3.2); the effort experiments (Claude max-effort arms + Sol xhigh + four-model high — one partial rescue in 27 trap runs); five review/verification experiments (author × reviewer, gen-vs-recognition, verified-review, cross-lab review with the spec-wording A/B, live-site × two cohorts); and author-catches #6–#9. What's genuinely next:
+Shipped so far: 15 tasks across four lanes; a 5-model Claude matrix with a test-retest replication (Opus 5 added 2026-07-28); cross-lab columns (Gemini Pro/Flash, GPT-5.6 Sol/Luna, and via OpenRouter: Grok 4.5, Kimi K3 + K2.7-code, Qwen3-Coder-next, DeepSeek V3.2); the effort experiments (Claude max-effort arms + Sol xhigh + four-model high — 27 trap runs, rescues confined to the Opus family); five review/verification experiments (author × reviewer, gen-vs-recognition, verified-review, cross-lab review with the spec-wording A/B, live-site × two cohorts); and author-catches #6–#9. What's genuinely next:
 
-- **More labs:** OpenAI is complete to Gemini parity (adapter, subset, floor, effort arm). Next: open-weights models (DeepSeek, Qwen, Kimi) via a single Aider/OpenRouter adapter — the corpus-trap prediction stays on record for them.
+- **More labs:** OpenAI is complete to Gemini parity (adapter, subset, floor, effort arm), and the open-weights column (Grok 4.5, Kimi K3 + K2.7-code, Qwen3-Coder-next, DeepSeek V3.2 via one OpenRouter adapter) landed 2026-07-22 — the corpus-trap prediction held: 0/30 blind on d7-01. Further vendors join as adapters land.
 - **Complete the Gemini column:** three subset cells (d10-05, d7-06, d7-07) pending the provider's suspension appeal.
 - **Hunt more discriminators:** the recipe is documented (popular wrong pattern + absent corpus warning) and hard to satisfy on purpose — the author went 0-for-5. Candidate contributions welcome as issues; the D7-02 Features-module task remains unbuilt and unmeasured anywhere.
-- **Tighter intervals where it matters:** raise trial counts on discriminating cells (d7-01 sits at n=6; d10-05's second camouflage layer just earned candidate status; saturated cells don't need more).
-- **Effort curve:** the max-effort experiment rescued exactly one model; a low→max sweep would map the full budget-capability trade.
+- **Tighter intervals where it matters:** raise trial counts on discriminating cells (d7-01 sits at n=6; d10-05's second camouflage layer is now a validated second discriminator; saturated cells don't need more).
+- **Effort curve:** the max-effort experiment rescued only the Opus family; a low→max sweep would map the full budget-capability trade.
 - **Judge lane** for code-quality dimensions — still future, still reported separately, never mixed into pass rates.
 
 ## License
