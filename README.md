@@ -73,12 +73,7 @@ The expert went **0-for-5**. Why? Famous traps are famous *because they burned p
 
 ### Three labs, one shared blind spot
 
-Google's and OpenAI's models, run through the identical pipeline (thin CLI adapters; same tasks, same graders, same blind protocol):
-
-| model | d7-01 | failure stage | failing line |
-| --- | --- | --- | --- |
-| gemini-3.1-pro-preview | 1/3 | anon_403 | `'delivery callback' => 'drupal_json_output'` |
-| gemini-3-flash | 0/3 | anon_403 | `'delivery callback' => 'drupal_json_output'` |
+Google's and OpenAI's models, run through the identical pipeline (thin CLI adapters; same tasks, same graders, same blind protocol), fail on the same single line of code — every Gemini d7-01 failure dies at the `anon_403` stage on `'delivery callback' => 'drupal_json_output'` (per-cell numbers in [RESULTS.md](RESULTS.md)):
 
 - **Google:** Pro escapes the trap at the same roughly 1-in-3 rate as Opus; Flash never does — and every failure is the *same line of code*. Beyond the trap, Pro went **18/18** on a six-task subset (including the engineered cache-poisoning trap) and Flash passed both floor-calibration tasks **6/6**.
 - **OpenAI:** GPT-5.6 Sol (the flagship) went **0/3** on d7-01 — one delivery-trap failure (same line again), two echo failures. It matched Pro's **18/18** on the same subset, then ran the three tasks Google's suspension left unmeasured: **8/9**. Luna (the small model) matched Flash's floor: 9/9 on calibration tasks, 0/3 on d7-01, with the same one-delivery-two-echo split as Sol.
@@ -106,25 +101,11 @@ From the cost column of the receipts: Haiku cleared 25 of 27 modern-stack trials
   <img src="docs/charts/levers-2-light.png" alt="d7-01 blind vs high-effort vs live-site bars, other vendors: raised effort rescues nobody; the live probe lifts every flagship that iterates." width="100%">
 </picture>
 
-Most systems have an effort dial — more reasoning before answering. d7-01 rerun with each system's dial at its top setting, against the default results:
-
-| model | d7-01 default | d7-01 raised effort | what changed |
-| --- | --- | --- | --- |
-| fable-5 | **6/6** | not run | nothing to rescue |
-| opus-5 | **5/6** | **3/3** (`max`) | little left to rescue — blind is near-ceiling; the one trap miss did not recur at max, and the live-site arm went **7/7** |
-| opus-4-8 | 1/6 | **2/3** (`max`) | **rescued** — its passing runs ran ~2× longer and found the trap |
-| sonnet-5 | 0/6 | 0/3 (`max`) | no rescue; shuffles between the same wrong patterns |
-| haiku-4-5 | 0/6 | 0/3 (`max`) | no rescue |
-| g3.1-pro | 1/3 | self-raised (dynamic)† | **self-rescued** — its one pass is exactly the trial where its own allocator maxed out: 9.8k thinking tokens vs 4.0k/5.6k in its fails |
-| g3-flash | 0/3 | self-raised (dynamic)† | no rescue — thought up to **10.0k tokens** (more than Pro's passing trial) and still wrote the trap |
-| 5.6-sol | 0/3 | 0/3 (`xhigh`) | no rescue; failures **unified** into the delivery trap — the closest-to-correct wrong answer — at ~2.5× the reasoning tokens |
-| 5.6-luna | 0/3 | not run | — |
-
-*† The Gemini CLI exposes no external effort control — the model allocates its own thinking budget per request, so these rows are observational (self-raised effort) rather than experimental. Thinking-token counts are from the run transcripts.*
+Most systems have an effort dial — more reasoning before answering. d7-01 rerun with each system's dial at its top setting (per-cell numbers in [RESULTS.md](RESULTS.md)): the dial rescued only the Opus family. Opus 4.8 went 1/6 blind → **2/3** at `max` — its passing runs ran ~2× longer and found the trap — and Opus 5, with little left to rescue at 5/6 blind, went **3/3** at `max` (the live-site arm went **7/7**). Sonnet and Haiku stayed at zero at `max`; Sol stayed at zero at `xhigh` while its failures **unified** into the delivery trap — the closest-to-correct wrong answer — at ~2.5× the reasoning tokens; the four open-weights blind-failers stayed at zero at `high`. The Gemini CLI exposes no external effort dial (the model allocates its own thinking budget per request), so its rows are observational: Pro's one blind pass is exactly the trial where its allocator maxed out — 9.8k thinking tokens vs 4.0k/5.6k in its fails — while Flash thought up to **10.0k tokens** (more than Pro's passing trial) and still wrote the trap.
 
 The middle case: the thinly-warned access-leak subtlety (d10-05), Sol's only other drop — default **2/3**, raised effort **2/3**. No rescue there either: the failing trial wrote the identical wrong query at 2k reasoning tokens, while the passes took two different correct routes (a status condition in the query, or filtering each loaded item through an access check — the grader tests observable behavior and accepts both). All effort arms are n=3 — "no effect detected," not "no effect."
 
-Two conclusions survive across three labs — and the Gemini pair replicates both from the *inside*, without any external knob: Pro self-rescued in the one trial its allocator chose to think ~2× harder, while Flash out-thought Pro's passing trial and stayed trapped. The tiered verdict: **effort rescues a model that is one step below the trap (Opus by external control, Gemini Pro by its own allocation); it cannot substitute for knowledge that isn't there** (Sonnet, Haiku, Sol — and Flash, at any thinking volume). And an allocation wrinkle: even told to think as hard as possible, Sol spent only ~1.3k reasoning tokens — thinking budgets follow *perceived* difficulty, and this trap's whole camouflage is looking easy. Below the threshold, only behavioral gates help.
+Two conclusions survive across three labs — and the Gemini pair replicates both from the *inside*, without any external knob. The tiered verdict: **effort rescues a model that is one step below the trap (Opus by external control, Gemini Pro by its own allocation); it cannot substitute for knowledge that isn't there** (Sonnet, Haiku, Sol — and Flash, at any thinking volume). And an allocation wrinkle: even told to think as hard as possible, Sol spent only ~1.3k reasoning tokens — thinking budgets follow *perceived* difficulty, and this trap's whole camouflage is looking easy. Below the threshold, only behavioral gates help.
 
 ### Can AI reviewers catch what AI authors miss?
 
@@ -133,18 +114,9 @@ Two conclusions survive across three labs — and the Gemini pair replicates bot
   <img src="docs/charts/review-quad-light.png" alt="Review errors by direction on the Unicode task: bars left mean the reviewer hallucinated a bug in correct code, bars right mean it approved the real bug. Fable, Opus 5, Opus 4.8, Sol and Kimi K3 show no errors; most models err left; Grok is the only one leaning right." width="100%">
 </picture>
 
-All four Claude models blindly reviewed 24 graded d7-01 solutions (plus Gemini's), 95 reviews scored against grader ground truth ([`experiments/author-reviewer/`](experiments/author-reviewer/)):
+All four original Claude models blindly reviewed 24 graded d7-01 solutions (plus Gemini's) — 95 reviews scored against grader ground truth ([`experiments/author-reviewer/`](experiments/author-reviewer/); per-reviewer numbers in [RESULTS.md](RESULTS.md)). Three results:
 
-| reviewer | delivery-trap catches | echo catches | good code approved |
-| --- | --- | --- | --- |
-| fable-5 | 12/12 | 0/6 | 7/7 |
-| opus-4-8 | 6/7 | 0/2 | 2/2 |
-| sonnet-5 | 7/12 | 1/5 | 6/7 |
-| haiku-4-5 | 1/12 | 2/5 | 6/7 |
-
-Three results:
-
-- **Review skill is the same staircase as authoring skill** — and it transfers across labs (Fable rejects Gemini's trap failures 4/4; Haiku, 1/4).
+- **Review skill is the same staircase as authoring skill** — delivery-trap catches run Fable 12/12 › Opus 4.8 6/7 › Sonnet 7/12 › Haiku 1/12 — and it transfers across labs (Fable rejects Gemini's trap failures 4/4; Haiku, 1/4).
 - **The echo violation is near-invisible to every reviewer**: 3 catches out of 18 chances, pooled — reviewers routinely *praised* the pattern as a virtue. (It violates the task's explicit delivery criterion, though the endpoint itself functions — see above — which is precisely what makes it so approvable.)
 - **False alarms stay low**: 21 of 23 good solutions approved.
 

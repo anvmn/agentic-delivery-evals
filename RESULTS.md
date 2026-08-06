@@ -40,3 +40,54 @@ Suite version **0.3.2** · generated 2026-08-06 · 512 runs · total agent cost 
 **openrouter:moonshotai/kimi-k3** — trials passed: 23/31 · pass@k (any trial per task): 8/10 · mean duration 110s
 **openrouter:qwen/qwen3-coder-next** — trials passed: 13/36 · pass@k (any trial per task): 8/11 · mean duration 150s
 **openrouter:x-ai/grok-4.5** — trials passed: 31/37 · pass@k (any trial per task): 10/11 · mean duration 36s
+
+## Raised-effort and clean-room arms (excluded from the scoreboard above)
+
+| model | task | arm | passes/trials |
+| --- | --- | --- | --- |
+| claude-fable-5 | d7-01-menu-endpoint | effort=max · clean-room | 3/3 |
+| claude-haiku-4-5 | d7-01-menu-endpoint | effort=max | 0/3 |
+| claude-opus-4-8 | d7-01-menu-endpoint | effort=max | 2/3 |
+| claude-opus-5 | d7-01-menu-endpoint | effort=max | 3/3 |
+| claude-sonnet-5 | d7-01-menu-endpoint | effort=max | 0/3 |
+| openai:gpt-5.6-sol | d10-05-query-access-leak | effort=xhigh | 2/3 |
+| openai:gpt-5.6-sol | d7-01-menu-endpoint | effort=xhigh | 0/3 |
+| openrouter:deepseek/deepseek-v3.2 | d7-01-menu-endpoint | effort=high | 0/3 |
+| openrouter:moonshotai/kimi-k2.7-code | d7-01-menu-endpoint | effort=high | 0/3 |
+| openrouter:moonshotai/kimi-k3 | d7-01-menu-endpoint | effort=high | 0/3 |
+| openrouter:x-ai/grok-4.5 | d7-01-menu-endpoint | effort=high | 0/3 |
+
+## Live-site arm (d7-01 on a running site, with a behavior probe)
+
+| model | passes/trials | mean probe invocations |
+| --- | --- | --- |
+| claude-haiku-4-5 | 1/3 | 7 |
+| claude-opus-4-8 | 6/6 | 1.7 |
+| claude-opus-5 | 7/7 | 1.6 |
+| claude-sonnet-5 | 2/3 | 2 |
+| openai:gpt-5.6-sol | 3/3 | 2.7 |
+| openrouter:deepseek/deepseek-v3.2 | 3/6 | 13.7 |
+| openrouter:moonshotai/kimi-k2.7-code | 4/6 | 2.8 |
+| openrouter:moonshotai/kimi-k3 | 3/4 | 2.5 |
+| openrouter:qwen/qwen3-coder-next | 1/6 | 5.5 |
+| openrouter:x-ai/grok-4.5 | 6/6 | 2 |
+
+## Review panel — blind reviews of graded d7-01 solutions vs grader ground truth (parse-error reviews excluded)
+
+| reviewer | failing solutions caught | passing solutions approved |
+| --- | --- | --- |
+| claude-fable-5 | 12/18 | 7/7 |
+| claude-haiku-4-5 | 3/17 | 6/7 |
+| claude-opus-4-8 | 6/9 | 2/2 |
+| claude-sonnet-5 | 8/17 | 6/7 |
+
+## Cross-lab review panel (correct verdicts per cell; echo = the d7-01 echo solution under two spec wordings)
+
+| reviewer | e-06 reference | e-06 flawed | echo @pre-0.3.1 | echo @0.3.1 |
+| --- | --- | --- | --- | --- |
+| claude-opus-5 | 6/6 | 6/6 | 4/6 | 6/6 |
+| deepseek/deepseek-v3.2 | 1/6 | 6/6 | 5/6 | 6/6 |
+| moonshotai/kimi-k2.7-code | 2/6 | 5/6 | 0/6 | 5/6 |
+| moonshotai/kimi-k3 | 6/6 | 6/6 | 0/6 | 6/6 |
+| qwen/qwen3-coder-next | 2/6 | 4/6 | 1/6 | 6/6 |
+| x-ai/grok-4.5 | 5/6 | 4/6 | 5/6 | 6/6 |
