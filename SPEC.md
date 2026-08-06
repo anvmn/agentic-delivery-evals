@@ -2,14 +2,14 @@
 
 **Status:** shipped — kept as the original pre-build design, unedited below this note. Current truth: [README](README.md) (results + roadmap), [RESULTS.md](RESULTS.md) (generated from receipts), [VALIDATION.md](VALIDATION.md) (grader log).
 
-> **As built vs. planned (delta note, 2026-07-18):**
+> **As built vs. planned (delta note, 2026-07-18 · actuals refreshed 2026-08-06):**
 >
 > - v0.1 shipped exactly the five planned seeds (D7-01, D10-02, E-01, E-02, B-01). After that, task selection stopped following §4's list and switched to **discriminator-hunting**: v0.2/v0.3 tasks (d7-03, d7-05…d7-08, d10-04, d10-05, e-06…e-08) were engineered to d7-01's anatomy. Planned D7-02, D10-01, D10-03, E-03…E-05 and B-02 were never built; D7-02 remains on the roadmap.
 > - The difficulty ladder (§2, principle 4) did not survive contact with data: tier is a design label, not an observed difficulty — frontier models went 45/45 on the tier-3 traps, and the suite's only discriminator is a tier-2 task.
-> - The runner outgrew §5: multi-lab adapter routing (Gemini CLI), effort passthrough, session-limit and provider-quota aborts with run voiding, and the `--max-cost-usd` cap (§10 Q5: yes).
-> - §7 actuals: 264 default-effort runs, $90.55 total agent cost, 8 models across 3 labs (Anthropic, Google, OpenAI).
-> - §8 ran, corpus-narrowed to d7-01 solutions (the only cell with meaningful fails): 95 blind reviews; results in the README.
-> - §10: all six questions decided — name kept, separate repo, published after v0.1 results, 4 Claude + 2 Gemini models, 3 trials with the small-n caveat printed on every table, clean-room D7 fixture.
+> - The runner outgrew §5: multi-lab adapter routing (Gemini CLI, Codex CLI, and an OpenRouter lane through codex), effort passthrough, a clean-room mode, session-limit and provider-quota aborts with run voiding, and the `--max-cost-usd` cap (§10 Q5: yes).
+> - §7 actuals: 512 default-effort runs, $127.16 total agent cost (545 receipts counting the effort and clean-room arms), 14 models from 7 vendors — 4 labs plus three open-weights pipelines. Suite version 0.3.2 (0.3.1 tightened one spec wording; 0.3.2 hardened environment hermeticity).
+> - §8 ran, corpus-narrowed to d7-01 solutions (the only cell with meaningful fails): 95 blind reviews — and grew four sibling experiments (gen-vs-recognition, verified-review, cross-lab review with a spec-wording A/B, live-site probes across three cohorts). Results in the README; per-cell tables in RESULTS.md.
+> - §10: all six questions decided — name kept, separate repo, published after v0.1 results, a model set that grew from 4 Claude + 2 Gemini to the 14-model matrix, 3 trials with the small-n caveat printed on every table, clean-room D7 fixture.
 
 **Author:** Anatoly Vaitsman (drafted 2026-07-15)
 **Working name:** `agentic-delivery-evals` (alternatives: `drupal-elm-agent-evals`, `harness-evals`)

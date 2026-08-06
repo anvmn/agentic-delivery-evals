@@ -604,3 +604,73 @@ is comparable and the receipts were relabeled `effort:"default"` with an
 `effort_note` documenting the leak. The @max arm (3 receipts) is untouched.
 Blast radius audited: only claude-opus-5 ran inside the affected session;
 historical Claude receipts predate the adapter's effort field entirely.
+
+## Opus 5 phases 3–5 — review panels, effort@max, live-site (2026-07-28/29)
+
+Completing the operator-approved program (phases 0–2 above):
+
+- **Review panel (22/24), via a `claude` lane added to cross-lab-review's
+  run_review:** e-06 clean sweep — reference 6/6 approve, flawed 6/6 reject,
+  no hallucinated UTF-16 bug in either direction. On the d7-01 echo
+  submission: **6/6 reject under the tightened 0.3.1 wording vs 4/6 under
+  the pre-0.3.1 wording** (two textualist approvals) — a fresh same-lab
+  replication of the spec-wording A/B that validated author-catch #8, from
+  a model that did not exist when the A/B was designed.
+- **Effort@max arm:** d7-01 × 3 at `--effort max` — **3/3**; the lone blind
+  trap miss did not recur.
+- **Live-site arm:** **7/7.** Process honesty: the background batch was
+  killed twice mid-run; after the second kill the work was committed and
+  surfaced instead of silently relaunched, and the operator directed
+  completion. The live-site runner has no resume-skip, so the completed arm
+  contains duplicated trial numbers (analyses count records, not trial ids —
+  precedent from the earlier cohorts).
+
+Within-model triptych for Opus 5: blind 5/6 → max effort 3/3 → live probe
+7/7 — the first model to enter the trap experiments already at near-ceiling.
+
+## Gemini appeal — still pending, quota still zero (2026-08-04)
+
+Status probe (models endpoint, key from the operator environment): HTTP 429
+RESOURCE_EXHAUSTED with `quota_limit_value: "0"` for
+ApiRequestsPerMinutePerProjectPerRegion — an administrative zeroing, not a
+rate spike. Inbox check: nothing from Google Cloud compliance since the
+2026-07-23 "Appeal Received" acknowledgment. The three ※ cells (d10-05,
+d7-06, d7-07 × gemini-3.1-pro) remain pending.
+
+## Ledger-count alignment + display-layer audit (2026-08-06)
+
+- **Headline run-count drift:** the README said "534 graded runs" while the
+  ledger held 545 — eleven Opus 5 receipts (8 Elm re-runs + the 3 @max arm)
+  landed in the phases-3/4 commit after the count was written. Corrected to
+  545; the results-board header (which had said 512, silently meaning
+  "default-effort, non-clean-room only") was aligned to the same
+  whole-ledger definition with the filter stated in its subtitle. Same
+  number, same definition, everywhere.
+- **Results-board provenance:** the board's HTML source had lived only in a
+  session scratchpad under /tmp, which the OS cleaned. Reconstructed by
+  replaying every recorded edit from the session transcript (all original
+  assertion checks passing), verified against the published artifact, and
+  committed as `docs/results-board.html` — the artifact is now regenerable
+  from the repo, not from archaeology.
+- **Display-layer author-catches (3):** preparing README screenshots exposed
+  that the published board had been silently misrendering: (1) the
+  cross-lab levers panel clipped its entire ds-v3.2 column and overran both
+  captions past the SVG edge (content needs ~1196px, the SVG was 1060);
+  (2) the reviewer chart's SVG was 48px too short and had been **hiding the
+  haiku-4.5 row entirely**; (3) the newly-visible full-width bars collided
+  value labels with row labels. All fixed and republished. Meta-point: the
+  suite falsifies graders and specs — charts need the same treatment; a
+  chart that silently clips a column misreports the census exactly like a
+  grader that silently skips a stage.
+- **RESULTS.md now carries every run type:** report.sh generates
+  raised-effort/clean-room, live-site, author×reviewer, and cross-lab-review
+  sections straight from the ledgers. First draft counted the 11
+  `parse_error` reviews in denominators — caught by reconciling the pooled
+  numbers against the README's established 21/23 — now excluded per the
+  standing convention.
+- **README text audit** (alongside replacing its plain tables with board
+  screenshots): fixed the four-model staircase that omitted Opus 5, a
+  "candidate" vs "validated" contradiction on d10-05 between two sections,
+  a roadmap bullet still listing the open-weights column as future work,
+  a footnote claiming non-Claude d7-01 cells are n=3 (the OpenRouter cells
+  are 0/6), and the missing `openrouter:` routing in the how-it-works docs.
