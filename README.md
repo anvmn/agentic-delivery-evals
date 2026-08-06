@@ -9,53 +9,18 @@ It covers two under-measured territories: **Drupal** (the CMS platform behind a 
 ## The scoreboard (suites 0.1–0.3 · 545 runs · 14 models, 7 vendors · 2026-07-28)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/charts/heatmap-dark.svg">
-  <img src="docs/charts/heatmap-light.svg" alt="Pass-rate heatmap: 15 tasks by 14 models across 7 vendors. A wall of green with one orange-ringed row — d7-01 — failing across every vendor; only Fable 5 and Opus 5 clear it." width="100%">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/charts/scoreboard-1-dark.png">
+  <img src="docs/charts/scoreboard-1-light.png" alt="Pass-rate table, Anthropic and Google models: a wall of green with one orange-ringed row — d7-01 menu endpoint — where only Fable 5 (6/6) and Opus 5 (5/6) clear the trap." width="100%">
 </picture>
 
-Each cell shows passes/attempts ("tier" = intended difficulty, 1–3; charts regenerate from receipts via `scripts/render_charts.py`). The flat table, for copy-paste and diffing:
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/charts/scoreboard-2-dark.png">
+  <img src="docs/charts/scoreboard-2-light.png" alt="Pass-rate table, OpenAI, xAI, Moonshot, Alibaba and DeepSeek models: mostly green, with the d7-01 trap row all-red — 0 passes across every model." width="100%">
+</picture>
 
-### Anthropic · Google
+Each cell shows passes/attempts ("tier" = intended difficulty, 1–3). Screenshots are from the [live results board](https://claude.ai/code/artifact/ab24bc47-d6da-45a3-8249-f31ccb879d88), whose cells regenerate from receipts. The flat markdown table, for copy-paste and diffing, is [RESULTS.md](RESULTS.md) — regenerated from `results/runs.jsonl` by `runner/report.sh`.
 
-| task | lane | tier | fable-5 | opus-5 | opus-4-8 | sonnet-5 | haiku-4-5 | g3.1-pro | g3-flash |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| e-01 decoder round-trip | elm | 1 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — |
-| e-02 impossible states | elm | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 |
-| b-01 write-the-E2E | behavioral | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — |
-| d10-02 cache invalidation | drupal10 | 2 | 3/3 | 2/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 |
-| **d7-01 menu endpoint** (two independent runs) | **drupal7** | **2** | **6/6** | **5/6** | **1/6** | **0/6** | **0/6** | 1/3 | 0/3 |
-| d7-03 field migration | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 2/3 | — | — |
-| d7-05 save-trigger queue | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — |
-| e-06 unicode length | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — |
-| d10-04 cache context (poisoning) | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 2/3 | 3/3 | — |
-| d10-05 query access leak | drupal10 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — |
-| e-07 tagged-union decode (oneOf) | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — |
-| e-08 MUAC boundary classify | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — |
-| d7-06 node-access grants | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — |
-| d7-07 batched $sandbox update | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 2/3 | ※ | — |
-| d7-08 multilingual field access | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | — | — |
-
-### OpenAI · xAI · Moonshot · Alibaba · DeepSeek
-
-| task | lane | tier | 5.6-sol | 5.6-luna | grok-4.5 | kimi-k3 | kimi-k2.7c | qwen3-next | ds-v3.2 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| e-01 decoder round-trip | elm | 1 | 3/3 | 3/3 | 4/4 | 3/3 | 3/3 | 2/3 | 3/3 |
-| e-02 impossible states | elm | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 |
-| b-01 write-the-E2E | behavioral | 2 | 3/3 | 3/3 | 3/3 | 2/3 | 3/3 | 2/3 | 3/3 |
-| d10-02 cache invalidation | drupal10 | 2 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 1/3 | 3/3 |
-| **d7-01 menu endpoint** (two independent runs) | **drupal7** | **2** | 0/3 | 0/3 | **0/3** | **0/3** | **0/3** | **0/3** | **0/3** |
-| d7-03 field migration | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 1/3 | 0/3 | 3/3 |
-| d7-05 save-trigger queue | drupal7 | 3 | — | — | — | — | — | — | — |
-| e-06 unicode length | elm | 3 | — | — | — | — | — | — | — |
-| d10-04 cache context (poisoning) | drupal10 | 3 | 3/3 | 1/3 | 3/3 | 3/3 | 3/3 | 0/3 | 3/3 |
-| d10-05 query access leak | drupal10 | 3 | 4/6 | 3/3 | 3/3 | 0/2 | 2/3 | 1/3 | 2/3 |
-| e-07 tagged-union decode (oneOf) | elm | 3 | 3/3 | 3/3 | 3/3 | 3/3 | 3/3 | 1/3 | 3/3 |
-| e-08 MUAC boundary classify | elm | 3 | — | — | — | — | — | — | — |
-| d7-06 node-access grants | drupal7 | 3 | 3/3 | 3/3 | 3/3 | 2/2 | 2/3 | 1/3 | 3/3 |
-| d7-07 batched $sandbox update | drupal7 | 3 | 3/3 | 3/3 | 3/3 | — | 2/3 | 2/3 | 3/3 |
-| d7-08 multilingual field access | drupal7 | 3 | — | — | — | — | — | — | — |
-
-*Gemini, OpenAI, and OpenRouter columns (Grok 4.5 = xAI; Kimi K3/K2.7-code = Moonshot; Qwen3-Coder-next = Alibaba; DeepSeek V3.2) cover subsets by design (— = not run; blank = not run); ※ = pending the provider's suspension appeal. Non-Claude d7-01 cells are single-run (n=3). OpenRouter rows for tasks outside the 7-task parity set are not run.*
+*Gemini, OpenAI, and OpenRouter columns (Grok 4.5 = xAI; Kimi K3/K2.7-code = Moonshot; Qwen3-Coder-next = Alibaba; DeepSeek V3.2) cover subsets by design (a dot = not run; three of the not-run Gemini Pro cells are pending the provider's suspension appeal). Non-Claude d7-01 cells are single-run (n=3).*
 
 ## The story the numbers tell
 
