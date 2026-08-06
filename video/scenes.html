@@ -182,46 +182,47 @@ function buildHeat(el, vendors) {
 buildHeat(document.getElementById('heat1'), VENDORS.slice(0, 2));
 buildHeat(document.getElementById('heat2'), VENDORS.slice(2));
 
-/* ---- deterministic scene driver: window.seek(sceneIdx, t, dur) ---- */
+/* ---- deterministic scene driver: window.seek(sceneIdx, t, dur, cues, sdurs) ----
+   cues[i]/sdurs[i] = exact start/duration of narration sentence i within the scene
+   (from timing.json; produced by per-sentence Piper synthesis). */
 const clamp = (x,a,b) => Math.max(a, Math.min(b, x));
 const ease = u => u<0 ? 0 : u>1 ? 1 : 1 - Math.pow(1-u, 3);   // easeOutCubic
 
-function seekS1(t, dur) {
+function seekS0(t, dur, cues=[], sdurs=[]) {
+  const c = i => cues[i] ?? [0.4, 3.6, 8.8, 15.2, 19.2][i];
+  ['l1','l2','l3','l4','l5'].forEach((cls, i) => {
+    document.querySelector(`#s0 .${cls}`).style.opacity = ease((t - c(i)) / 0.7);
+  });
+}
+
+function seekS1(t, dur, cues=[], sdurs=[]) {
+  const c0 = cues[0] ?? 0, d0 = sdurs[0] ?? 5, c1 = cues[1] ?? 5.5, d1 = sdurs[1] ?? 5;
+  const starts = [c0 + d0*0.10, c0 + d0*0.42, c0 + d0*0.74,   // 15 tasks · 14 models · 7 vendors
+                  c1 + d1*0.02, c1 + d1*0.45];                 // 545 runs · $127
   document.querySelectorAll('#s1 .stat b').forEach((b, i) => {
-    const u = ease((t - (0.4 + i*0.55)) / 0.9);
-    const v = Math.round(+b.dataset.target * u);
-    b.textContent = (b.dataset.prefix || '') + v;
+    const u = ease((t - starts[i]) / 0.9);
+    b.textContent = (b.dataset.prefix || '') + Math.round(+b.dataset.target * u);
   });
   const punch = document.querySelector('#s1 .punch');
-  punch.style.opacity = ease((t - (dur - 5.2)) / 0.8);
+  punch.style.opacity = ease((t - (cues[3] ?? dur - 5.2)) / 0.8);
 }
 
-function seekS2(t, dur) {
-  // phase A: table 1 cascades; phase B: crossfade to table 2 cascade; final 2s: trap rings light up
+function seekS2(t, dur, cues=[], sdurs=[]) {
   const b1 = document.getElementById('board1'), b2 = document.getElementById('board2');
-  const half = (dur - 2.5) / 2;
-  const xfade = 0.6;
-  const inA = t < half;
-  b1.style.opacity = inA ? 1 : 1 - ease((t - half) / xfade);
-  b2.style.opacity = inA ? 0 : ease((t - half) / xfade);
-  const cascade = (tableId, t0) => {
+  const cascadeEnd1 = cues[3] ?? (dur - 2.5) / 2;      // table 1 done when "Here is the scoreboard" lands
+  const xf = cues[3] ?? cascadeEnd1;                    // crossfade at that same cue
+  const ringAt = (cues[4] ?? dur - 2.0) + (sdurs[4] ?? 2) * 0.45;  // "…with one exception"
+  const inA = t < xf;
+  b1.style.opacity = inA ? 1 : 1 - ease((t - xf) / 0.6);
+  b2.style.opacity = inA ? 0 : ease((t - xf) / 0.6);
+  const cascade = (tableId, t0, t1) => {
     const cells = document.querySelectorAll(`#${tableId} .cell`);
-    const total = cells.length;
-    const u = clamp((t - t0) / (half - 1.0), 0, 1);
-    const shown = Math.floor(ease(u) * total);
+    const shown = Math.floor(ease(clamp((t - t0) / (t1 - t0), 0, 1)) * cells.length);
     cells.forEach((c, i) => c.classList.toggle('on', i < shown));
   };
-  cascade('heat1', 0.4);
-  cascade('heat2', half + 0.2);
-  const lit = t > dur - 2.0;
-  document.querySelectorAll('tr.trap').forEach(r => r.classList.toggle('lit', lit));
-}
-
-function seekS0(t, dur) {
-  const at = { l1: 0.4, l2: 3.6, l3: 8.8, l4: 15.2, l5: 19.2 };
-  Object.entries(at).forEach(([cls, t0]) => {
-    document.querySelector(`#s0 .${cls}`).style.opacity = ease((t - t0) / 0.9);
-  });
+  cascade('heat1', (cues[0] ?? 0.4) + 0.3, cascadeEnd1 - 0.3);
+  cascade('heat2', xf + 0.3, ringAt - 0.4);
+  document.querySelectorAll('tr.trap').forEach(r => r.classList.toggle('lit', t > ringAt));
 }
 
 const SCENES = [
@@ -229,12 +230,12 @@ const SCENES = [
   { el: 's1', fn: seekS1 },
   { el: 's2', fn: seekS2 },
 ];
-window.seek = (idx, t, dur) => {
+window.seek = (idx, t, dur, cues, sdurs) => {
   SCENES.forEach((s, i) => document.getElementById(s.el).classList.toggle('active', i === idx));
-  SCENES[idx].fn(t, dur);
+  SCENES[idx].fn(t, dur, cues, sdurs);
   return true;
 };
-window.seek(0, 0, 31);
+window.seek(0, 0, 25);
 </script>
 </body>
 </html>

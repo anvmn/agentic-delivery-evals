@@ -20,7 +20,8 @@ fs.mkdirSync(FRAMES, { recursive: true });
     const dur = timing.scenes[i].video_s;
     const n = Math.round(dur * FPS);
     for (let f = 0; f < n; f++) {
-      await page.evaluate(([idx, t, d]) => window.seek(idx, t, d), [i, f / FPS, dur]);
+      await page.evaluate(([idx, t, d, cues, sdurs]) => window.seek(idx, t, d, cues, sdurs),
+        [i, f / FPS, dur, timing.scenes[i].cues || [], timing.scenes[i].sent_durs || []]);
       await page.screenshot({ path: path.join(FRAMES, `f${String(frame).padStart(6, '0')}.png`) });
       frame++;
     }
