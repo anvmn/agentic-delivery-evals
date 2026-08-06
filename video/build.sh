@@ -87,7 +87,7 @@ EOF
 
 # 6) final assembly: frames + narration + burned captions
 ffmpeg -y -v error -framerate 30 -i "$WORK/frames/f%06d.png" -i "$WORK/narration.wav" \
-  -vf "subtitles=$WORK/captions.srt:force_style='FontSize=11,PrimaryColour=&HE6E9ED&,OutlineColour=&H0E1116&,BorderStyle=1,Outline=1,Shadow=0,MarginV=20'" \
+  -vf "subtitles=$WORK/captions.srt:force_style='FontSize=11,PrimaryColour=&H30241F&,OutlineColour=&HFFFFFF&,BorderStyle=1,Outline=2,Shadow=0,MarginV=20'" \
   -c:v libx264 -preset medium -crf 20 -pix_fmt yuv420p -c:a aac -b:a 128k -shortest \
   "$WORK/poc.mp4"
 ffprobe -v error -show_entries format=duration:stream=codec_type,width,height -of compact "$WORK/poc.mp4"

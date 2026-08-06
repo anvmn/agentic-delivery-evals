@@ -4,16 +4,19 @@
 <meta charset="utf-8">
 <title>agentic-delivery-evals — video scenes</title>
 <style>
-/* Design system lifted from docs/results-board.html (dark palette as the video theme). */
+/* Colorful light theme on the board's bones. Stat hues validated (dataviz six checks, light surface):
+   #2563EB #D9640D #0D9488 #7C3AED #C4386F. Status cells keep numeric labels as the CVD mitigation. */
 :root {
-  --bg:#0E1116; --panel:#151A21; --ink:#E6E9ED; --ink-2:#9AA5B1; --ink-3:#5F6B78;
-  --line:#252C35; --accent:#E07A3F; --accent-soft:#3A2416;
-  --pass:#4CAF7D; --partial:#D9A13B; --fail:#D0655A; --ghost:#333B45;
-  --cell-pass:#16311F; --cell-partial:#33290F; --cell-fail:#381B17;
+  --bg:#FBF7F0; --panel:#FFFFFF; --ink:#1F2430; --ink-2:#4A5460; --ink-3:#8B95A1;
+  --line:#E2DCD2; --accent:#E4690F; --accent-soft:#FBEADD;
+  --pass:#0B7A3E; --partial:#9A6A00; --fail:#C22F26; --ghost:#C9D0D7;
+  --cell-pass:#DCF3E3; --cell-partial:#FCEFC7; --cell-fail:#FBDEDA;
+  --c-blue:#2563EB; --c-orange:#D9640D; --c-teal:#0D9488; --c-violet:#7C3AED; --c-magenta:#C4386F;
 }
 * { box-sizing:border-box; margin:0; padding:0; }
-html,body { width:1920px; height:1080px; overflow:hidden; background:var(--bg); color:var(--ink);
+html,body { width:1920px; height:1080px; overflow:hidden; color:var(--ink);
   font:26px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+body { background:linear-gradient(135deg, #FDF4E7 0%, #F5F7FD 52%, #ECF7F1 100%); }
 .mono, h1, h2, .eyebrow, .cell, .stat b, .tag { font-family: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace; }
 .scene { position:absolute; inset:0; display:none; }
 .scene.active { display:block; }
@@ -29,9 +32,11 @@ html,body { width:1920px; height:1080px; overflow:hidden; background:var(--bg); 
 #s0 .l2 { font-size:58px; font-weight:600; max-width:1300px;
   font-family:ui-monospace,Menlo,Consolas,monospace; }
 #s0 .l2 em { color:var(--accent); font-style:normal; }
-#s0 .l3 .chip { display:inline-block; margin:0 14px; padding:10px 26px; border:1px solid var(--line);
-  background:var(--panel); color:var(--ink-2); font-size:28px;
-  font-family:ui-monospace,Menlo,Consolas,monospace; }
+#s0 .l3 .chip { display:inline-block; margin:0 14px; padding:10px 26px; font-size:28px;
+  background:var(--panel); font-family:ui-monospace,Menlo,Consolas,monospace;
+  box-shadow:0 2px 10px rgba(31,36,48,0.07); }
+#s0 .l3 .chip:first-child { border:2px solid var(--c-teal); color:var(--c-teal); }
+#s0 .l3 .chip:last-child { border:2px solid var(--c-violet); color:var(--c-violet); }
 #s0 .l4 { font-size:26px; color:var(--ink-3); }
 #s0 .l5 { font-size:40px; color:var(--accent); font-weight:600;
   font-family:ui-monospace,Menlo,Consolas,monospace; }
@@ -42,10 +47,15 @@ html,body { width:1920px; height:1080px; overflow:hidden; background:var(--bg); 
 #s1 { flex-direction:column; align-items:center; justify-content:center; gap:34px; }
 #s1 .eyebrow { font-size:26px; letter-spacing:0.22em; text-transform:uppercase; color:var(--accent); }
 #s1 .eyebrow::before { content:"— "; }
-#s1 h1 { font-size:64px; font-weight:600; letter-spacing:-0.01em; max-width:1400px; text-align:center; }
+#s1 h1 { font-size:64px; font-weight:600; letter-spacing:-0.01em; max-width:1400px; text-align:center;
+  background:linear-gradient(90deg, var(--c-orange), var(--c-magenta) 60%, var(--c-violet));
+  -webkit-background-clip:text; background-clip:text; color:transparent; }
 #s1 .stats { display:flex; gap:72px; margin-top:26px; }
 #s1 .stat { text-align:center; font-size:24px; color:var(--ink-2); }
-#s1 .stat b { display:block; font-size:64px; color:var(--ink); font-weight:600; font-variant-numeric:tabular-nums; }
+#s1 .stat b { display:block; font-size:64px; font-weight:600; font-variant-numeric:tabular-nums; }
+#s1 .stat:nth-child(1) b { color:var(--c-blue); } #s1 .stat:nth-child(2) b { color:var(--c-orange); }
+#s1 .stat:nth-child(3) b { color:var(--c-teal); } #s1 .stat:nth-child(4) b { color:var(--c-violet); }
+#s1 .stat:nth-child(5) b { color:var(--c-magenta); }
 #s1 .punch { margin-top:44px; font-size:34px; color:var(--ink-2); opacity:0; }
 #s1 .punch em { color:var(--accent); font-style:normal; font-weight:600; }
 
@@ -55,7 +65,8 @@ html,body { width:1920px; height:1080px; overflow:hidden; background:var(--bg); 
 #s2 h2 { font-size:40px; font-weight:600; }
 #s2 .sub { color:var(--ink-2); font-size:26px; margin-top:8px; }
 #s2 .stage { position:relative; width:1920px; height:880px; }
-#s2 .board { position:absolute; left:50%; top:16px; transform:translateX(-50%) scale(1.12); transform-origin:top center; opacity:0; }
+#s2 .board { position:absolute; left:50%; top:16px; transform:translateX(-50%) scale(1.12); transform-origin:top center; opacity:0;
+  background:var(--panel); padding:18px 22px; box-shadow:0 4px 24px rgba(31,36,48,0.08); }
 /* heat table css (board verbatim, dark) */
 table.heat { border-collapse:collapse; font-variant-numeric:tabular-nums; }
 .heat th, .heat td { padding:0; }
@@ -75,7 +86,7 @@ table.heat { border-collapse:collapse; font-variant-numeric:tabular-nums; }
 .c-fail { background:var(--cell-fail); color:var(--fail); font-weight:600; }
 .c-ghost { color:var(--ghost); }
 tr.trap td.task { color:var(--accent); font-weight:600; }
-tr.trap.lit { outline:2px solid var(--accent); }
+tr.trap.lit { outline:2.5px solid var(--accent); background:var(--accent-soft); }
 .tag { font-size:9.5px; background:var(--accent-soft); color:var(--accent); padding:1px 6px; margin-left:8px; letter-spacing:0.1em; }
 </style>
 </head>
