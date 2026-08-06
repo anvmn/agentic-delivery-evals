@@ -18,9 +18,7 @@ It covers two under-measured territories: **Drupal** (the CMS platform behind a 
   <img src="docs/charts/scoreboard-2-light.png" alt="Pass-rate table, OpenAI, xAI, Moonshot, Alibaba and DeepSeek models: mostly green, with the d7-01 trap row all-red — 0 passes across every model." width="100%">
 </picture>
 
-Each cell shows passes/attempts ("tier" = intended difficulty, 1–3). Screenshots are from the [live results board](https://claude.ai/code/artifact/ab24bc47-d6da-45a3-8249-f31ccb879d88), whose cells regenerate from receipts. The flat markdown table, for copy-paste and diffing, is [RESULTS.md](RESULTS.md) — regenerated from `results/runs.jsonl` by `runner/report.sh`.
-
-*Gemini, OpenAI, and OpenRouter columns (Grok 4.5 = xAI; Kimi K3/K2.7-code = Moonshot; Qwen3-Coder-next = Alibaba; DeepSeek V3.2) cover subsets by design (a dot = not run; three of the not-run Gemini Pro cells are pending the provider's suspension appeal). Non-Claude d7-01 cells are single-run (n=3).*
+Cells are passes/attempts; a dot = not run — non-Claude columns cover subsets by design, and three of the not-run Gemini Pro cells are pending the provider's suspension appeal. Screenshots are from the [live results board](https://claude.ai/code/artifact/ab24bc47-d6da-45a3-8249-f31ccb879d88), whose cells regenerate from receipts; the flat table for copy-paste and diffing is [RESULTS.md](RESULTS.md), regenerated from `results/runs.jsonl` by `runner/report.sh`.
 
 ## The story the numbers tell
 
