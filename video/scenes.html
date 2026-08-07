@@ -125,6 +125,31 @@ body { background:linear-gradient(135deg, #FCE3BF 0%, #F6D8CE 26%, #D9E2FB 58%, 
   font-family:ui-monospace,Menlo,Consolas,monospace; }
 #s6 .verdict6 em { color:var(--pass); font-style:normal; }
 
+/* ---- scene 7: reviewers ---- */
+#s7 { padding:64px 0 0; text-align:center; }
+#s7 h2 { font-size:48px; font-weight:600; font-family:ui-monospace,Menlo,Consolas,monospace; }
+#s7 .sub { color:var(--ink-2); font-size:26px; margin-top:8px; }
+#s7 .panel7 { width:1700px; margin:14px auto 0; }
+#s7 .floor7 { font-size:32px; font-weight:600; opacity:0; font-family:ui-monospace,Menlo,Consolas,monospace; }
+
+/* ---- scene 8: cost + close ---- */
+#s8 { padding:90px 0 0; text-align:center; }
+#s8 h2 { font-size:54px; font-weight:600; font-family:ui-monospace,Menlo,Consolas,monospace; }
+#s8 .tiles8 { display:flex; gap:70px; justify-content:center; margin-top:46px; }
+#s8 .tile8 { opacity:0; }
+#s8 .tile8 b { display:block; font-size:84px; font-weight:600; font-variant-numeric:tabular-nums;
+  font-family:ui-monospace,Menlo,Consolas,monospace; }
+#s8 #t8a b { color:var(--c-orange); } #s8 #t8b b { color:var(--c-blue); }
+#s8 .tile8 span { font-size:26px; color:var(--ink-2); }
+#s8 .cheap8 { margin-top:44px; }
+#s8 .row8 { font-size:31px; margin-top:14px; color:var(--ink); opacity:0; }
+#s8 .row8 b { color:var(--c-teal); }
+#s8 .row8 em { color:var(--accent); font-style:normal; font-weight:600; }
+#s8 .close8 { margin-top:52px; opacity:0; }
+#s8 .repo8 { display:inline-block; font-size:34px; font-weight:600; padding:16px 34px; background:var(--panel);
+  box-shadow:0 4px 20px rgba(31,36,48,0.12); border-left:6px solid var(--accent); }
+#s8 .tag8 { margin-top:18px; font-size:25px; color:var(--ink-2); }
+
 /* ---- scene 2: heatmap ---- */
 #s2 { padding:56px 0 0; }
 #s2 .head { text-align:center; margin-bottom:8px; }
@@ -233,6 +258,32 @@ tr.trap.lit { outline:2.5px solid var(--accent); background:var(--accent-soft); 
   </div>
   <div class="panel6"><svg id="levers6" width="1800" height="560" viewBox="0 0 1800 560"></svg></div>
   <div class="verdict6">Effort cannot substitute for knowledge — <em>seeing the failure</em> can.</div>
+</section>
+
+<section class="scene" id="s7">
+  <div class="head7">
+    <h2>If AI writes the code, can AI review it?</h2>
+    <div class="sub">Ten reviewers · One correct file, one real bug · Scored against ground truth</div>
+  </div>
+  <div class="panel7"><svg id="quad7" width="1700" height="620" viewBox="0 0 1700 620"></svg></div>
+  <div class="floor7">The mechanical grader — not another AI — was the floor that caught everything.</div>
+</section>
+
+<section class="scene" id="s8">
+  <div class="head8"><h2>The price of trust</h2></div>
+  <div class="tiles8">
+    <div class="tile8" id="t8a"><b data-target="127" data-prefix="$">$0</b><span>Agent time, whole program</span></div>
+    <div class="tile8" id="t8b"><b data-target="545">0</b><span>Graded runs</span></div>
+  </div>
+  <div class="cheap8">
+    <div class="row8" id="r8a">Cheap models on the modern stack: <b>$0.05–0.16 a run</b> — and they pass.</div>
+    <div class="row8" id="r8b">But savings vanish <em>exactly where the wrong answer looks right</em>.</div>
+    <div class="row8" id="r8c">You pay for capability precisely at the traps.</div>
+  </div>
+  <div class="close8">
+    <div class="repo8 mono">github.com/anvmn/agentic-delivery-evals</div>
+    <div class="tag8">Every number regenerates from receipts · The suite is public · Bring your model</div>
+  </div>
 </section>
 
 <section class="scene" id="s2">
@@ -490,6 +541,65 @@ function seekS6(t, dur, cues=[], sdurs=[]) {
   document.querySelector('#s6 .verdict6').style.opacity = ease((t - c(7)) / 0.7);
 }
 
+const QD7 = [ // reviewer, false-alarms[k,n], misses[k,n]
+  ["fable-5",[0,3],[0,3]], ["opus-5",[0,6],[0,6]], ["opus-4.8",[0,3],[0,3]], ["5.6-sol",[0,3],[0,3]], ["kimi-k3",[0,6],[0,6]],
+  ["grok-4.5",[1,6],[2,6]], ["qwen3-next",[2,4],[0,4]], ["sonnet-5",[2,3],[0,3]],
+  ["kimi-k2.7",[4,6],[1,6]], ["ds-v3.2",[5,6],[0,6]], ["haiku-4.5",[3,3],[0,3]] ];
+
+function seekS7(t, dur, cues=[], sdurs=[]) {
+  const c = i => cues[i] ?? i * 3;
+  const d = i => sdurs[i] ?? 3;
+  const cx = 850, half = 560, rh = 46, top = 66;
+  let s = '';
+  const axU = ease((t - c(1)) / 0.7);
+  if (axU > 0) {
+    s += `<text x="${cx-16}" y="26" text-anchor="end" font-size="24" style="fill:${css('--fail')};font-weight:600;opacity:${axU}">Invented a bug in the CORRECT file</text>`;
+    s += `<text x="${cx+16}" y="26" font-size="24" style="fill:${css('--partial')};font-weight:600;opacity:${axU}">Missed the REAL bug</text>`;
+    s += `<line x1="${cx}" y1="${top-18}" x2="${cx}" y2="${top+QD7.length*rh}" stroke="${css('--line')}" stroke-width="2" opacity="${axU}"/>`;
+  }
+  QD7.forEach((rrow, i) => {
+    const y = top + i * rh;
+    const rowU = ease((t - c(1) - 0.3 - i * 0.06) / 0.5);
+    if (rowU <= 0) return;
+    s += `<text x="${cx-half-20}" y="${y+25}" text-anchor="end" font-size="23" style="fill:${css('--ink')};font-weight:600;opacity:${rowU}">${rrow[0]}</text>`;
+    const [fa, fan] = rrow[1], [ms, msn] = rrow[2];
+    const barU = ease((t - c(2) - i * 0.08) / 0.7);
+    if (!fa && !ms) {
+      const gU = ease((t - c(6)) / 0.6);
+      if (gU > 0) {
+        s += `<rect x="${cx-half}" y="${y+6}" width="${2*half}" height="${rh-14}" fill="${css('--cell-pass')}" opacity="${0.75*gU}" rx="4"/>`;
+        s += `<text x="${cx}" y="${y+27}" text-anchor="middle" font-size="20" style="fill:${css('--pass')};opacity:${gU}">No errors</text>`;
+      }
+      return;
+    }
+    if (fa && barU > 0) { const bw = fa/fan*half*barU, full = fa/fan*half > half - 70;
+      s += `<rect x="${cx-bw}" y="${y+6}" width="${bw}" height="${rh-14}" fill="${css('--fail')}" opacity="0.88" rx="3"/>`;
+      s += `<text x="${full ? cx-bw+12 : cx-bw-10}" y="${y+27}" text-anchor="${full ? 'start' : 'end'}" font-size="21" style="fill:${full ? css('--panel') : css('--fail')};opacity:${barU}">${fa}/${fan}</text>`; }
+    const gkU = ease((t - c(4)) / 0.6);
+    if (ms && gkU > 0) { const bw = ms/msn*half*gkU;
+      s += `<rect x="${cx}" y="${y+6}" width="${bw}" height="${rh-14}" fill="${css('--partial')}" opacity="0.9" rx="3"/>`;
+      s += `<text x="${cx+bw+10}" y="${y+27}" font-size="21" style="fill:${css('--partial')};opacity:${gkU}">${ms}/${msn}</text>`; }
+  });
+  document.getElementById('quad7').innerHTML = s;
+  document.querySelector('#s7 .floor7').style.opacity = ease((t - c(7)) / 0.7);
+}
+
+function seekS8(t, dur, cues=[], sdurs=[]) {
+  const c = i => cues[i] ?? i * 3;
+  const q = s => document.querySelector(s);
+  ['#t8a', '#t8b'].forEach((id, i) => {
+    const el = q(id);
+    const u = ease((t - c(1) - i * 0.5) / 0.9);
+    el.style.opacity = Math.min(1, u * 2);
+    const b = el.querySelector('b');
+    b.textContent = (b.dataset.prefix || '') + Math.round(+b.dataset.target * u);
+  });
+  q('#r8a').style.opacity = ease((t - c(2)) / 0.7);
+  q('#r8b').style.opacity = ease((t - c(3)) / 0.7);
+  q('#r8c').style.opacity = ease((t - c(4)) / 0.7);
+  q('#s8 .close8').style.opacity = ease((t - c(5)) / 0.8);
+}
+
 const SCENES = [
   { el: 's0', fn: seekS0 },
   { el: 's1', fn: seekS1 },
@@ -498,6 +608,8 @@ const SCENES = [
   { el: 's4', fn: seekS4 },
   { el: 's5', fn: seekS5 },
   { el: 's6', fn: seekS6 },
+  { el: 's7', fn: seekS7 },
+  { el: 's8', fn: seekS8 },
 ];
 window.seek = (idx, t, dur, cues, sdurs) => {
   SCENES.forEach((s, i) => document.getElementById(s.el).classList.toggle('active', i === idx));

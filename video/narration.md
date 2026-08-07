@@ -28,6 +28,14 @@ Here is the strangest part. Every failure that actually engages the framework fa
 
 So can more thinking fix it? We reran the trap with every reasoning dial at its maximum. Opus four point eight went from one in six to two in three — a genuine rescue. The new Opus five went three for three. Everyone else: zero. Twenty-four maximum-effort runs across six vendors, twenty-four failures. One model spent ten thousand thinking tokens and still wrote the trap. Thinking harder cannot substitute for knowledge that is not there. But show the model its code failing on a live site — and almost every flagship recovers.
 
+## Scene 7 — can AI review it?
+
+One more question: if AI writes the code, can AI review it? We showed ten models the same two files — one correct, one with a real bug. When reviewers err, they mostly err in one direction: inventing bugs in correct code. DeepSeek rejected the good file five times out of six; Haiku, every single time. Only Grok leaned the other way, waving the real bug through. Five reviewers made no errors at all. But the deeper pattern: model review inherits model blind spots. The mechanical grader — not another AI — was the floor that caught everything.
+
+## Scene 8 — the price of trust
+
+So what did all this cost? About one hundred and thirty dollars of agent time, for five hundred and forty-five graded runs. The cheap models cleared the modern stack for pennies — five to sixteen cents a run. But every dollar saved disappears exactly where the wrong answer looks right. You pay for capability precisely at the traps. Every number in this video regenerates from machine-readable receipts, in the open repo. The suite is public. The trap is waiting. Bring your model.
+
 ---
 
 ## Appendix — full motivation text (for written posts; not parsed for narration)
