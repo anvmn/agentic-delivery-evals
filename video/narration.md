@@ -20,6 +20,14 @@ So what is that one task? A classic Drupal seven job: a small web endpoint that 
 
 Blind, with no hints, only two models clear it: Fable five, six out of six — and the brand-new Opus five, five out of six. And Opus five's single miss? The exact same line. Every other model from every vendor sits at or near zero. Ten of the fourteen never passed it once. Model size doesn't explain it. Thinking time doesn't explain it. Something else is going on.
 
+## Scene 5 — two wrong answers
+
+Here is the strangest part. Every failure that actually engages the framework falls into one of just two wrong patterns. Pattern one: the delivery trap — the textbook-looking line we just saw. Grok wrote it, DeepSeek wrote it, Kimi wrote it, Gemini wrote it — and so did the human author of this benchmark. Pattern two: the echo instinct — printing the JSON directly instead of returning it through the framework. That one appears only in the Claude and Gemini lineages. Two patterns, seven vendors, zero exceptions. The corpus carries the disease without the vaccine: the wrong pattern is popular online, and the warning about it is not. Models fail exactly where that is true.
+
+## Scene 6 — can more thinking fix it?
+
+So can more thinking fix it? We reran the trap with every reasoning dial at its maximum. Opus four point eight went from one in six to two in three — a genuine rescue. The new Opus five went three for three. Everyone else: zero. Twenty-four maximum-effort runs across six vendors, twenty-four failures. One model spent ten thousand thinking tokens and still wrote the trap. Thinking harder cannot substitute for knowledge that is not there. But show the model its code failing on a live site — and almost every flagship recovers.
+
 ---
 
 ## Appendix — full motivation text (for written posts; not parsed for narration)
