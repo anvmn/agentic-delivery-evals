@@ -24,9 +24,9 @@ Blind, with no hints, only two models clear it: Fable five, six out of six — a
 
 Here is the strangest part. Every failure that actually engages the framework falls into one of just two wrong patterns. Pattern one: the delivery trap — the textbook-looking line we just saw. Grok wrote it, DeepSeek wrote it, Kimi wrote it, Gemini wrote it — and so did the human author of this benchmark. Pattern two: the echo instinct — printing the JSON directly instead of returning it through the framework. That one appears only in the Claude and Gemini lineages. Two patterns, seven vendors, zero exceptions. The corpus carries the disease without the vaccine: the wrong pattern is popular online, and the warning about it is not. Models fail exactly where that is true.
 
-## Scene 6 — can more thinking fix it?
+## Scene 6 — what actually rescues a model?
 
-So can more thinking fix it? We reran the trap with every reasoning dial at its maximum. Opus four point eight went from one in six to two in three — a genuine rescue. The new Opus five went three for three. Everyone else: zero. Twenty-four maximum-effort runs across six vendors, twenty-four failures. One model spent ten thousand thinking tokens and still wrote the trap. Thinking harder cannot substitute for knowledge that is not there. But show the model its code failing on a live site — and almost every flagship recovers.
+So the trap is real. What actually helps? We tried two rescues. Rescue one: more thinking. We reran the trap with every reasoning dial at its maximum. Opus four point eight improved, from one in six to two in three — and the new Opus five went three for three. Everyone else: zero — twenty-four maximum-effort runs, twenty-four failures. One model spent ten thousand thinking tokens, and still wrote the trap. Rescue two: instead of thinking harder, let the model see its work running. We deployed every attempt to a live site, and gave the agent a probe: call the endpoint, look at the real response, fix what you see. That changed everything: almost every flagship recovered — Grok went from zero to six out of six. Effort cannot substitute for missing knowledge — but observed behavior can.
 
 ## Scene 7 — can AI review it?
 

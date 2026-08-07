@@ -116,12 +116,22 @@ body { background:linear-gradient(135deg, #FCE3BF 0%, #F6D8CE 26%, #D9E2FB 58%, 
 #s5 .punch5 { margin-top:26px; font-size:30px; color:var(--ink-2); line-height:1.5; opacity:0; }
 #s5 .punch5 em { color:var(--accent); font-style:normal; font-weight:600; }
 
-/* ---- scene 6: effort ---- */
-#s6 { padding:70px 0 0; text-align:center; }
-#s6 h2 { font-size:50px; font-weight:600; font-family:ui-monospace,Menlo,Consolas,monospace; }
-#s6 .sub { color:var(--ink-2); font-size:26px; margin-top:8px; }
-#s6 .panel6 { width:1800px; margin:20px auto 0; }
-#s6 .verdict6 { font-size:34px; font-weight:600; color:var(--ink); opacity:0;
+/* ---- scene 6: two rescues ---- */
+#s6 { padding:56px 0 0; text-align:center; }
+#s6 h2 { font-size:48px; font-weight:600; font-family:ui-monospace,Menlo,Consolas,monospace; }
+#s6 .sub { color:var(--ink-2); font-size:26px; margin-top:6px; }
+#s6 .annrow { margin-top:22px; min-height:52px; }
+#s6 .annrow.row2 { margin-top:10px; }
+#s6 .chip6 { display:inline-block; margin:0 10px; padding:9px 20px; font-size:24px; background:var(--panel);
+  box-shadow:0 2px 10px rgba(31,36,48,0.08); opacity:0; font-family:ui-monospace,Menlo,Consolas,monospace; }
+#s6 .chip6 b { font-weight:600; }
+#s6 .chip6.r1 { border:2px solid var(--partial); color:var(--partial); }
+#s6 .chip6.r2 { border:2px solid var(--pass); color:var(--pass); }
+#s6 .chip6.stat { border:2px solid var(--fail); color:var(--fail); font-weight:600; }
+#s6 .chip6.note { color:var(--ink-2); }
+#s6 .explain6 { display:inline-block; margin-left:16px; font-size:26px; color:var(--ink-2); opacity:0; vertical-align:middle; }
+#s6 .panel6 { width:1800px; margin:10px auto 0; }
+#s6 .verdict6 { font-size:33px; font-weight:600; color:var(--ink); opacity:0;
   font-family:ui-monospace,Menlo,Consolas,monospace; }
 #s6 .verdict6 em { color:var(--pass); font-style:normal; }
 
@@ -253,11 +263,20 @@ tr.trap.lit { outline:2.5px solid var(--accent); background:var(--accent-soft); 
 
 <section class="scene" id="s6">
   <div class="head6">
-    <h2>Can more thinking fix it?</h2>
-    <div class="sub">The trap task, reasoning dial at maximum · Then once more on a live site with a behavior probe</div>
+    <h2>What actually rescues a model from the trap?</h2>
+    <div class="sub">The same task, two interventions</div>
   </div>
-  <div class="panel6"><svg id="levers6" width="1800" height="560" viewBox="0 0 1800 560"></svg></div>
-  <div class="verdict6">Effort cannot substitute for knowledge — <em>seeing the failure</em> can.</div>
+  <div class="annrow">
+    <span class="chip6 r1">Rescue 1 · Think harder <b>(reasoning at maximum)</b></span>
+    <span class="chip6 stat">24 runs · 24 failures</span>
+    <span class="chip6 note">10,000 thinking tokens — still the trap</span>
+  </div>
+  <div class="annrow row2">
+    <span class="chip6 r2">Rescue 2 · See it run <b>(live site + probe)</b></span>
+    <span class="explain6">Deploy → call the endpoint → observe the real response → fix what you see</span>
+  </div>
+  <div class="panel6"><svg id="levers6" width="1800" height="450" viewBox="0 0 1800 450"></svg></div>
+  <div class="verdict6">Effort cannot substitute for missing knowledge — <em>observed behavior</em> can.</div>
 </section>
 
 <section class="scene" id="s7">
@@ -509,10 +528,16 @@ const LD6 = [  // model, blind[p,n], max-effort[p,n]|null, live-probe[p,n]|null
 function seekS6(t, dur, cues=[], sdurs=[]) {
   const c = i => cues[i] ?? i * 3;
   const d = i => sdurs[i] ?? 3;
+  const q = s => document.querySelector(s);
+  q('#s6 .chip6.r1').style.opacity = ease((t - c(3)) / 0.6);
+  q('#s6 .chip6.stat').style.opacity = ease((t - c(6)) / 0.6);
+  q('#s6 .chip6.note').style.opacity = ease((t - c(7)) / 0.6);
+  q('#s6 .chip6.r2').style.opacity = ease((t - c(8)) / 0.6);
+  q('#s6 .explain6').style.opacity = ease((t - c(9)) / 0.7);
   const el = document.getElementById('levers6');
-  const lw = 38, lg = 8, groupW = 3*(lw+lg) + 40, x0 = 60, y0 = 46, H = 330;
+  const lw = 38, lg = 8, groupW = 3*(lw+lg) + 40, x0 = 60, y0 = 44, H = 290;
   const cols = [css('--ghost'), css('--partial'), css('--pass')];
-  const starts = [c(1) + 0.6, c(2), c(8) + 0.4];   // blind, effort, live-probe waves
+  const starts = [c(4) + 0.3, c(5), c(10) + 0.3];   // blind, effort, live-probe waves
   let s = '';
   LD6.forEach((row, gi) => {
     const gx = x0 + gi * groupW;
@@ -528,18 +553,15 @@ function seekS6(t, dur, cues=[], sdurs=[]) {
     s += `<text x="${gx + (3*(lw+lg)-lg)/2}" y="${y0+H+34}" text-anchor="middle" font-size="20">${row[0]}</text>`;
   });
   s += `<line x1="${x0-12}" y1="${y0+H}" x2="${x0+10*groupW}" y2="${y0+H}" stroke="${css('--line')}" stroke-width="2"/>`;
-  const ovU = ease((t - c(4)) / 0.7);
-  if (ovU > 0) s += `<text x="${x0+6*groupW}" y="${y0+60}" font-size="32" style="fill:${css('--fail')};font-weight:600;opacity:${ovU}">24 max-effort runs · 24 failures</text>`;
-  const fl = ease((t - c(5)) / 0.7);
-  if (fl > 0) s += `<text x="${x0+6*groupW}" y="${y0+104}" font-size="24" style="fill:${css('--ink-2')};opacity:${fl}">One thought 10,000 tokens — and still wrote the trap</text>`;
-  const lg2 = ease((t - c(8)) / 0.6);
-  if (lg2 > 0) {
-    s += `<rect x="${x0+6*groupW-10}" y="${y0+140}" width="26" height="26" fill="${css('--pass')}" opacity="${0.92*lg2}" rx="3"/>`;
-    s += `<text x="${x0+6*groupW+28}" y="${y0+160}" font-size="24" style="opacity:${lg2}">Live site + behavior probe</text>`;
+  const gkU = ease((t - c(10) - d(10) * 0.55) / 0.6);
+  if (gkU > 0) {
+    const gx = x0 + 5 * groupW;   // grok group
+    s += `<text x="${gx + (3*(lw+lg)-lg)/2}" y="${y0+H+66}" text-anchor="middle" font-size="23" style="fill:${css('--pass')};font-weight:600;opacity:${gkU}">0 → 6/6</text>`;
   }
   el.innerHTML = s;
-  document.querySelector('#s6 .verdict6').style.opacity = ease((t - c(7)) / 0.7);
+  document.querySelector('#s6 .verdict6').style.opacity = ease((t - c(11)) / 0.7);
 }
+
 
 const QD7 = [ // reviewer, false-alarms[k,n], misses[k,n]
   ["fable-5",[0,3],[0,3]], ["opus-5",[0,6],[0,6]], ["opus-4.8",[0,3],[0,3]], ["5.6-sol",[0,3],[0,3]], ["kimi-k3",[0,6],[0,6]],
