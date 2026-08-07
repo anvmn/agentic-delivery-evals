@@ -5,25 +5,55 @@ set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
 WORK="${1:-$HERE/build}"
-VOICE="${VOICE:-en_US-hfc_male-medium}"
+ENGINE="${ENGINE:-elevenlabs}"                       # elevenlabs | piper
+VOICE="${VOICE:-en_US-hfc_male-medium}"             # piper voice (ENGINE=piper)
+VOICE_ID="${VOICE_ID:-1SM7GgM6IMuvQlz2BwM3}"        # ElevenLabs voice (Mark - Casual, Relaxed and Light)
+TTS_SPEED="${TTS_SPEED:-0.95}"                      # ElevenLabs speed (0.7-1.2)
 PIPER="$HOME/.local/share/piper/piper/piper"
 ESPEAK="$HOME/.local/share/piper/piper/espeak-ng-data"
 MODEL="$HOME/.local/share/piper/voices/$VOICE.onnx"
 PAD=0.4   # inter-scene silence, seconds
 FIXTURE="$ROOT/tasks/b-01-write-e2e/fixture"
+CACHE="$HERE/tts-cache"                             # sentence-level TTS cache (gitignored)
+if [ "$ENGINE" = "elevenlabs" ] && [ -z "${ELEVENLABS_API_KEY:-}" ]; then
+  eval "$(grep '^export ELEVENLABS_API_KEY=' "$HOME/.bashrc" | tail -1)" || true
+fi
+export ELEVENLABS_API_KEY="${ELEVENLABS_API_KEY:-}"
 
 mkdir -p "$WORK/audio"
 
-# 1-3) narration.md -> per-SENTENCE Piper synthesis -> scene WAVs + exact cue map + SRT
-python3 - "$HERE/narration.md" "$WORK" "$PAD" "$PIPER" "$MODEL" "$ESPEAK" <<'EOF'
-import re, sys, os, json, subprocess
+# 1-3) narration.md -> per-SENTENCE synthesis (cached) -> scene WAVs + exact cue map + SRT
+python3 - "$HERE/narration.md" "$WORK" "$PAD" "$PIPER" "$MODEL" "$ESPEAK" "$ENGINE" "$VOICE_ID" "$TTS_SPEED" "$CACHE" <<'EOF'
+import re, sys, os, json, subprocess, hashlib, urllib.request
 src, work, pad, piper, model, espeak = sys.argv[1], sys.argv[2], float(sys.argv[3]), sys.argv[4], sys.argv[5], sys.argv[6]
+engine, voice_id, tts_speed, cache = sys.argv[7], sys.argv[8], float(sys.argv[9]), sys.argv[10]
 GAP = 0.18   # silence between sentences, seconds
 adir = os.path.join(work, 'audio')
 os.makedirs(adir, exist_ok=True)
+os.makedirs(cache, exist_ok=True)
 
 def dur(w):
     return float(subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration','-of','csv=p=0', w]).strip())
+
+def synth(sent, w):
+    if engine == 'elevenlabs':
+        key = hashlib.sha256(f'11l|{voice_id}|eleven_multilingual_v2|{tts_speed}|{sent}'.encode()).hexdigest()[:24]
+        cached = os.path.join(cache, key + '.wav')
+        if not os.path.exists(cached):
+            req = urllib.request.Request(
+                f'https://api.elevenlabs.io/v1/text-to-speech/{voice_id}?output_format=mp3_44100_128',
+                data=json.dumps({'text': sent, 'model_id': 'eleven_multilingual_v2',
+                                 'voice_settings': {'speed': tts_speed}}).encode(),
+                headers={'xi-api-key': os.environ['ELEVENLABS_API_KEY'], 'Content-Type': 'application/json'})
+            mp3 = cached + '.mp3'
+            with urllib.request.urlopen(req, timeout=120) as r, open(mp3, 'wb') as f:
+                f.write(r.read())
+            subprocess.run(['ffmpeg','-y','-v','error','-i', mp3, '-ar','44100','-ac','1', cached], check=True)
+            os.remove(mp3)
+        subprocess.run(['cp', cached, w], check=True)
+    else:
+        subprocess.run([piper, '--model', model, '--quiet', '--espeak_data', espeak, '--output_file', w],
+                       input=sent.encode(), check=True, stderr=subprocess.DEVNULL)
 
 body = open(src).read()
 found = re.findall(r'^## Scene (\d+)[^\n]*\n\n(.+?)(?=\n## |\n---|\Z)', body, re.S | re.M)
@@ -34,8 +64,7 @@ for num, text in found:
     cues, sdurs, wavs, t = [], [], [], 0.0
     for i, sent in enumerate(sents):
         w = os.path.join(adir, f'sent-{num}-{i}.wav')
-        subprocess.run([piper, '--model', model, '--quiet', '--espeak_data', espeak, '--output_file', w],
-                       input=sent.encode(), check=True, stderr=subprocess.DEVNULL)
+        synth(sent, w)
         d = dur(w)
         cues.append(round(t, 3)); sdurs.append(round(d, 3)); wavs.append(w)
         t += d + GAP
