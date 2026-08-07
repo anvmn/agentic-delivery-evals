@@ -140,4 +140,5 @@ ffmpeg -y -v error -i "$WORK/video-nocap.mp4" -i "$WORK/narration.wav" \
   -c:v libx264 -preset medium -crf 20 -pix_fmt yuv420p -c:a aac -b:a 128k -shortest \
   "$WORK/poc.mp4"
 ffprobe -v error -show_entries format=duration:stream=codec_type,width,height -of compact "$WORK/poc.mp4"
-echo "wrote $WORK/poc.mp4"
+mkdir -p "$HOME/Videos" && cp "$WORK/poc.mp4" "$HOME/Videos/agentic-delivery-evals-draft.mp4"
+echo "wrote $WORK/poc.mp4 (durable copy: ~/Videos/agentic-delivery-evals-draft.mp4)"
