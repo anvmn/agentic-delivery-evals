@@ -59,6 +59,41 @@ body { background:linear-gradient(135deg, #FCE3BF 0%, #F6D8CE 26%, #D9E2FB 58%, 
 #s1 .punch { margin-top:44px; font-size:34px; color:var(--ink-2); opacity:0; }
 #s1 .punch em { color:var(--accent); font-style:normal; font-weight:600; }
 
+/* ---- scene 3: the trap ---- */
+#s3 { padding:70px 0 0; text-align:center; }
+#s3 .head3 { opacity:0; }
+#s3 .eyebrow3 { font-size:24px; letter-spacing:0.22em; text-transform:uppercase; color:var(--accent);
+  font-family:ui-monospace,Menlo,Consolas,monospace; }
+#s3 h2 { font-size:52px; font-weight:600; margin-top:8px; font-family:ui-monospace,Menlo,Consolas,monospace; }
+#s3 .job { opacity:0; font-size:30px; color:var(--ink-2); margin-top:12px; }
+#s3 .codewrap { opacity:0; width:1060px; margin:36px auto 0; text-align:left; position:relative;
+  background:#20242E; border-radius:10px; padding:30px 38px; box-shadow:0 6px 30px rgba(31,36,48,0.18); }
+#s3 pre { font:26px/1.75 ui-monospace,Menlo,Consolas,monospace; color:#D8DEE9; min-height:230px; white-space:pre; }
+#s3 pre em.hl { font-style:normal; background:#5A2A22; color:#FFB4A6; border-radius:4px; padding:1px 6px; }
+#s3 .callout { position:absolute; right:38px; bottom:-21px; background:var(--fail); color:#fff;
+  font-size:23px; padding:8px 20px; border-radius:6px; opacity:0; }
+#s3 .httpx { opacity:0; width:1060px; margin:52px auto 0; text-align:left; font-size:28px;
+  display:grid; grid-template-columns:1fr 1fr; gap:14px 40px; }
+#s3 .httpx .req { grid-column:1 / -1; color:var(--ink-2); }
+#s3 .httpx .want { color:var(--ink-3); text-decoration:line-through; opacity:0; }
+#s3 .httpx .got { color:var(--fail); font-weight:600; opacity:0; }
+#s3 .httpx .note3 { grid-column:1 / -1; color:var(--ink-2); font-size:24px; opacity:0; }
+#s3 .close3 { opacity:0; margin-top:46px; }
+#s3 .close3 span { display:inline-block; margin:0 10px; padding:9px 22px; background:var(--panel);
+  font-family:ui-monospace,Menlo,Consolas,monospace; font-size:26px; color:var(--ink-2);
+  box-shadow:0 2px 10px rgba(31,36,48,0.08); }
+#s3 .close3 span.bad { color:#fff; background:var(--fail); }
+
+/* ---- scene 4: staircase ---- */
+#s4 { padding:70px 0 0; text-align:center; }
+#s4 h2 { font-size:48px; font-weight:600; font-family:ui-monospace,Menlo,Consolas,monospace; }
+#s4 .sub { color:var(--ink-2); font-size:27px; margin-top:8px; }
+#s4 .panel4 { width:1800px; margin:26px auto 0; }
+#s4 .notline { opacity:0; font-size:28px; color:var(--ink-2); }
+#s4 .notline span { margin:0 18px; opacity:0; }
+#s4 .final4 { opacity:0; margin-top:18px; font-size:38px; font-weight:600; color:var(--accent);
+  font-family:ui-monospace,Menlo,Consolas,monospace; }
+
 /* ---- scene 2: heatmap ---- */
 #s2 { padding:56px 0 0; }
 #s2 .head { text-align:center; margin-bottom:8px; }
@@ -111,6 +146,35 @@ tr.trap.lit { outline:2.5px solid var(--accent); background:var(--accent-soft); 
     <div class="stat"><b data-target="127" data-prefix="$">$0</b>agent time</div>
   </div>
   <div class="punch">Almost everything passed. The story is <em>the one task that didn't.</em></div>
+</section>
+
+<section class="scene" id="s3">
+  <div class="head3">
+    <div class="eyebrow3">the trap</div>
+    <h2>d7-01 · menu endpoint</h2>
+    <div class="job">a small JSON endpoint · behind a permission</div>
+  </div>
+  <div class="codewrap">
+    <pre id="code3"></pre>
+    <div class="callout">silently breaks the security requirement</div>
+  </div>
+  <div class="httpx">
+    <div class="req mono">anonymous → GET /api/report</div>
+    <div class="want mono">expected: <b>403 Forbidden</b></div>
+    <div class="got mono">got: <b>200 OK</b> · application/json · body: <b>3</b></div>
+    <div class="note3">3 = MENU_ACCESS_DENIED — json-encoded</div>
+  </div>
+  <div class="close3"><span>looks right</span><span>compiles</span><span>runs</span><span class="bad">fails the requirement that mattered</span></div>
+</section>
+
+<section class="scene" id="s4">
+  <div class="head4">
+    <h2>Blind pass rate — the trap task</h2>
+    <div class="sub">no hints, no live site — just the task and the model</div>
+  </div>
+  <div class="panel4"><svg id="stairv" width="1800" height="600" viewBox="0 0 1800 600"></svg></div>
+  <div class="notline"><span>not model size</span><span>not thinking time</span></div>
+  <div class="final4">something else is going on.</div>
 </section>
 
 <section class="scene" id="s2">
@@ -197,6 +261,7 @@ buildHeat(document.getElementById('heat2'), VENDORS.slice(2));
    cues[i]/sdurs[i] = exact start/duration of narration sentence i within the scene
    (from timing.json; produced by per-sentence Piper synthesis). */
 const clamp = (x,a,b) => Math.max(a, Math.min(b, x));
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const ease = u => u<0 ? 0 : u>1 ? 1 : 1 - Math.pow(1-u, 3);   // easeOutCubic
 
 function seekS0(t, dur, cues=[], sdurs=[]) {
@@ -236,10 +301,84 @@ function seekS2(t, dur, cues=[], sdurs=[]) {
   document.querySelectorAll('tr.trap').forEach(r => r.classList.toggle('lit', t > ringAt));
 }
 
+const CODE3 = `$items['api/report'] = [
+  'page callback'     => 'healthstats_report',
+  'access arguments'  => ['view health stats'],
+  'delivery callback' => 'drupal_json_output',
+];`;
+const CODE3_HL = CODE3.replace("'delivery callback' => 'drupal_json_output',",
+  "<em class=\"hl\">'delivery callback' => 'drupal_json_output',</em>");
+
+function seekS3(t, dur, cues=[], sdurs=[]) {
+  const c = i => cues[i] ?? i * 3.5;
+  const d = i => sdurs[i] ?? 3;
+  const q = s => document.querySelector(s);
+  q('#s3 .head3').style.opacity = ease((t - 0.2) / 0.7);
+  q('#s3 .job').style.opacity = ease((t - c(1)) / 0.7);
+  q('#s3 .codewrap').style.opacity = ease((t - c(2)) / 0.7);
+  const pre = q('#code3');
+  const typing = clamp((t - c(2) - 0.3) / (d(2) * 0.75), 0, 1);
+  if (t < c(3)) { pre.textContent = CODE3.slice(0, Math.round(CODE3.length * typing)); }
+  else { pre.innerHTML = CODE3_HL; }
+  q('#s3 .callout').style.opacity = ease((t - c(3) - 0.3) / 0.6);
+  q('#s3 .httpx').style.opacity = ease((t - c(4)) / 0.6);
+  q('#s3 .want').style.opacity = ease((t - c(4) - d(4)*0.25) / 0.5);
+  q('#s3 .got').style.opacity = ease((t - c(4) - d(4)*0.5) / 0.5);
+  q('#s3 .note3').style.opacity = ease((t - c(5)) / 0.6);
+  q('#s3 .close3').style.opacity = ease((t - c(6)) / 0.5);
+  document.querySelectorAll('#s3 .close3 span').forEach((sp, i) => {
+    sp.style.opacity = ease((t - c(6) - 0.15 - i * d(6) * 0.16) / 0.5);
+  });
+}
+
+const SD4 = [["fable-5",6,6],["opus-5",5,6],["opus-4.8",1,6],["g3.1-pro",1,3],
+  ["sonnet-5",0,6],["haiku-4.5",0,6],["g3-flash",0,3],["5.6-sol",0,3],["5.6-luna",0,3],
+  ["grok-4.5",0,6],["kimi-k3",0,6],["k2.7-code",0,6],["qwen3-next",0,6],["ds-v3.2",0,6]];
+
+function seekS4(t, dur, cues=[], sdurs=[]) {
+  const c = i => cues[i] ?? i * 2.5;
+  const d = i => sdurs[i] ?? 2;
+  const el = document.getElementById('stairv');
+  const bw = 100, gap = 26, x0 = 46, y0 = 40, H = 380;
+  let s = '';
+  SD4.forEach((row, i) => {
+    const [name, p, nn] = row;
+    const start = i < 2 ? c(0) + 0.8 + i * d(0) * 0.35 : c(3) + (i - 2) * 0.1;
+    const u = ease((t - start) / 0.8);
+    const frac = p / nn, bh = Math.max(4, frac * H * u), x = x0 + i * (bw + gap);
+    const col = frac === 1 ? css('--pass') : (frac === 0 ? css('--fail') : css('--partial'));
+    if (u > 0) {
+      s += `<rect x="${x}" y="${y0+H-bh}" width="${bw}" height="${bh}" fill="${col}" opacity="0.92" rx="4"/>`;
+      s += `<text x="${x+bw/2}" y="${y0+H-bh-12}" text-anchor="middle" font-size="24" style="fill:${col};font-weight:600;opacity:${u}">${p}/${nn}</text>`;
+      s += `<text x="${x+bw/2}" y="${y0+H+34}" text-anchor="middle" font-size="19" style="opacity:${u}">${name}</text>`;
+    }
+  });
+  s += `<line x1="${x0-10}" y1="${y0+H}" x2="${x0+14*(bw+gap)}" y2="${y0+H}" stroke="${css('--line')}" stroke-width="2"/>`;
+  const tagU = ease((t - c(2)) / 0.6);
+  if (tagU > 0) {
+    const x = x0 + 1 * (bw + gap);
+    const yTop = y0 + H - H * 1, yMiss = y0 + H - H * (5/6);
+    s += `<rect x="${x-4}" y="${yTop-4}" width="${bw+8}" height="${yMiss-yTop+8}" fill="none" stroke="${css('--accent')}" stroke-width="3" stroke-dasharray="7 5" rx="4" opacity="${tagU}"/>`;
+    s += `<text x="${x+bw+18}" y="${yTop+18}" font-size="24" style="fill:${css('--accent')};font-weight:600;opacity:${tagU}">the same line</text>`;
+  }
+  const ovU = ease((t - c(4)) / 0.7);
+  if (ovU > 0) {
+    s += `<text x="${x0 + 9*(bw+gap)}" y="${y0+90}" text-anchor="middle" font-size="34" style="fill:${css('--fail')};font-weight:600;opacity:${ovU}">10 of 14 — zero blind passes</text>`;
+  }
+  el.innerHTML = s;
+  document.querySelector('#s4 .notline').style.opacity = ease((t - c(5)) / 0.4);
+  const spans = document.querySelectorAll('#s4 .notline span');
+  spans[0].style.opacity = ease((t - c(5)) / 0.6);
+  spans[1].style.opacity = ease((t - c(6)) / 0.6);
+  document.querySelector('#s4 .final4').style.opacity = ease((t - c(7)) / 0.7);
+}
+
 const SCENES = [
   { el: 's0', fn: seekS0 },
   { el: 's1', fn: seekS1 },
   { el: 's2', fn: seekS2 },
+  { el: 's3', fn: seekS3 },
+  { el: 's4', fn: seekS4 },
 ];
 window.seek = (idx, t, dur, cues, sdurs) => {
   SCENES.forEach((s, i) => document.getElementById(s.el).classList.toggle('active', i === idx));

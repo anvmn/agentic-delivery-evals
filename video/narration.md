@@ -12,6 +12,14 @@ We gave fifteen real coding tasks to fourteen AI models from seven vendors. Five
 
 The tasks come from two under-measured territories: Drupal, the CMS behind a large share of institutional websites, in both its modern and its legacy versions — and Elm, a typed functional language for web apps. Every task is graded mechanically: compilers, tests, and live behavior probes. No AI judges, and every number regenerates from machine-readable receipts. Here is the scoreboard. A wall of green — with one exception.
 
+## Scene 3 — the trap
+
+So what is that one task? A classic Drupal seven job: a small web endpoint that returns JSON, restricted to users with the right permission. There is a one-line way to wire it that looks like textbook code — and the pattern is all over the internet. But it silently breaks the security requirement. Users who should get access denied instead get a friendly two hundred OK — whose entire body is the number three. That is the framework's internal access-denied code, helpfully converted to JSON. One line that looks right, compiles, runs — and quietly fails the one requirement that mattered.
+
+## Scene 4 — the staircase
+
+Blind, with no hints, only two models clear it: Fable five, six out of six — and the brand-new Opus five, five out of six. And Opus five's single miss? The exact same line. Every other model from every vendor sits at or near zero. Ten of the fourteen never passed it once. Model size doesn't explain it. Thinking time doesn't explain it. Something else is going on.
+
 ---
 
 ## Appendix — full motivation text (for written posts; not parsed for narration)
