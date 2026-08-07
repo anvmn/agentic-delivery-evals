@@ -36,13 +36,15 @@ def dur(w):
     return float(subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration','-of','csv=p=0', w]).strip())
 
 def synth(sent, w):
+    # em-dashes make the v2 model emit breathy artifacts; commas read as the same pause
+    tts_text = sent.replace(' \u2014 ', ', ').replace('\u2014', ',')
     if engine == 'elevenlabs':
-        key = hashlib.sha256(f'11l|{voice_id}|eleven_multilingual_v2|{tts_speed}|{sent}'.encode()).hexdigest()[:24]
+        key = hashlib.sha256(f'11l|{voice_id}|eleven_multilingual_v2|{tts_speed}|{tts_text}'.encode()).hexdigest()[:24]
         cached = os.path.join(cache, key + '.wav')
         if not os.path.exists(cached):
             req = urllib.request.Request(
                 f'https://api.elevenlabs.io/v1/text-to-speech/{voice_id}?output_format=mp3_44100_128',
-                data=json.dumps({'text': sent, 'model_id': 'eleven_multilingual_v2',
+                data=json.dumps({'text': tts_text, 'model_id': 'eleven_multilingual_v2',
                                  'voice_settings': {'speed': tts_speed}}).encode(),
                 headers={'xi-api-key': os.environ['ELEVENLABS_API_KEY'], 'Content-Type': 'application/json'})
             mp3 = cached + '.mp3'
