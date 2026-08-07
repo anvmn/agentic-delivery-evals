@@ -128,10 +128,10 @@ tr.trap.lit { outline:2.5px solid var(--accent); background:var(--accent-soft); 
 <body>
 
 <section class="scene" id="s0">
-  <div class="line l1">a production health platform<span>legacy Drupal · Elm frontend</span></div>
+  <div class="line l1">A production health platform<span>Legacy Drupal · Elm frontend</span></div>
   <div class="line l2">Which model can I <em>trust</em> with this codebase?</div>
-  <div class="line l3"><span class="chip">quality code?</span><span class="chip">honest reviews?</span></div>
-  <div class="line l4">public benchmarks don't measure stacks like this</div>
+  <div class="line l3"><span class="chip">Quality code?</span><span class="chip">Honest reviews?</span></div>
+  <div class="line l4">Public benchmarks don't measure stacks like this</div>
   <div class="line l5">So I measured it.</div>
 </section>
 
@@ -139,11 +139,11 @@ tr.trap.lit { outline:2.5px solid var(--accent); background:var(--accent-soft); 
   <div class="eyebrow">agentic-delivery-evals</div>
   <h1>Where AI coding agents quietly fail</h1>
   <div class="stats">
-    <div class="stat"><b data-target="15">0</b>tasks</div>
-    <div class="stat"><b data-target="14">0</b>models</div>
-    <div class="stat"><b data-target="7">0</b>vendors</div>
-    <div class="stat"><b data-target="545">0</b>graded runs</div>
-    <div class="stat"><b data-target="127" data-prefix="$">$0</b>agent time</div>
+    <div class="stat"><b data-target="15">0</b>Tasks</div>
+    <div class="stat"><b data-target="14">0</b>Models</div>
+    <div class="stat"><b data-target="7">0</b>Vendors</div>
+    <div class="stat"><b data-target="545">0</b>Graded runs</div>
+    <div class="stat"><b data-target="127" data-prefix="$">$0</b>Agent time</div>
   </div>
   <div class="punch">Almost everything passed. The story is <em>the one task that didn't.</em></div>
 </section>
@@ -152,35 +152,35 @@ tr.trap.lit { outline:2.5px solid var(--accent); background:var(--accent-soft); 
   <div class="head3">
     <div class="eyebrow3">the trap</div>
     <h2>d7-01 · menu endpoint</h2>
-    <div class="job">a small JSON endpoint · behind a permission</div>
+    <div class="job">A small JSON endpoint · Behind a permission</div>
   </div>
   <div class="codewrap">
     <pre id="code3"></pre>
-    <div class="callout">silently breaks the security requirement</div>
+    <div class="callout">Silently breaks the security requirement</div>
   </div>
   <div class="httpx">
-    <div class="req mono">anonymous → GET /api/report</div>
-    <div class="want mono">expected: <b>403 Forbidden</b></div>
-    <div class="got mono">got: <b>200 OK</b> · application/json · body: <b>3</b></div>
-    <div class="note3">3 = MENU_ACCESS_DENIED — json-encoded</div>
+    <div class="req mono">Anonymous → GET /api/report</div>
+    <div class="want mono">Expected: <b>403 Forbidden</b></div>
+    <div class="got mono">Got: <b>200 OK</b> · application/json · body: <b>3</b></div>
+    <div class="note3">3 = MENU_ACCESS_DENIED — JSON-encoded</div>
   </div>
-  <div class="close3"><span>looks right</span><span>compiles</span><span>runs</span><span class="bad">fails the requirement that mattered</span></div>
+  <div class="close3"><span>Looks right</span><span>Compiles</span><span>Runs</span><span class="bad">Fails the requirement that mattered</span></div>
 </section>
 
 <section class="scene" id="s4">
   <div class="head4">
     <h2>Blind pass rate — the trap task</h2>
-    <div class="sub">no hints, no live site — just the task and the model</div>
+    <div class="sub">No hints, no live site — just the task and the model</div>
   </div>
   <div class="panel4"><svg id="stairv" width="1800" height="600" viewBox="0 0 1800 600"></svg></div>
-  <div class="notline"><span>not model size</span><span>not thinking time</span></div>
-  <div class="final4">something else is going on.</div>
+  <div class="notline"><span>Not model size</span><span>Not thinking time</span></div>
+  <div class="final4">Something else is going on.</div>
 </section>
 
 <section class="scene" id="s2">
   <div class="head">
     <h2>15 tasks × 14 models, graded mechanically</h2>
-    <div class="sub">Drupal 7 &amp; 10 + Elm · compilers, tests, live probes — no AI judges · every number regenerates from receipts</div>
+    <div class="sub">Drupal 7 &amp; 10 + Elm · Compilers, tests, live probes — no AI judges · Every number regenerates from receipts</div>
   </div>
   <div class="stage">
     <div class="board" id="board1"><table class="heat" id="heat1"></table></div>
@@ -359,11 +359,11 @@ function seekS4(t, dur, cues=[], sdurs=[]) {
     const x = x0 + 1 * (bw + gap);
     const yTop = y0 + H - H * 1, yMiss = y0 + H - H * (5/6);
     s += `<rect x="${x-4}" y="${yTop-4}" width="${bw+8}" height="${yMiss-yTop+8}" fill="none" stroke="${css('--accent')}" stroke-width="3" stroke-dasharray="7 5" rx="4" opacity="${tagU}"/>`;
-    s += `<text x="${x+bw+18}" y="${yTop+18}" font-size="24" style="fill:${css('--accent')};font-weight:600;opacity:${tagU}">the same line</text>`;
+    s += `<text x="${x+bw+18}" y="${yTop+18}" font-size="24" style="fill:${css('--accent')};font-weight:600;opacity:${tagU}">The same line</text>`;
   }
   const ovU = ease((t - c(4)) / 0.7);
   if (ovU > 0) {
-    s += `<text x="${x0 + 9*(bw+gap)}" y="${y0+90}" text-anchor="middle" font-size="34" style="fill:${css('--fail')};font-weight:600;opacity:${ovU}">10 of 14 — zero blind passes</text>`;
+    s += `<text x="${x0 + 9*(bw+gap)}" y="${y0+90}" text-anchor="middle" font-size="34" style="fill:${css('--fail')};font-weight:600;opacity:${ovU}">10 of 14 — Zero blind passes</text>`;
   }
   el.innerHTML = s;
   document.querySelector('#s4 .notline').style.opacity = ease((t - c(5)) / 0.4);

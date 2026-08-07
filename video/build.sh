@@ -95,8 +95,26 @@ open(os.path.join(work, 'captions.srt'), 'w').write('\n'.join(out))
 print(f'captions.srt: {idx-1} cues (exact)')
 EOF
 
-# 4) frames via Playwright (chromium from the b-01 fixture install)
-NODE_PATH="$FIXTURE/node_modules" node "$HERE/render_frames.js" "$WORK"
+# 4) frames via Playwright — one chromium PER SCENE, in parallel
+NSCENES=$(python3 -c "import json;print(len(json.load(open('$WORK/timing.json'))['scenes']))")
+pids=()
+for i in $(seq 0 $((NSCENES-1))); do
+  NODE_PATH="$FIXTURE/node_modules" node "$HERE/render_frames.js" "$WORK" "$i" &
+  pids+=($!)
+done
+for p in "${pids[@]}"; do wait "$p"; done
+
+# 4b) per-scene clips (parallel), then lossless concat into one stream
+clip_pids=()
+for i in $(seq 0 $((NSCENES-1))); do
+  ffmpeg -y -v error -framerate 30 -i "$WORK/frames-$i/f%06d.png" \
+    -c:v libx264 -preset veryfast -crf 18 -pix_fmt yuv420p "$WORK/clip-$i.mp4" &
+  clip_pids+=($!)
+done
+for p in "${clip_pids[@]}"; do wait "$p"; done
+: > "$WORK/concat.txt"
+for i in $(seq 0 $((NSCENES-1))); do echo "file 'clip-$i.mp4'" >> "$WORK/concat.txt"; done
+ffmpeg -y -v error -f concat -safe 0 -i "$WORK/concat.txt" -c copy "$WORK/video-nocap.mp4"
 
 # 5) narration track: scene WAVs with PAD silence after each
 python3 - "$WORK" <<'EOF'
@@ -114,8 +132,8 @@ subprocess.run(['ffmpeg','-y','-v','error'] + inputs +
 print('narration.wav assembled')
 EOF
 
-# 6) final assembly: frames + narration + burned captions
-ffmpeg -y -v error -framerate 30 -i "$WORK/frames/f%06d.png" -i "$WORK/narration.wav" \
+# 6) final assembly: concat video + narration + burned captions
+ffmpeg -y -v error -i "$WORK/video-nocap.mp4" -i "$WORK/narration.wav" \
   -vf "subtitles=$WORK/captions.srt:force_style='FontSize=11,PrimaryColour=&H30241F&,OutlineColour=&HFFFFFF&,BorderStyle=1,Outline=2,Shadow=0,MarginV=20'" \
   -c:v libx264 -preset medium -crf 20 -pix_fmt yuv420p -c:a aac -b:a 128k -shortest \
   "$WORK/poc.mp4"

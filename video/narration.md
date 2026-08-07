@@ -2,7 +2,7 @@
 
 ## Scene 0 — motivation
 
-I run a production health platform — legacy Drupal plus Elm — and AI agents now do real work on it. So the practical question: which model can I trust with this codebase? Who writes quality code here, and who can review it — catching the bug instead of waving it through? Public benchmarks rank models on fresh mainstream code, not on stacks like mine. So I measured it myself. Fourteen models, one question: can I trust you here?
+I run a production health platform — legacy Drupal plus Elm — and AI agents now do real work on it. So the practical question: which model can I trust with this codebase? Who writes quality code here, and who can review it — catching the bug instead of waving it through? Public benchmarks rank models on fresh mainstream code, not on stacks like mine. So I measured it myself. Fourteen models, one question: which of these can be trusted in this stack?
 
 ## Scene 1 — hook
 
@@ -28,4 +28,4 @@ I work on a production digital-health platform — legacy Drupal on the backend,
 
 The public benchmarks can't answer that. They rank models on fresh Python and JavaScript in greenfield repos — not on a fifteen-year-old CMS with its own way of doing things, not on a typed functional frontend, not on the kind of code my platform is actually made of.
 
-So I measured it myself: fifteen tasks distilled from my real production patterns, graded by compilers, tests, and live probes — never by another AI's opinion — with a receipt behind every number. Fourteen models, seven vendors, every one asked the same question: can I trust you here?
+So I measured it myself: fifteen tasks distilled from my real production patterns, graded by compilers, tests, and live probes — never by another AI's opinion — with a receipt behind every number. Fourteen models, seven vendors, every one asked the same question: which of these can be trusted in this stack?
