@@ -104,6 +104,7 @@ print(f'captions.srt: {idx-1} cues (exact)')
 EOF
 
 # 4) frames via Playwright — one chromium PER SCENE, in parallel
+rm -rf "$WORK"/frames-* "$WORK"/clip-*.mp4 "$WORK"/video-nocap.mp4   # stale frames from a longer previous build would desync everything after them
 NSCENES=$(python3 -c "import json;print(len(json.load(open('$WORK/timing.json'))['scenes']))")
 pids=()
 for i in $(seq 0 $((NSCENES-1))); do
