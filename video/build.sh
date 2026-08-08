@@ -8,7 +8,8 @@ WORK="${1:-$HERE/build}"
 ENGINE="${ENGINE:-elevenlabs}"                       # elevenlabs | piper
 VOICE="${VOICE:-en_US-hfc_male-medium}"             # piper voice (ENGINE=piper)
 VOICE_ID="${VOICE_ID:-1SM7GgM6IMuvQlz2BwM3}"        # ElevenLabs voice (Mark - Casual, Relaxed and Light)
-TTS_SPEED="${TTS_SPEED:-0.95}"                      # ElevenLabs speed (0.7-1.2)
+TTS_SPEED="${TTS_SPEED:-0.85}"                      # ElevenLabs speed (0.7-1.2)
+LEAD="${LEAD:-1.0}"                                 # silence before the first sentence, seconds
 PIPER="$HOME/.local/share/piper/piper/piper"
 ESPEAK="$HOME/.local/share/piper/piper/espeak-ng-data"
 MODEL="$HOME/.local/share/piper/voices/$VOICE.onnx"
@@ -23,10 +24,10 @@ export ELEVENLABS_API_KEY="${ELEVENLABS_API_KEY:-}"
 mkdir -p "$WORK/audio"
 
 # 1-3) narration.md -> per-SENTENCE synthesis (cached) -> scene WAVs + exact cue map + SRT
-python3 - "$HERE/narration.md" "$WORK" "$PAD" "$PIPER" "$MODEL" "$ESPEAK" "$ENGINE" "$VOICE_ID" "$TTS_SPEED" "$CACHE" <<'EOF'
+python3 - "$HERE/narration.md" "$WORK" "$PAD" "$PIPER" "$MODEL" "$ESPEAK" "$ENGINE" "$VOICE_ID" "$TTS_SPEED" "$CACHE" "$LEAD" <<'EOF'
 import re, sys, os, json, subprocess, hashlib, urllib.request
 src, work, pad, piper, model, espeak = sys.argv[1], sys.argv[2], float(sys.argv[3]), sys.argv[4], sys.argv[5], sys.argv[6]
-engine, voice_id, tts_speed, cache = sys.argv[7], sys.argv[8], float(sys.argv[9]), sys.argv[10]
+engine, voice_id, tts_speed, cache, lead = sys.argv[7], sys.argv[8], float(sys.argv[9]), sys.argv[10], float(sys.argv[11])
 GAP = 0.18   # silence between sentences, seconds
 adir = os.path.join(work, 'audio')
 os.makedirs(adir, exist_ok=True)
@@ -77,7 +78,12 @@ for num, text in found:
         inputs += ['-i', w]
         filters.append(f'[{i}:a]apad=pad_dur={GAP}[a{i}]')
     chain = ''.join(f'[a{i}]' for i in range(len(wavs)))
-    fc = ';'.join(filters) + f';{chain}concat=n={len(wavs)}:v=0:a=1,atrim=0:{audio_s}[out]'
+    is_first = len(scenes) == 0
+    head = f'adelay={int(lead*1000)}:all=1,' if is_first and lead > 0 else ''
+    if is_first and lead > 0:
+        cues = [round(c + lead, 3) for c in cues]
+        audio_s += lead
+    fc = ';'.join(filters) + f';{chain}concat=n={len(wavs)}:v=0:a=1,{head}atrim=0:{audio_s}[out]'
     subprocess.run(['ffmpeg','-y','-v','error'] + inputs + ['-filter_complex', fc, '-map','[out]', scene_wav], check=True)
     scenes.append({'wav': scene_wav, 'audio_s': round(audio_s,3), 'video_s': round(audio_s + pad,3),
                    'cues': cues, 'sent_durs': sdurs, 'sentences': sents})

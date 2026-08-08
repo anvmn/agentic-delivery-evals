@@ -24,11 +24,21 @@ body { background:linear-gradient(135deg, #FCE3BF 0%, #F6D8CE 26%, #D9E2FB 58%, 
 /* ---- scene 0: motivation ---- */
 #s0 { display:none; }
 #s0.active { display:flex; }
-#s0 { flex-direction:column; align-items:center; justify-content:center; gap:44px; }
+#s0 { flex-direction:column; align-items:center; justify-content:center; gap:40px; padding-bottom:140px; }
 #s0 .line { opacity:0; text-align:center; }
 #s0 .l1 { font-size:38px; color:var(--ink); }
 #s0 .l1 span { display:block; font-size:24px; color:var(--ink-3); margin-top:10px;
   font-family:ui-monospace,Menlo,Consolas,monospace; letter-spacing:0.08em; }
+#s0 .stackviz { margin:22px auto 0; width:max-content; white-space:nowrap; }
+#s0 .stackviz .node { display:inline-flex; align-items:center; gap:12px; padding:12px 24px; font-size:25px;
+  background:var(--panel); box-shadow:0 2px 12px rgba(31,36,48,0.09); color:var(--ink-2);
+  font-family:ui-monospace,Menlo,Consolas,monospace; }
+#s0 .stackviz .node svg rect { fill:var(--c-blue); }
+#s0 .stackviz .node svg .st { stroke:var(--c-teal); fill:none; }
+#s0 .stackviz .node.teal svg rect { fill:var(--c-teal); }
+#s0 .stackviz .xarrow { margin:0 18px; font-size:34px; color:var(--ink-3); vertical-align:middle; }
+#s0 .dots0 { display:flex; gap:14px; justify-content:center; }
+#s0 .dots0 i { width:30px; height:30px; border-radius:7px; opacity:0; }
 #s0 .l2 { font-size:58px; font-weight:600; max-width:1300px;
   font-family:ui-monospace,Menlo,Consolas,monospace; }
 #s0 .l2 em { color:var(--accent); font-style:normal; }
@@ -194,11 +204,18 @@ tr.trap.lit { outline:2.5px solid var(--accent); background:var(--accent-soft); 
 <body>
 
 <section class="scene" id="s0">
-  <div class="line l1">A production health platform<span>Legacy Drupal · Elm frontend</span></div>
+  <div class="line l1">A production health platform
+    <div class="stackviz">
+      <span class="node"><svg width="34" height="30" viewBox="0 0 34 30"><rect x="2" y="2" width="30" height="7" rx="2"/><rect x="2" y="11" width="30" height="7" rx="2"/><rect x="2" y="20" width="30" height="7" rx="2"/></svg>Legacy Drupal · Backend</span>
+      <span class="xarrow">⇄</span>
+      <span class="node teal"><svg width="34" height="30" viewBox="0 0 34 30"><rect x="2" y="2" width="30" height="26" rx="3" fill="none" stroke-width="2.5" class="st"/><rect x="2" y="2" width="30" height="7" rx="2"/></svg>Elm · Frontend</span>
+    </div>
+  </div>
   <div class="line l2">Which model can I <em>trust</em> with this codebase?</div>
   <div class="line l3"><span class="chip">Quality code?</span><span class="chip">Honest reviews?</span></div>
   <div class="line l4">Public benchmarks don't measure stacks like this</div>
   <div class="line l5">So I measured it.</div>
+  <div class="line dots0"></div>
 </section>
 
 <section class="scene" id="s1">
@@ -392,10 +409,25 @@ const clamp = (x,a,b) => Math.max(a, Math.min(b, x));
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const ease = u => u<0 ? 0 : u>1 ? 1 : 1 - Math.pow(1-u, 3);   // easeOutCubic
 
+const DOT_HUES = ['--c-blue','--c-orange','--c-teal','--c-violet','--c-magenta'];
+(function initDots() {
+  const box = document.querySelector('#s0 .dots0');
+  for (let i = 0; i < 14; i++) {
+    const d = document.createElement('i');
+    d.style.background = `var(${DOT_HUES[i % 5]})`;
+    box.appendChild(d);
+  }
+})();
+
 function seekS0(t, dur, cues=[], sdurs=[]) {
-  const c = i => cues[i] ?? [0.4, 3.6, 8.8, 15.2, 19.2][i];
+  const c = i => cues[i] ?? [0.4, 3.6, 8.8, 15.2, 19.2, 21.5][i];
+  const d = i => sdurs[i] ?? 3;
   ['l1','l2','l3','l4','l5'].forEach((cls, i) => {
     document.querySelector(`#s0 .${cls}`).style.opacity = ease((t - c(i)) / 0.7);
+  });
+  document.querySelector('#s0 .dots0').style.opacity = 1;
+  document.querySelectorAll('#s0 .dots0 i').forEach((dot, i) => {
+    dot.style.opacity = ease((t - c(5) - i * d(5) * 0.045) / 0.4);
   });
 }
 
