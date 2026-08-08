@@ -8,7 +8,7 @@ WORK="${1:-$HERE/build}"
 ENGINE="${ENGINE:-elevenlabs}"                       # elevenlabs | piper
 VOICE="${VOICE:-en_US-hfc_male-medium}"             # piper voice (ENGINE=piper)
 VOICE_ID="${VOICE_ID:-1SM7GgM6IMuvQlz2BwM3}"        # ElevenLabs voice (Mark - Casual, Relaxed and Light)
-TTS_SPEED="${TTS_SPEED:-0.85}"                      # ElevenLabs speed (0.7-1.2)
+TTS_SPEED="${TTS_SPEED:-0.92}"                      # ElevenLabs speed (0.7-1.2)
 LEAD="${LEAD:-1.0}"                                 # silence before the first sentence, seconds
 PIPER="$HOME/.local/share/piper/piper/piper"
 ESPEAK="$HOME/.local/share/piper/piper/espeak-ng-data"
