@@ -1,15 +1,13 @@
 # agentic-delivery-evals
 
-A test suite that measures how well AI coding agents handle real-world work — and where they quietly fail.
+**A test suite that measures how well AI coding agents handle real-world work — and where they quietly fail.**
+
+<!-- markdownlint-disable-next-line MD034 -- GitHub's inline video player requires a bare URL -->
+https://github.com/user-attachments/assets/a99c18ac-ff3a-4fa7-84df-c0d671f7303a
 
 It covers two under-measured territories: **Drupal** (the CMS platform behind a large share of institutional websites, in both its modern version 10 and its legacy 2011-era version 7) and **Elm** (a typed functional language for web apps). The tasks are modeled on the real workflow behind a production digital-health platform. This repo is the measurement layer of the [agentic-delivery-harness](https://github.com/anvmn/agentic-delivery-harness); every claim below is regenerable from machine-readable receipts in `results/runs.jsonl`.
 
 > **The short version:** we gave 14 AI models from 7 vendors (Anthropic, Google, OpenAI, xAI, Moonshot, Alibaba, DeepSeek) 15 coding tasks — 545 graded runs. Nearly every model passed nearly everything, including tasks deliberately engineered to be treacherous. But one task splits the field dramatically, and the reason became the central finding: **models fail where the internet contains a popular wrong answer but not the warning about it.** Every vendor's models fall into the same two wrong patterns on that task (the 2026-07 five-model cross-lab column went **0/30** blind at n=6), raising reasoning effort has rescued only the Opus family (Opus 4.8 1/6 blind → 2/3 at max; the other eight blind-failers: 0/24 at raised effort), and AI code reviewers hallucinate in both directions on the same code AI authors write correctly. Update 2026-07-28: **Opus 5 is the first model besides Fable to nearly clear the trap blind — 5/6, and its one miss is the same canonical trap line** — the strongest sign yet that the gap is a knowledge threshold, and that the threshold moves.
-
-🎬 **Prefer watching?** The whole story in 4½ narrated minutes — every number regenerates from the receipts, and the video itself regenerates from [`video/`](video/) with one command ([release](https://github.com/anvmn/agentic-delivery-evals/releases/tag/video-v1)):
-
-<!-- markdownlint-disable-next-line MD034 -- GitHub's inline video player requires a bare URL -->
-https://github.com/user-attachments/assets/a99c18ac-ff3a-4fa7-84df-c0d671f7303a
 
 ## The scoreboard (suites 0.1–0.3 · 545 runs · 14 models, 7 vendors · 2026-07-28)
 
