@@ -637,17 +637,6 @@ rate spike. Inbox check: nothing from Google Cloud compliance since the
 2026-07-23 "Appeal Received" acknowledgment. The three ※ cells (d10-05,
 d7-06, d7-07 × gemini-3.1-pro) remain pending.
 
-## Gemini appeal — follow-up submitted (2026-08-16)
-
-24 days after the "Appeal Received" acknowledgment with no verdict (API
-still 429 / quota-zeroed on every probe), a follow-up was submitted through
-the project's console appeal form (console.cloud.google.com/appeal, personal
-account). Content: appeal timeline, the named root cause (the runner's
-overnight quota-retry loop, since fixed to abort on any quota signal — fix
-visible in the public repo history), paid-billing status with unused prepaid
-credit, and a request for a decision or a list of missing information.
-The ※ cells remain pending.
-
 ## Ledger-count alignment + display-layer audit (2026-08-06)
 
 - **Headline run-count drift:** the README said "534 graded runs" while the
@@ -685,3 +674,14 @@ The ※ cells remain pending.
   a roadmap bullet still listing the open-weights column as future work,
   a footnote claiming non-Claude d7-01 cells are n=3 (the OpenRouter cells
   are 0/6), and the missing `openrouter:` routing in the how-it-works docs.
+
+## Gemini appeal — follow-up submitted (2026-08-16)
+
+24 days after the "Appeal Received" acknowledgment with no verdict (API
+still 429 / quota-zeroed on every probe), a follow-up was submitted through
+the project's console appeal form (console.cloud.google.com/appeal, personal
+account). Content: appeal timeline, the named root cause (the runner's
+overnight quota-retry loop, since fixed to abort on any quota signal — fix
+visible in the public repo history), paid-billing status with unused prepaid
+credit, and a request for a decision or a list of missing information.
+The ※ cells remain pending.
