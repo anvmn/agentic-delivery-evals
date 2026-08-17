@@ -1,7 +1,9 @@
 answers/
+answers2/
 .backups/
 .catalog.json
 .lean/
+round2.log
 sol.log
 *.stdout
 sweep.log
