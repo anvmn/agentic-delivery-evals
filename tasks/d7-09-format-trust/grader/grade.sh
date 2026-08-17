@@ -50,6 +50,14 @@ if [ -d "$SITE" ] && [ -f "$SITE/index.php" ]; then
     enable=true
     url=$(ddev describe -j | jq -r '.raw.primary_url')
 
+    # Make the eval site match the task's premise: ordinary members really can
+    # select the permissive format, so the stored bio_format is untrustworthy.
+    # Without this the site is admin-only for full_html, and a solution that
+    # merely re-checks filter_access() on the author looks safe here while
+    # still shipping XSS on the site the task describes (author-catch #9
+    # family: the probe must be able to observe what the premise implies).
+    ddev drush php-eval 'user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array("use text format full_html"));' >/dev/null 2>&1
+
     # A dedicated probe user; its bio is the payload under test.
     uid=$(ddev drush php-eval '
       $a = user_load_by_name("bioprobe");
@@ -98,6 +106,9 @@ if [ -d "$SITE" ] && [ -f "$SITE/index.php" ]; then
     fi
   fi
 fi
+
+# Leave the shared site as we found it, whatever happened above.
+( cd "$SITE" && ddev drush php-eval 'user_role_revoke_permissions(DRUPAL_AUTHENTICATED_RID, array("use text format full_html"));' >/dev/null 2>&1 ) || true
 
 pass=false
 if $lint && $enable && $renders_formatting && $blocks_script && $blocks_event_handler && $empty_state; then pass=true; fi
