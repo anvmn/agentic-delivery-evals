@@ -1,4 +1,7 @@
 answers/
-.catalog.json
-sweep.log
 .backups/
+.catalog.json
+.lean/
+sol.log
+*.stdout
+sweep.log

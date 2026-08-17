@@ -18,7 +18,7 @@ declare -A CLAUDE=( [claude-haiku-4-5]=haiku [claude-sonnet-5]=sonnet [claude-op
 eval "$(grep -E '^export (OPENAI|CODEX)' "$HOME/.bashrc" 2>/dev/null | tail -5)" 2>/dev/null || true
 
 run_claude() { # $1=model $2=prompt  -> stdout=answer
-  local out d="$HERE/.lean"; mkdir -p "$d"; echo '{}' > "$d/mcp.json"
+  local out d="$HERE/.lean"; mkdir -p "$d"; echo '{"mcpServers":{}}' > "$d/mcp.json"
   # run lean: empty cwd, no project/user settings, no MCP — a bare knowledge probe,
   # ~30x lighter per call than loading the repo context (which exhausted the quota)
   out=$(cd "$d" && timeout 150 claude -p "$2$SUFFIX" --model "$1" \
@@ -41,8 +41,16 @@ while IFS= read -r line; do
   for model in "${!CLAUDE[@]}"; do
     label=${CLAUDE[$model]}; f="answers/${id}__${label}.txt"; total=$((total+1))
     if [ -s "$f" ]; then skip=$((skip+1)); continue; fi
-    ans=$(run_claude "$model" "$prompt"); rc=$?
-    if [ $rc -eq 2 ]; then echo "$(date +%H:%M:%S) LIMIT on $model at $id — stopping; rerun to resume" | tee -a "$LOG"; exit 3; fi
+    tries=0
+    while :; do
+      ans=$(run_claude "$model" "$prompt"); rc=$?
+      if [ $rc -eq 2 ]; then
+        tries=$((tries+1))
+        if [ $tries -gt 30 ]; then echo "$(date +%H:%M:%S) LIMIT persistent on $model at $id — giving up cell (resume later)" >>"$LOG"; break; fi
+        echo "$(date +%H:%M:%S) LIMIT on $model at $id — waiting 120s (retry $tries)" >>"$LOG"; sleep 120; continue
+      fi
+      break
+    done
     if [ -n "$ans" ]; then printf '%s\n' "$ans" > "$f"; done_n=$((done_n+1)); echo "$(date +%H:%M:%S) $id $label ok" >>"$LOG"
     else fail=$((fail+1)); echo "$(date +%H:%M:%S) $id $label FAIL(rc=$rc)" >>"$LOG"; fi
   done
