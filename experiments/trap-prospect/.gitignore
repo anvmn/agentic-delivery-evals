@@ -1,3 +1,4 @@
 answers/
 .catalog.json
 sweep.log
+.backups/
