@@ -1,0 +1,43 @@
+<?php
+
+/**
+ * @file
+ * Install/schema for the bioprofile module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function bioprofile_schema() {
+  $schema['bioprofile_bio'] = array(
+    'description' => 'Per-user bio text plus the text format its author selected.',
+    'fields' => array(
+      'uid' => array(
+        'description' => 'The author of the bio.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'bio_value' => array(
+        'description' => 'Raw bio text exactly as the user submitted it.',
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => FALSE,
+      ),
+      'bio_format' => array(
+        'description' => 'Machine name of the text format the USER chose on the form.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'updated' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('uid'),
+  );
+  return $schema;
+}

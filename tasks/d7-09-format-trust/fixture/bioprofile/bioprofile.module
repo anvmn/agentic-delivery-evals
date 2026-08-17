@@ -1,0 +1,91 @@
+<?php
+
+/**
+ * @file
+ * Bio Profile: users write a bio and pick their own text format; the bio is
+ * shown on a public profile page that anonymous visitors can read.
+ *
+ * The edit form and storage below are DONE. Implement the public page callback
+ * bioprofile_bio_page() — see task.md.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function bioprofile_menu() {
+  $items['bio/%user'] = array(
+    'title' => 'Bio',
+    'page callback' => 'bioprofile_bio_page',
+    'page arguments' => array(1),
+    // Public by design: anonymous visitors read member bios.
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items['bio/%user/edit'] = array(
+    'title' => 'Edit bio',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('bioprofile_bio_form', 1),
+    'access callback' => 'user_edit_access',
+    'access arguments' => array(1),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Form: a user writes their bio and selects the text format themselves.
+ *
+ * The site grants the "full_html" format to trusted-ish authenticated users,
+ * so $form_state['values']['bio']['format'] is USER-CONTROLLED input.
+ */
+function bioprofile_bio_form($form, &$form_state, $account) {
+  $record = bioprofile_bio_load($account->uid);
+  $form['uid'] = array('#type' => 'value', '#value' => $account->uid);
+  $form['bio'] = array(
+    // #type text_format renders the body plus a format selector.
+    '#type' => 'text_format',
+    '#title' => t('Bio'),
+    '#default_value' => $record ? $record->bio_value : '',
+    '#format' => $record ? $record->bio_format : NULL,
+  );
+  $form['submit'] = array('#type' => 'submit', '#value' => t('Save'));
+  return $form;
+}
+
+/**
+ * Submit handler: stores the raw text and the author's chosen format verbatim.
+ */
+function bioprofile_bio_form_submit($form, &$form_state) {
+  db_merge('bioprofile_bio')
+    ->key(array('uid' => $form_state['values']['uid']))
+    ->fields(array(
+      'bio_value' => $form_state['values']['bio']['value'],
+      'bio_format' => $form_state['values']['bio']['format'],
+      'updated' => REQUEST_TIME,
+    ))
+    ->execute();
+  drupal_set_message(t('Your bio has been saved.'));
+}
+
+/**
+ * Loads a user's stored bio row.
+ *
+ * @return object|false
+ *   Object with ->bio_value and ->bio_format, or FALSE when none is stored.
+ */
+function bioprofile_bio_load($uid) {
+  return db_select('bioprofile_bio', 'b')
+    ->fields('b', array('uid', 'bio_value', 'bio_format'))
+    ->condition('b.uid', $uid)
+    ->execute()
+    ->fetchObject();
+}
+
+/**
+ * Page callback: renders $account's bio for any visitor, including anonymous.
+ *
+ * IMPLEMENT THIS — see task.md for the required behavior.
+ */
+function bioprofile_bio_page($account) {
+  return array();
+}

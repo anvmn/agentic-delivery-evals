@@ -1,0 +1,4 @@
+name = Bio Profile
+description = Public user bios, written by users who choose their own text format.
+core = 7.x
+files[] = bioprofile.module
