@@ -714,12 +714,14 @@ check_plain over-correction **FAIL** on exactly renders_formatting (passes both
 security stages — escaped output really is safe) · raw fixture **FAIL**.
 
 ### Author-catch #10 — the grader's own reset left no schema
+
 `pm-disable` alone leaves a module registered as installed, so `hook_schema()`
 never re-ran and `{bioprofile_bio}` was missing on every regrade: the reference
 "failed" for an infrastructure reason. Fixed by adding `pm-uninstall` to the
 reset. (Same family as the shared-fixture-state fixes of 2026-07-16.)
 
 ### Author-catch #11 — a literal assertion that missed a live XSS
+
 The first `blocks_script` check grepped for the payload verbatim
 (`<script>alert("SCRIPTMARK7")`). It **passed the trap variant** — because
 `filter_autop` wraps surviving JS in a CDATA block, so the raw string never
