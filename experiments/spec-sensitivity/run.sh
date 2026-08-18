@@ -55,6 +55,15 @@ for wording in silent stated; do
       esac
       meta=$("$adapter" "$ws" "$agent_model" "$TIMEOUT_S" "$ws/transcript.jsonl" 2>"$ws/agent-stderr.log")
 
+      # Infra guard (runner/run.sh has the same): a run the provider aborted is
+      # noise, not a model result. Recording it as a no-op silently understates
+      # the vulnerable rate and mislabels a billing failure as model behavior.
+      if grep -qiE 'no credits remaining|insufficient_quota|rate.?limit|401 Unauthorized|403 Forbidden|turn\.failed' \
+           "$ws/transcript.jsonl" 2>/dev/null; then
+        echo "    !! provider abort — cell voided (not recorded); see $ws/transcript.jsonl"
+        continue
+      fi
+
       "$TASK/grader/grade.sh" "$ws" > "$ws/grade-stdout.log" 2>&1
       grade=$(cat "$ws/grade.json" 2>/dev/null || echo '{"pass":false,"stages":{}}')
 

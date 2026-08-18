@@ -828,3 +828,42 @@ directly, did get the vulnerable pattern from Sol.
 Rule extracted, third time of asking: **a safety check must be paired with a
 liveness check.** "Nothing bad happened" is only meaningful when something
 happened at all.
+
+## Sol correction: a falsified attribution, plus paradigm bleed (2026-08-18)
+
+**Falsified own claim.** The cross-vendor writeup attributed Sol's four empty
+cells to "the known single-shot Codex-CLI agent style." Wrong. The operator
+suspected credits; the transcripts confirm it verbatim — *"You have no credits
+remaining. Add credits to continue using the API"* → `turn.failed`, $0 metered,
+all four cells. That is a provider abort, which by this project's own rule is
+infrastructure noise and must never be recorded as a model result. The four
+records are **voided** to `experiments/spec-sensitivity/voided-runs.jsonl`, and
+`run.sh` now carries the same abort guard `runner/run.sh` has (no credits /
+insufficient_quota / 401 / 403 / turn.failed → cell skipped, not recorded).
+Falsified-own-claims ledger +1.
+
+**Sol re-run through OpenRouter** (separate credits, same model, different
+harness): **stated arm defended 2/2** via `filter_xss`; **silent arm broken
+2/2** — it returned `array('#type' => 'processed_text', '#text' => $value,
+'#format' => $stored_format)`. `processed_text` is a **Drupal 8** render
+element; D7's filter module registers only `text_format` (verified against the
+running site's `element_info()`). Lint passed, the module enabled, the page
+returned HTTP 200 — and the bio rendered as nothing at all.
+
+Two things worth keeping from that:
+
+- Sol's silent cells cannot be scored for the security question, but its
+  *intent* was the vulnerable pattern: the author-chosen `$format` was passed
+  straight through. In D8 that element honors exactly the format it is given.
+- It is a clean, silent instance of **paradigm bleed** — the founding hypothesis
+  of the suite (D8 idioms injected into D7). Notably it is invisible to lint,
+  to module-enable, and to an HTTP status check; only a content assertion
+  catches it. Another argument for behavioral grading over shape checks.
+
+**Process note (repeat offence).** `run.sh` was edited *while an instance of it
+was executing*, and the running shell then read the half-written file and died
+with a syntax error at the final `done`. This is the write-while-exec failure
+already logged on 2026-07-21/22, where the rule adopted was: mutate a script
+atomically (write-temp + mv) or wait for the batch. The rule was not followed.
+No data was lost (all four cells had already been written), but the lesson is
+now recorded twice and should be enforced by habit, not memory.
