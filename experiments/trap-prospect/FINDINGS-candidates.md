@@ -9,7 +9,9 @@ plan's Model-roles bias guard.)
 ## Lead candidate — BUILD IT
 
 ### C1 · Field output: `['value']` vs `['safe_value']` (XSS)  [from tp-51]
+
 Prompt: output a `text_long` field the editor entered, on a node page.
+
 - **haiku** → `print $field[0]['value'];`  (raw → XSS)
 - **sonnet** → `print $node->field_body[LANGUAGE_NONE][0]['value'];`  (raw → XSS)
 - **opus5** → `check_markup($items[0]['value'], $items[0]['format'])`  (safe)
@@ -38,12 +40,14 @@ If they also emit raw `['value']`, it's a strong cross-lineage discriminator.
   public list. Interesting but overlapping.
 
 ## Method lesson (drives round 2)
+
 Loosely-specified probes yield **defensible near-misses, not traps** (tp-12,
 tp-13). The observable constraint must be IN the prompt. Round-2 probes: bake
 the requirement in (e.g. "public profile, PUBLISHED, newest-first") and lean
 hard into the security veins, where the corpus is genuinely warning-poor.
 
 ## Verdict
+
 1 solid lead (C1), 2 secondaries. Round 1's loose probes limited the yield, as
 predicted — but the tight security-flavored probes delivered exactly one
 d7-01-shaped candidate worth building into task **d7-09** (Fable authors the

@@ -1,15 +1,18 @@
 # Trap discovery round 1 — interim findings (2026-08-17)
 
 ## Method: validated
+
 Consensus probing cleanly separates corpus-healthy areas (all models converge
 on the *safe* pattern — e.g. conditional-required fields, email validation,
 output sanitization: tp-01..tp-08 mostly healthy) from divergence. The pipeline
 works and is cheap (~$0.02–0.06/probe, Max plan).
 
 ## Key lesson: probe tightness is the whole game
+
 The first analyzed batch produced **near-misses, not clean traps** — because
 several probes are under-specified. The popular "wrong" pattern shows up, but
 the loose prompt makes it *defensible*, so there is no violation:
+
 - **tp-12** ("list the current user's articles") — 3/4 omit the node_access
   tag, but for one's *own* content that is defensible; no leak proven.
 - **tp-13** ("EFQ then load a field") — the load reorders vs the query, and two
@@ -24,6 +27,7 @@ tp-12 → "public profile page listing the user's **published** articles,
 **newest first**" turns access-tag + status + order into forced requirements.
 
 ## Status
+
 - Sol column 60/60; Claude fleet self-healing toward 60 (transient rolling
   limits, auto-retry). 25 probes fully covered so far.
 - Still to do: full-matrix Fable adjudication (against D7 core source), and the
