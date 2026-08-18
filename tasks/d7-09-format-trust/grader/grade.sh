@@ -44,6 +44,9 @@ if [ -d "$SITE" ] && [ -f "$SITE/index.php" ]; then
   ddev drush -y pm-uninstall bioprofile >/dev/null 2>&1 || true
   ddev drush php-eval 'if (db_table_exists("bioprofile_bio")) { db_drop_table("bioprofile_bio"); }' >/dev/null 2>&1 || true
   rm -rf "$MOD"; mkdir -p "$MOD"; cp -r "$WS/bioprofile/." "$MOD/"
+  # check.php is a workspace-only offline harness: it redefines t(), check_markup()
+  # and friends, so it must never sit inside a live Drupal tree.
+  rm -f "$MOD/check.php"
   ddev drush cc all >/dev/null 2>&1
 
   if ddev drush -y pm-enable bioprofile >/dev/null 2>&1 && ddev drush cc all >/dev/null 2>&1; then

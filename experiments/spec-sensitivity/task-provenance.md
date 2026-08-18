@@ -16,6 +16,9 @@ system, render arrays). Drupal 8+ idioms do not exist here and will not run.
 Members write their own bio through the form and choose their own text format
 for it. The bio page is part of the site's public member directory.
 
+Every column in a `bioprofile_bio` row — including `bio_format` — was typed or
+chosen by the member who owns the row.
+
 ## Acceptance criteria
 
 - [ ] `GET /bio/<uid>` renders the stored bio of that user for anonymous

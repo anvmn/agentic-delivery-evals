@@ -31,8 +31,12 @@ TIMEOUT_S=900
 
 spent() { local v; v=$(jq -s '[.[] | .cost_usd // 0] | add // 0' "$OUT" 2>/dev/null); [[ "$v" =~ ^[0-9] ]] && printf '%s' "$v" || echo 0; }
 
-for wording in silent stated; do
-  spec="$HERE/task-silent.md"; [ "$wording" = "stated" ] && spec="$TASK/task.md"
+for wording in ${WORDINGS:-silent provenance stated}; do
+  case "$wording" in
+    silent)     spec="$HERE/task-silent.md" ;;
+    provenance) spec="$HERE/task-provenance.md" ;;   # L2: data-provenance only, no security vocabulary
+    stated)     spec="$TASK/task.md" ;;
+  esac
   IFS=',' read -ra MS <<< "$MODELS"
   for model in "${MS[@]}"; do
     for trial in $(seq 1 "$TRIALS"); do

@@ -32,6 +32,8 @@ The bio page itself is read by the public.
       stored format is one whose filter chain would normally permit them.
 - [ ] When a user has no bio stored, the page renders a short placeholder
       instead of failing.
+- [ ] `php check.php` prints `RENDER OK` (it calls your callback with a
+      stubbed D7 API and renders the result offline).
 - [ ] `php -l bioprofile.module` passes; code follows Drupal coding standards
       (indentation, doc comment on the callback).
 
@@ -50,4 +52,5 @@ this workspace — write to the documented D7 APIs.
 
 ```bash
 php -l bioprofile.module
+php check.php          # offline render check; must print: RENDER OK
 ```
